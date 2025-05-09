@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import './Main.css';
 
 function Main() {
   // 상태 관리
@@ -109,23 +110,23 @@ function Main() {
   };
 
   return (
-    <div style={!showChatInterface ? styles.container : styles.chatContainer}>
+    <div className={!showChatInterface ? "container" : "chatContainer"}>
       {!showChatInterface ? (
         // 초기 화면 (Main)
         <>
           {/* 1열: 로고 */}
-          <div style={styles.column}>
+          <div className="column">
             <img
               src="logo512.png"
               alt="Logo"
-              style={styles.logo}
+              className="logo"
               onClick={handleLogoClick}
             />
           </div>
           {/* 2열: 파일첨부, 텍스트필드, 전송버튼 (가로 배치) */}
-          <div style={styles.column}>
-            <div style={styles.inputRow}>
-              <button style={styles.fileButton} onClick={handleFileButtonClick}>
+          <div className="column">
+            <div className="inputRow">
+              <button className="fileButton" onClick={handleFileButtonClick}>
                 <i>📎</i>
               </button>
               <input
@@ -141,10 +142,10 @@ function Main() {
                 onKeyDown={handleKeyPress}
                 maxLength={3000}
                 placeholder="메시지를 입력하세요"
-                style={styles.textField}
+                className="textField"
               />
               <button 
-                style={styles.sendButton} 
+                className="sendButton"
                 onClick={handleSendClick}
                 disabled={text.trim().length === 0}
               >
@@ -157,28 +158,28 @@ function Main() {
         // 채팅 인터페이스 화면
         <>
           {/* 헤더 섹션 */}
-          <div style={styles.chatHeader}>
-            <div style={styles.leftSection}>
-              <button style={styles.menuButton} onClick={handleMenuClick}>
+          <div className="chatHeader">
+            <div className="leftSection">
+              <button className="menuButton" onClick={handleMenuClick}>
                 <i>≡</i>
               </button>
-              <h1 style={styles.title}>'sample.apk' 파일의 악성 코드 분석</h1>
+              <h1 className="title">'sample.apk' 파일의 악성 코드 분석</h1>
             </div>
-            <div style={styles.rightSection}>
-              <div style={styles.userProfilePicture}></div>
+            <div className="rightSection">
+              <div className="userProfilePicture"></div>
             </div>
           </div>
 
           {/* 메시지 컨테이너 */}
-          <div style={styles.messagesContainer}>
-            <div style={styles.messagesOverflow}>
-              <div style={styles.fadeGradient}></div>
+          <div className="messagesContainer">
+            <div className="messagesOverflow">
+              <div className="fadeGradient"></div>
               {messages.map((message, index) => (
                 <div 
                   key={index} 
-                  style={message.isUser ? styles.userMessageWrapper : styles.responseMessageWrapper}
+                  className={message.isUser ? "userMessageWrapper" : "responseMessageWrapper"}
                 >
-                  <div style={message.isUser ? styles.userMessageBubble : styles.responseMessageBubble}>
+                  <div className={message.isUser ? "userMessageBubble" : "responseMessageBubble"}>
                     {message.text}
                   </div>
                 </div>
@@ -188,8 +189,8 @@ function Main() {
           </div>
           
           {/* 하단 입력 영역 */}
-          <div style={styles.chatInputContainer}>
-            <button style={styles.fileButton} onClick={handleFileButtonClick}>
+          <div className="chatInputContainer">
+            <button className="fileButton" onClick={handleFileButtonClick}>
               <i>📎</i>
             </button>
             <input
@@ -204,10 +205,10 @@ function Main() {
               onKeyDown={handleKeyPress}
               maxLength={3000}
               placeholder="질문을 입력하세요..."
-              style={styles.chatTextField}
+              className="chatTextField"
             />
             <button 
-              style={styles.sendButton} 
+              className="sendButton"
               onClick={handleSendClick}
               disabled={text.trim().length === 0}
             >
@@ -219,174 +220,5 @@ function Main() {
     </div>
   );
 }
-
-// 통합된 스타일
-const styles = {
-  // 초기 Main 화면 스타일
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
-  },
-  column: {
-    marginBottom: '20px',
-    display: 'flex',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  logo: {
-    width: '150px',
-    cursor: 'pointer',
-  },
-  inputRow: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  textField: {
-    padding: '8px',
-    width: '300px',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-  },
-  
-  // 채팅 인터페이스 스타일
-  chatContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100vh',
-    width: '100%',
-    backgroundColor: '#f0f4f8',
-    fontFamily: 'Arial, sans-serif',
-  },
-  chatHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '15px',
-    backgroundColor: '#ffffff',
-    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
-    zIndex: 10,
-  },
-  leftSection: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  menuButton: {
-    background: 'none',
-    border: 'none',
-    fontSize: '24px',
-    cursor: 'pointer',
-    marginRight: '15px',
-  },
-  title: {
-    fontSize: '18px',
-    margin: 0,
-    fontWeight: 600,
-  },
-  rightSection: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  userProfilePicture: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    backgroundColor: '#e0e0e0',
-    backgroundSize: 'cover',
-  },
-  messagesContainer: {
-    flex: 1,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  messagesOverflow: {
-    height: '100%',
-    overflowY: 'auto',
-    padding: '20px',
-    paddingTop: '60px',
-  },
-  fadeGradient: {
-    position: 'absolute',
-    top: 0,
-    width: '100%',
-    height: '60px',
-    background: 'linear-gradient(rgba(240, 244, 248, 1), rgba(240, 244, 248, 0))',
-    pointerEvents: 'none',
-    zIndex: 2,
-  },
-  userMessageWrapper: {
-    display: 'flex',
-    marginBottom: '15px',
-    maxWidth: '70%',
-    justifyContent: 'flex-end',
-    marginLeft: 'auto',
-  },
-  responseMessageWrapper: {
-    display: 'flex',
-    marginBottom: '15px',
-    maxWidth: '70%',
-    justifyContent: 'flex-start',
-    marginRight: 'auto',
-  },
-  userMessageBubble: {
-    padding: '12px 18px',
-    borderRadius: '18px',
-    borderBottomRightRadius: '4px',
-    fontSize: '16px',
-    lineHeight: 1.4,
-    wordWrap: 'break-word',
-    backgroundColor: '#2b68e9',
-    color: 'white',
-  },
-  responseMessageBubble: {
-    padding: '12px 18px',
-    borderRadius: '18px',
-    borderBottomLeftRadius: '4px',
-    fontSize: '16px',
-    lineHeight: 1.4,
-    wordWrap: 'break-word',
-    backgroundColor: '#e0e0e0',
-    color: 'black',
-  },
-  chatInputContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '15px',
-    backgroundColor: '#ffffff',
-    boxShadow: '0 -2px 5px rgba(0, 0, 0, 0.1)',
-  },
-  fileButton: {
-    background: 'none',
-    border: 'none',
-    fontSize: '20px',
-    cursor: 'pointer',
-    marginRight: '10px',
-  },
-  chatTextField: {
-    flex: 1,
-    height: '40px',
-    minHeight: '40px',
-    maxHeight: '120px',
-    border: '1px solid #e0e0e0',
-    borderRadius: '20px',
-    padding: '10px 15px',
-    fontSize: '16px',
-    resize: 'none',
-    outline: 'none',
-  },
-  sendButton: {
-    background: 'none',
-    border: 'none',
-    fontSize: '20px',
-    cursor: 'pointer',
-    marginLeft: '10px',
-    color: '#2b68e9',
-  },
-};
 
 export default Main;
