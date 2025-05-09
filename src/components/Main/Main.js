@@ -1,5 +1,7 @@
+// Main.js
 import React, { useState, useRef, useEffect } from 'react';
 import './Main.css';
+import Header from './Header';
 
 function Main() {
   // 상태 관리
@@ -110,22 +112,95 @@ function Main() {
   };
 
   return (
-    <div className={!showChatInterface ? "container" : "chatContainer"}>
-      {!showChatInterface ? (
-        // 초기 화면 (Main)
-        <>
-          {/* 1열: 로고 */}
-          <div className="column">
-            <img
-              src="logo512.png"
-              alt="Logo"
-              className="logo"
-              onClick={handleLogoClick}
-            />
-          </div>
-          {/* 2열: 파일첨부, 텍스트필드, 전송버튼 (가로 배치) */}
-          <div className="column">
-            <div className="inputRow">
+    <>
+      <div className="headerContainer">
+        <Header />
+        {/* 헤더 컴포넌트 추가 */}
+      </div>
+
+      {/* 메인 컨테이너 */}
+      <div className={!showChatInterface ? "container" : "chatContainer"}>
+        {!showChatInterface ? (
+          // 초기 화면 (Main)
+          <>
+            {/* 1열: 로고 */}
+            <div className="column">
+              <img
+                src="logo512.png"
+                alt="Logo"
+                className="logo"
+                onClick={handleLogoClick}
+              />
+            </div>
+            {/* 2열: 파일첨부, 텍스트필드, 전송버튼 (가로 배치) */}
+            <div className="column">
+              <div className="inputRow">
+                <button className="fileButton" onClick={handleFileButtonClick}>
+                  <i>📎</i>
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={handleFileChange}
+                />
+                <input
+                  type="text"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  maxLength={3000}
+                  placeholder="메시지를 입력하세요"
+                  className="textField"
+                />
+                <button 
+                  className="sendButton"
+                  onClick={handleSendClick}
+                  disabled={text.trim().length === 0}
+                >
+                  <i>➤</i>
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          // 채팅 인터페이스 화면
+          <>
+            {/* 헤더 섹션 */}
+
+            {/* 채팅 헤더 */}
+            <div className="chatHeader">
+              <div className="leftSection">
+                <button className="menuButton" onClick={handleMenuClick}>
+                  <i>≡</i>
+                </button>
+                <h1 className="title">'sample.apk' 파일의 악성 코드 분석</h1>
+              </div>
+              <div className="rightSection">
+                <div className="userProfilePicture"></div>
+              </div>
+            </div>
+
+            {/* 메시지 컨테이너 */}
+            <div className="messagesContainer">
+              <div className="messagesOverflow">
+                <div className="fadeGradient"></div>
+                {messages.map((message, index) => (
+                  <div 
+                    key={index} 
+                    className={message.isUser ? "userMessageWrapper" : "responseMessageWrapper"}
+                  >
+                    <div className={message.isUser ? "userMessageBubble" : "responseMessageBubble"}>
+                      {message.text}
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+            </div>
+            
+            {/* 하단 입력 영역 */}
+            <div className="chatInputContainer">
               <button className="fileButton" onClick={handleFileButtonClick}>
                 <i>📎</i>
               </button>
@@ -135,14 +210,13 @@ function Main() {
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
               />
-              <input
-                type="text"
+              <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={handleKeyPress}
                 maxLength={3000}
-                placeholder="메시지를 입력하세요"
-                className="textField"
+                placeholder="질문을 입력하세요..."
+                className="chatTextField"
               />
               <button 
                 className="sendButton"
@@ -152,72 +226,10 @@ function Main() {
                 <i>➤</i>
               </button>
             </div>
-          </div>
-        </>
-      ) : (
-        // 채팅 인터페이스 화면
-        <>
-          {/* 헤더 섹션 */}
-          <div className="chatHeader">
-            <div className="leftSection">
-              <button className="menuButton" onClick={handleMenuClick}>
-                <i>≡</i>
-              </button>
-              <h1 className="title">'sample.apk' 파일의 악성 코드 분석</h1>
-            </div>
-            <div className="rightSection">
-              <div className="userProfilePicture"></div>
-            </div>
-          </div>
-
-          {/* 메시지 컨테이너 */}
-          <div className="messagesContainer">
-            <div className="messagesOverflow">
-              <div className="fadeGradient"></div>
-              {messages.map((message, index) => (
-                <div 
-                  key={index} 
-                  className={message.isUser ? "userMessageWrapper" : "responseMessageWrapper"}
-                >
-                  <div className={message.isUser ? "userMessageBubble" : "responseMessageBubble"}>
-                    {message.text}
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
-          
-          {/* 하단 입력 영역 */}
-          <div className="chatInputContainer">
-            <button className="fileButton" onClick={handleFileButtonClick}>
-              <i>📎</i>
-            </button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              style={{ display: 'none' }}
-              onChange={handleFileChange}
-            />
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={handleKeyPress}
-              maxLength={3000}
-              placeholder="질문을 입력하세요..."
-              className="chatTextField"
-            />
-            <button 
-              className="sendButton"
-              onClick={handleSendClick}
-              disabled={text.trim().length === 0}
-            >
-              <i>➤</i>
-            </button>
-          </div>
-        </>
-      )}
-    </div>
+          </>
+        )}
+      </div>
+    </>
   );
 }
 
