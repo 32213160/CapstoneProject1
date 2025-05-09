@@ -26,7 +26,6 @@ function MainPage() {
       alert('글자수는 최대 3000자까지 입력 가능합니다.');
       return;
     }
-
     // 서버에 채팅 생성 요청 후, 채팅 고유번호(chatId)로 이동
     // 아래는 예시: 실제로는 서버에서 chatId를 받아와야 함
     const chatId = Date.now(); // 임시로 timestamp 사용 (실제로는 서버 응답값)
@@ -43,56 +42,45 @@ function MainPage() {
 
   // 로고 클릭
   const handleLogoClick = () => {
-    window.location.href = 'http://example.com';
+    window.location.href = 'http://localhost:3000/';
   };
 
   return (
-    <>
-      <div className="headerContainer">
-        <Header />
+    <div className="container">
+      <Header />
+      <div className="column">
+        <img
+          src="/logo192.png"
+          alt="logo"
+          className="logo"
+          onClick={handleLogoClick}
+        />
       </div>
-      <div className="container">
-        {/* 1열: 로고 */}
-        <div className="column">
-          <img
-            src="logo512.png"
-            alt="Logo"
-            className="logo"
-            onClick={handleLogoClick}
+      <div className="column">
+        <div className="inputRow">
+          <button className="fileButton" onClick={handleFileButtonClick}>
+            <span role="img" aria-label="file">📎</span>
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
           />
-        </div>
-        {/* 2열: 파일첨부, 텍스트필드, 전송버튼 */}
-        <div className="column">
-          <div className="inputRow">
-            <button className="fileButton" onClick={handleFileButtonClick}>
-              <i>📎</i>
-            </button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              style={{ display: 'none' }}
-              onChange={handleFileChange}
-            />
-            <input
-              type="text"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={handleKeyPress}
-              maxLength={3000}
-              placeholder="메시지를 입력하세요"
-              className="textField"
-            />
-            <button
-              className="sendButton"
-              onClick={handleSendClick}
-              disabled={text.trim().length === 0}
-            >
-              <i>➤</i>
-            </button>
-          </div>
+          <textarea
+            className="textField"
+            placeholder="궁금한 점이 있나요?"
+            value={text}
+            onChange={e => setText(e.target.value)}
+            onKeyDown={handleKeyPress}
+            maxLength={3000}
+          />
+          <button className="sendButton" onClick={handleSendClick}>
+            <span role="img" aria-label="send">➤</span>
+          </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

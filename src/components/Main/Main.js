@@ -1,4 +1,5 @@
 // Main.js
+
 import React, { useState, useRef, useEffect } from 'react';
 import SlidingPanel from 'react-sliding-side-panel';
 import 'react-sliding-side-panel/lib/index.css';
@@ -10,105 +11,51 @@ import ProfilePanel from './components/Main/ProfilePanel';
 function Main() {
   // 상태 관리
   const [text, setText] = useState('');
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+    { text: "이 APK 파일을 분석해줘!", isUser: true, file: "sample.apk" },
+    { text: "네, 다음은 .apk 파일의 악성 코드를 분석한 결과입니다:\n\n``````\n이 코드는 공격자가 시스템에 원격으로 접근할 수 있도록 숨겨진 통로를 만듭니다.", isUser: false }
+  ]);
   const [showChatList, setShowChatList] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  // 메시지 변경 시 자동 스크롤
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // 채팅 목록 예시 데이터
+  const chatList = [
+    { id: 1, title: "'sample.apk' 파일의 악성 코드 분석", date: "오늘" },
+    { id: 2, title: "Aegis.apk 파일의 악성 코드...", date: "어제" },
+    { id: 3, title: "DanS.apk 파일의 악성 코드...", date: "어제" },
+    { id: 4, title: "Danjeong.apk 파일의 악성 코드...", date: "2 days ago" },
+    { id: 5, title: "NEWSWEEK.apk 파일의 악성 코드...", date: "2 days ago" },
+    { id: 6, title: "ex.apk 악성 코드 분석 및 설명", date: "2 days ago" },
+  ];
 
-  // 최신 메시지로 스크롤하는 함수
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // 날짜별 그룹핑
+  const groupedChats = chatList.reduce((acc, chat) => {
+    acc[chat.date] = acc[chat.date] ? [...acc[chat.date], chat] : [chat];
+    return acc;
+  }, {});
 
-  // 로고 클릭 시 example.com으로 이동
-  const handleLogoClick = () => {
-    window.location.href = 'http://example.com';
-  };
-
-  // 파일 첨부 버튼 클릭 시 숨겨진 파일 input 클릭
-  const handleFileButtonClick = () => {
-    fileInputRef.current.click();
-  };
-
-  // 파일 선택 후 서버 업로드 예시 (API 엔드포인트는 실제 사용에 맞게 수정)
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      try {
-        const response = await fetch('YOUR_UPLOAD_API_ENDPOINT', {
-          method: 'POST',
-          body: formData,
-        });
-        const result = await response.json();
-        console.log('파일 업로드 성공:', result);
-      } catch (error) {
-        console.error('파일 업로드 에러:', error);
-      }
-    }
-  };
-
-  // 전송 버튼 클릭 시 텍스트 필드의 내용 서버 전송 예시
-  const handleSendClick = async () => {
+  // 채팅 전송
+  const handleSendClick = () => {
     if (text.trim().length === 0) return;
-    
     if (text.length > 3000) {
       alert('글자수는 최대 3000자까지 입력 가능합니다.');
       return;
     }
-
-    // 사용자 메시지 추가
-    const newUserMessage = {
-      text: text,
-      isUser: true,
-      timestamp: new Date().toISOString()
-    };
-    
+    const newUserMessage = { text: text, isUser: true };
     setMessages([...messages, newUserMessage]);
-    setText(''); // 입력 지우기
-    
-    // 채팅 인터페이스로 전환
-    if (!showChatInterface) {
-      setShowChatInterface(true);
-    }
-    
-    // 샘플 응답 생성 (실제로는 서버나 LLM API 호출)
+    setText('');
     setTimeout(() => {
       const newResponse = {
-        text: "이 APK 파일에서 악성 코드가 발견되었습니다. 'nc -lvp 4444 -e /bin/bash' 명령은 해커가 원격으로 시스템에 접근할 수 있는 백도어를 생성합니다. 이 코드는 공격자가 시스템에 원격으로 접근할 수 있도록 숨겨진 통로를 만듭니다.",
-        isUser: false,
-        timestamp: new Date().toISOString()
+        text: "네, 다음은 .apk 파일의 악성 코드를 분석한 결과입니다:\n\n``````\n이 코드는 공격자가 시스템에 원격으로 접근할 수 있도록 숨겨진 통로를 만듭니다.",
+        isUser: false
       };
-      
-      setMessages(prevMessages => [...prevMessages, newResponse]);
+      setMessages(prev => [...prev, newResponse]);
     }, 1000);
-    
-    try {
-      const response = await fetch('YOUR_TEXT_SEND_API_ENDPOINT', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
-      });
-      const result = await response.json();
-      console.log('메시지 전송 성공:', result);
-    } catch (error) {
-      console.error('메시지 전송 에러:', error);
-    }
   };
 
-  // 메뉴 버튼 클릭 처리
-  const handleMenuClick = () => {
-    alert("메뉴 기능이 여기에 구현됩니다.");
-  };
-
-  // 엔터 키로 메시지 전송
+  // 엔터키 전송
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -116,125 +63,158 @@ function Main() {
     }
   };
 
+  // 자동 스크롤
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // 채팅 목록에서 채팅 선택
+  const handleSelectChat = (chatId) => {
+    // chatId에 따라 채팅 불러오기 (여기선 생략)
+    setShowChatList(false);
+  };
+
+  // 파일 첨부 버튼 클릭 시 숨겨진 파일 input 클릭
+  const handleFileButtonClick = () => {
+    fileInputRef.current.click();
+  };
+
+  // 파일 선택 후 메시지에 파일명 추가(예시)
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setMessages([...messages, { text: "", isUser: true, file: file.name }]);
+    }
+  };
+
+  // 메뉴 버튼 클릭 시
+  const handleMenuClick = () => setShowChatList(true);
+
+  // 프로필 버튼 클릭 시
+  const handleProfileClick = () => setShowProfile(true);
+
+  // 프로필 패널 닫기
+  const handleCloseProfile = () => setShowProfile(false);
+
+  // 채팅 리스트 패널 닫기
+  const handleCloseChatList = () => setShowChatList(false);
+
+  // 메시지 렌더링(코드블록, 파일, 일반 텍스트)
+  const renderMessageContent = (message) => {
+    // 파일 메시지
+    if (message.file) {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span role="img" aria-label="file">📄</span>
+          <span>{message.file}</span>
+        </div>
+      );
+    }
+    // 코드블록 파싱
+    const regex = /``````/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+    while ((match = regex.exec(message.text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(message.text.slice(lastIndex, match.index));
+      }
+      parts.push(
+        <pre key={match.index} style={{
+          background: '#e0e0e0',
+          borderRadius: 8,
+          padding: 12,
+          margin: '8px 0'
+        }}>
+          <code>
+            {match[2]}
+          </code>
+        </pre>
+      );
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < message.text.length) {
+      parts.push(message.text.slice(lastIndex));
+    }
+    return parts.map((part, idx) => <span key={idx}>{part}</span>);
+  };
+
   return (
-    <>
-      <div className="headerContainer">
-        <Header />
-        {/* 헤더 컴포넌트 추가 */}
+    <div className="chatContainer">
+      {/* 헤더 */}
+      <Header
+        onMenuClick={handleMenuClick}
+        onProfileClick={handleProfileClick}
+      />
+
+      {/* 채팅 리스트 패널 */}
+      <SlidingPanel
+        type="left"
+        isOpen={showChatList}
+        size={320}
+        noBackdrop={false}
+        onClose={handleCloseChatList}
+      >
+        <div className="chatListPanel">
+          <ChatList chats={groupedChats} onSelectChat={handleSelectChat} />
+        </div>
+      </SlidingPanel>
+
+      {/* 프로필 패널 */}
+      <SlidingPanel
+        type="right"
+        isOpen={showProfile}
+        size={360}
+        noBackdrop={false}
+        onClose={handleCloseProfile}
+      >
+        <div className="profilePanel">
+          <ProfilePanel onClose={handleCloseProfile} />
+        </div>
+      </SlidingPanel>
+
+      {/* 채팅 메시지 영역 */}
+      <div className="messagesContainer">
+        <div className="messagesOverflow">
+          <div className="fadeGradient" />
+          {messages.map((message, idx) => (
+            <div
+              key={idx}
+              className={message.isUser ? "userMessageWrapper" : "responseMessageWrapper"}
+            >
+              <div className={message.isUser ? "userMessageBubble" : "responseMessageBubble"}>
+                {renderMessageContent(message)}
+              </div>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      {/* 메인 컨테이너 */}
-      <div className={!showChatInterface ? "container" : "chatContainer"}>
-        {!showChatInterface ? (
-          // 초기 화면 (Main)
-          <>
-            {/* 1열: 로고 */}
-            <div className="column">
-              <img
-                src="logo512.png"
-                alt="Logo"
-                className="logo"
-                onClick={handleLogoClick}
-              />
-            </div>
-            {/* 2열: 파일첨부, 텍스트필드, 전송버튼 (가로 배치) */}
-            <div className="column">
-              <div className="inputRow">
-                <button className="fileButton" onClick={handleFileButtonClick}>
-                  <i>📎</i>
-                </button>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  style={{ display: 'none' }}
-                  onChange={handleFileChange}
-                />
-                <input
-                  type="text"
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  maxLength={3000}
-                  placeholder="메시지를 입력하세요"
-                  className="textField"
-                />
-                <button 
-                  className="sendButton"
-                  onClick={handleSendClick}
-                  disabled={text.trim().length === 0}
-                >
-                  <i>➤</i>
-                </button>
-              </div>
-            </div>
-          </>
-        ) : (
-          // 채팅 인터페이스 화면
-          <>
-            {/* 헤더 섹션 */}
-
-            {/* 채팅 헤더 */}
-            <div className="chatHeader">
-              <div className="leftSection">
-                <button className="menuButton" onClick={handleMenuClick}>
-                  <i>≡</i>
-                </button>
-                <h1 className="title">'sample.apk' 파일의 악성 코드 분석</h1>
-              </div>
-              <div className="rightSection">
-                <div className="userProfilePicture"></div>
-              </div>
-            </div>
-
-            {/* 메시지 컨테이너 */}
-            <div className="messagesContainer">
-              <div className="messagesOverflow">
-                <div className="fadeGradient"></div>
-                {messages.map((message, index) => (
-                  <div 
-                    key={index} 
-                    className={message.isUser ? "userMessageWrapper" : "responseMessageWrapper"}
-                  >
-                    <div className={message.isUser ? "userMessageBubble" : "responseMessageBubble"}>
-                      {message.text}
-                    </div>
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-            </div>
-            
-            {/* 하단 입력 영역 */}
-            <div className="chatInputContainer">
-              <button className="fileButton" onClick={handleFileButtonClick}>
-                <i>📎</i>
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                onChange={handleFileChange}
-              />
-              <textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onKeyDown={handleKeyPress}
-                maxLength={3000}
-                placeholder="질문을 입력하세요..."
-                className="chatTextField"
-              />
-              <button 
-                className="sendButton"
-                onClick={handleSendClick}
-                disabled={text.trim().length === 0}
-              >
-                <i>➤</i>
-              </button>
-            </div>
-          </>
-        )}
+      {/* 입력창 */}
+      <div className="chatInputContainer">
+        <button className="fileButton" onClick={handleFileButtonClick}>
+          <span role="img" aria-label="file">📎</span>
+        </button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
+        <textarea
+          className="chatTextField"
+          placeholder="질문을 입력하세요."
+          value={text}
+          onChange={e => setText(e.target.value)}
+          onKeyDown={handleKeyPress}
+          maxLength={3000}
+        />
+        <button className="sendButton" onClick={handleSendClick}>
+          <span role="img" aria-label="send">➤</span>
+        </button>
       </div>
-    </>
+    </div>
   );
 }
 

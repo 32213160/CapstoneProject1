@@ -1,21 +1,20 @@
-// ProfilePanel.js
+// src/components/Main/ProfilePanel.js
 import React from 'react';
+import { FaTimes } from 'react-icons/fa';
 
 function ProfilePanel({ onClose }) {
   return (
-    <div className="profilePanel">
+    <div>
       <div className="profilePanelHeader">
-        <span>마이페이지</span>
-        <button className="closeProfilePanel" onClick={onClose}>×</button>
+        <span>내 프로필</span>
+        <button className="closeProfilePanel" onClick={onClose}>
+          <FaTimes />
+        </button>
       </div>
-      <div className="profilePanelContent">
-        <div className="profileImageBig">
-          {/* 프로필 이미지 or 기본 아이콘 */}
-        </div>
-        <div className="profileName">이서현</div>
-        <button className="profileOptionBtn">설정</button>
-        <button className="profileOptionBtn">로그아웃</button>
-      </div>
+      <div className="profileImageBig" />
+      <div className="profileName">홍길동</div>
+      <button className="profileOptionBtn">설정</button>
+      <button className="profileOptionBtn">로그아웃</button>
     </div>
   );
 }

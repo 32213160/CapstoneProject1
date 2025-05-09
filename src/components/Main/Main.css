@@ -253,3 +253,29 @@
   cursor: pointer;
   font-size: 16px;
 }
+
+/******** 추가가 ********/
+.chatListPanel {
+  width: 30vw; /* 화면 너비의 30% (20vw로 바꾸면 20%) */
+  min-width: 240px; /* 최소 너비: 필요에 따라 조정 */
+  max-width: 480px; /* 최대 너비: 필요에 따라 조정 */
+  height: 100%;
+  background: rgba(245,247,250,0.97); /* 반투명 효과 유지 */
+  padding: 24px 12px 0 12px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  transition: width 0.2s;
+}
+
+/* 필요하다면, 모바일 대응 */
+@media (max-width: 600px) {
+  .chatListPanel {
+    width: 80vw; /* 모바일에서는 80%로 더 넓게 */
+    min-width: unset;
+    max-width: unset;
+  }
+}
