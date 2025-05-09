@@ -1,14 +1,19 @@
 // Main.js
 import React, { useState, useRef, useEffect } from 'react';
-import './Main.css';
-import Header from './Header';
+import SlidingPanel from 'react-sliding-side-panel';
+import 'react-sliding-side-panel/lib/index.css';
+import './components/Main/Main.css';
+import Header from './components/Main/Header';
+import ChatList from './components/Main/ChatList';
+import ProfilePanel from './components/Main/ProfilePanel';
 
 function Main() {
   // 상태 관리
   const [text, setText] = useState('');
-  const fileInputRef = useRef(null);
-  const [showChatInterface, setShowChatInterface] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [showChatList, setShowChatList] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   // 메시지 변경 시 자동 스크롤

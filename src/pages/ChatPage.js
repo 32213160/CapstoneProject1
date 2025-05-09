@@ -1,7 +1,7 @@
 // src/pages/ChatPage.js
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import ChatHeader from '../components/Main/ChatHeader';
+import Header from '../components/Main/Header';
 import '../components/Main/Main.css';
 
 function ChatPage() {
@@ -67,7 +67,7 @@ function ChatPage() {
 
   return (
     <div className="chatContainer">
-      <ChatHeader onMenuClick={handleMenuClick} />
+      <Header onMenuClick={handleMenuClick} />
       <div className="messagesContainer">
         <div className="messagesOverflow">
           <div className="fadeGradient"></div>
