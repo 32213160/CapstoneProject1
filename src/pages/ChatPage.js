@@ -1,4 +1,5 @@
-// src/pages/ChatPage.js (수정)
+// src/pages/ChatPage.js
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../components/Main/Header';
@@ -70,22 +71,14 @@ function ChatPage() {
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     try {
       setLoading(true);
       // 사용자 메시지 추가
-      const userMessage = { 
-        text: "", 
-        isUser: true, 
-        file: file.name,
-        timestamp: new Date().toISOString()
-      };
+      const userMessage = { text: "", isUser: true, file: file.name, timestamp: new Date().toISOString() };
       setMessages(prev => [...prev, userMessage]);
-
       // 파일 업로드 및 분석
       const result = await uploadAndAnalyzeFile(file);
       setAnalysisResult(result);
-
       // AI 응답 메시지 추가
       const aiMessage = {
         text: `네, 다음은 ${file.name}의 악성 코드를 분석한 결과입니다:`,
@@ -97,12 +90,8 @@ function ChatPage() {
     } catch (error) {
       console.error('파일 분석 실패:', error);
       setMessages(prev => [
-        ...prev, 
-        { 
-          text: "죄송합니다, 파일 분석 중 오류가 발생했습니다.", 
-          isUser: false,
-          timestamp: new Date().toISOString()
-        }
+        ...prev,
+        { text: "죄송합니다, 파일 분석 중 오류가 발생했습니다.", isUser: false, timestamp: new Date().toISOString() }
       ]);
     } finally {
       setLoading(false);
@@ -111,21 +100,61 @@ function ChatPage() {
   };
 
   // 메시지 전송
-  const handleSendClick = () => {
+  const handleSendClick = async () => {
     if (text.trim().length === 0) return;
     if (text.length > 3000) {
       alert('글자수는 최대 3000자까지 입력 가능합니다.');
       return;
     }
-    const newUserMessage = { 
-      text: text, 
+
+    // "chatID: {id}" 형식인지 확인
+    const chatIdPattern = /^ID:\s*([a-zA-Z0-9]+)/i;
+    const match = text.match(chatIdPattern);
+
+    // chatID 명령이면 ID로 결과 가져오기
+    if (match) {
+      const id = match[1];
+      setMessages(prev => [
+        ...prev,
+        { text: text, isUser: true, timestamp: new Date().toISOString() }
+      ]);
+      setText('');
+      try {
+        setLoading(true);
+        const result = await fetchScanResultById(id);
+        setAnalysisResult(result);
+        setMessages(prev => [
+          ...prev,
+          {
+            text: `네, ID: ${id}의 분석 결과입니다:`,
+            isUser: false,
+            jsonResult: result,
+            timestamp: new Date().toISOString()
+          }
+        ]);
+      } catch (error) {
+        setMessages(prev => [
+          ...prev,
+          {
+            text: `죄송합니다, ID: ${id}에 대한 결과를 가져오는 중 오류가 발생했습니다.`,
+            isUser: false,
+            timestamp: new Date().toISOString()
+          }
+        ]);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // 일반 메시지 처리 (기존 로직)
+    const newUserMessage = {
+      text: text,
       isUser: true,
-      timestamp: new Date().toISOString() 
+      timestamp: new Date().toISOString()
     };
     setMessages([...messages, newUserMessage]);
     setText('');
-    
-    // 실제 구현에서는 서버에 요청을 보내 응답을 받아야 합니다
     setTimeout(() => {
       const newResponse = {
         text: "네, 다음은 APK 파일의 악성 코드를 분석한 결과입니다:\n\n``````\n이 코드는 공격자가 시스템에 원격으로 접근할 수 있도록 숨겨진 통로를 만듭니다.",
@@ -155,80 +184,44 @@ function ChatPage() {
     // 파일 메시지
     if (message.file) {
       return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span role="img" aria-label="file">📄</span>
-          <span style={{
-            background: "#e0e0e0",
-            borderRadius: 8,
-            padding: "6px 16px",
-            fontSize: 15,
-            color: "#5a5a5a",
-            marginLeft: 4,
-            fontWeight: 500,
-            display: "inline-block",
-            minWidth: 120
-          }}>{message.file}</span>
+        <div>
+          <span role="img" aria-label="파일">📎</span> {message.file}
         </div>
       );
     }
-
-    // JSON 결과가 있으면 표시
+    // JSON 분석 결과 메시지
     if (message.jsonResult) {
       return (
         <div>
-          <p>{message.text}</p>
           <JsonViewer data={message.jsonResult} />
         </div>
       );
     }
-    
-    // 코드블록 파싱 (``````)
+    // 코드블록 처리 (백틱 3개)
     const regex = /``````/g;
     let lastIndex = 0;
     let match;
     const parts = [];
-    
     while ((match = regex.exec(message.text)) !== null) {
       if (match.index > lastIndex) {
         parts.push(<span key={lastIndex}>{message.text.slice(lastIndex, match.index)}</span>);
       }
       parts.push(
-        <pre key={match.index} style={{
-          background: '#e0e0e0',
-          borderRadius: 12,
-          padding: 18,
-          margin: '12px 0',
-          fontSize: 15,
-          fontFamily: 'monospace',
-          overflowX: 'auto'
-        }}>
-          <span style={{
-            color: "#888",
-            fontSize: 13,
-            fontWeight: 600,
-            marginBottom: 6,
-            display: "block"
-          }}>bash</span>
-          <code>nc -lvp 4444 -e /bin/bash</code>
+        <pre key={match.index}>
+          <code>{match[1]}</code>
         </pre>
       );
       lastIndex = regex.lastIndex;
     }
-    
     if (lastIndex < message.text.length) {
       parts.push(<span key={lastIndex}>{message.text.slice(lastIndex)}</span>);
     }
-    
     return parts.length > 0 ? parts : message.text;
   };
 
   return (
     <div className="chatContainer">
-      <Header
-        onMenuClick={handleMenuClick}
-        onProfileClick={handleProfileClick}
-        title="'sample.apk' 파일의 악성 코드 분석"
-      />
+      <Header onMenuClick={handleMenuClick} onProfileClick={handleProfileClick} />
 
       {/* 채팅 리스트 패널 */}
       {showChatList && (
@@ -248,7 +241,6 @@ function ChatPage() {
       {/* 채팅 메시지 영역 */}
       <div className="messagesContainer">
         <div className="messagesOverflow">
-          <div className="fadeGradient" />
           {messages.map((message, idx) => (
             <div
               key={idx}
@@ -259,41 +251,28 @@ function ChatPage() {
               </div>
             </div>
           ))}
-          {loading && (
-            <div className="responseMessageWrapper">
-              <div className="responseMessageBubble">
-                <div className="loading">분석 중...</div>
-              </div>
-            </div>
-          )}
           <div ref={messagesEndRef} />
         </div>
       </div>
 
       {/* 입력창 */}
       <div className="chatInputContainer">
-        <button className="fileButton" onClick={handleFileButtonClick} disabled={loading}>
-          <span role="img" aria-label="file">📎</span>
-        </button>
+        <button className="fileButton" onClick={handleFileButtonClick}>📎</button>
         <input
           type="file"
           ref={fileInputRef}
           style={{ display: 'none' }}
           onChange={handleFileChange}
-          accept=".apk"
         />
         <textarea
           className="chatTextField"
-          placeholder="질문을 입력하세요."
+          placeholder="메시지를 입력하세요..."
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={handleKeyPress}
           maxLength={3000}
-          disabled={loading}
         />
-        <button className="sendButton" onClick={handleSendClick} disabled={loading}>
-          <span role="img" aria-label="send">➤</span>
-        </button>
+        <button className="sendButton" onClick={handleSendClick}>➤</button>
       </div>
     </div>
   );
