@@ -271,7 +271,185 @@
   transition: width 0.2s;
 }
 
-/* 필요하다면, 모바일 대응 */
+
+/* 0510 2차 추가 */
+.scanResultsContainer {
+  display: flex;
+  height: calc(100vh - 65px);
+  overflow: hidden;
+}
+
+.leftPanel {
+  width: 30%;
+  padding: 20px;
+  border-right: 1px solid #e0e0e0;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+}
+
+.rightPanel {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.scanResultsList h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+.scanResultItem {
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.scanResultItem:hover {
+  background-color: #f0f7ff;
+}
+
+.resultTitle {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.resultDate {
+  font-size: 13px;
+  color: #666;
+}
+
+.uploadControls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.uploadButton {
+  padding: 8px 16px;
+  background-color: #2b68e9;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.uploadButton:disabled {
+  background-color: #b0c4de;
+  cursor: not-allowed;
+}
+
+.jsonReport {
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.reportSection {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.reportSection.danger {
+  background: #fff0f0;
+  border-left: 4px solid #ff5252;
+}
+
+.codeBlock {
+  background: #282c34;
+  color: #abb2bf;
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: monospace;
+}
+
+.jsonData {
+  background: #f5f5f5;
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.error {
+  color: #ff5252;
+  margin: 10px 0;
+}
+
+.loading {
+  color: #666;
+  margin: 20px 0;
+}
+
+
+/* JSON 관련 스타일 */
+.jsonViewer {
+  margin: 12px 0;
+}
+
+.jsonTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.jsonViewer.empty {
+  color: #888;
+  font-style: italic;
+}
+
+.codeSection {
+  margin: 12px 0;
+}
+
+.codeSection h4 {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.codeBlock {
+  background: #282c34;
+  color: #e0e0e0;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  color: #555;
+}
+
+.error {
+  color: #d32f2f;
+  padding: 8px;
+  background: #ffebee;
+  border-radius: 6px;
+  margin: 8px 0;
+}
+
+.placeholder {
+  color: #888;
+  text-align: center;
+  margin-top: 30px;
+}
+
+
+/* (임시) 모바일 대응 */
 @media (max-width: 600px) {
   .chatListPanel {
     width: 80vw; /* 모바일에서는 80%로 더 넓게 */

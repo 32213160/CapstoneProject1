@@ -1,8 +1,6 @@
 // Main.js
-
 import React, { useState, useRef, useEffect } from 'react';
-import SlidingPanel from 'react-sliding-side-panel';
-import 'react-sliding-side-panel/lib/index.css';
+// SlidingPanel import 제거됨
 import './components/Main/Main.css';
 import Header from './components/Main/Header';
 import ChatList from './components/Main/ChatList';
@@ -104,31 +102,23 @@ function Main() {
     // 파일 메시지
     if (message.file) {
       return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span role="img" aria-label="file">📄</span>
-          <span>{message.file}</span>
+        <div>
+          <span role="img" aria-label="파일">📎</span> {message.file}
         </div>
       );
     }
-    // 코드블록 파싱
+    // 코드블록
     const regex = /``````/g;
-    const parts = [];
     let lastIndex = 0;
     let match;
+    const parts = [];
     while ((match = regex.exec(message.text)) !== null) {
       if (match.index > lastIndex) {
         parts.push(message.text.slice(lastIndex, match.index));
       }
       parts.push(
-        <pre key={match.index} style={{
-          background: '#e0e0e0',
-          borderRadius: 8,
-          padding: 12,
-          margin: '8px 0'
-        }}>
-          <code>
-            {match[2]}
-          </code>
+        <pre key={match.index}>
+          <code>{match[2]}</code>
         </pre>
       );
       lastIndex = regex.lastIndex;
@@ -141,42 +131,29 @@ function Main() {
 
   return (
     <div className="chatContainer">
-      {/* 헤더 */}
       <Header
         onMenuClick={handleMenuClick}
         onProfileClick={handleProfileClick}
       />
 
       {/* 채팅 리스트 패널 */}
-      <SlidingPanel
-        type="left"
-        isOpen={showChatList}
-        size={320}
-        noBackdrop={false}
-        onClose={handleCloseChatList}
-      >
+      {showChatList && (
         <div className="chatListPanel">
-          <ChatList chats={groupedChats} onSelectChat={handleSelectChat} />
+          <button className="closeProfilePanel" onClick={handleCloseChatList} style={{ float: 'right' }}>×</button>
+          <ChatList chats={chatList} onSelectChat={handleSelectChat} />
         </div>
-      </SlidingPanel>
+      )}
 
       {/* 프로필 패널 */}
-      <SlidingPanel
-        type="right"
-        isOpen={showProfile}
-        size={360}
-        noBackdrop={false}
-        onClose={handleCloseProfile}
-      >
+      {showProfile && (
         <div className="profilePanel">
           <ProfilePanel onClose={handleCloseProfile} />
         </div>
-      </SlidingPanel>
+      )}
 
       {/* 채팅 메시지 영역 */}
       <div className="messagesContainer">
         <div className="messagesOverflow">
-          <div className="fadeGradient" />
           {messages.map((message, idx) => (
             <div
               key={idx}
@@ -193,9 +170,7 @@ function Main() {
 
       {/* 입력창 */}
       <div className="chatInputContainer">
-        <button className="fileButton" onClick={handleFileButtonClick}>
-          <span role="img" aria-label="file">📎</span>
-        </button>
+        <button className="fileButton" onClick={handleFileButtonClick}>📎</button>
         <input
           type="file"
           ref={fileInputRef}
@@ -204,15 +179,13 @@ function Main() {
         />
         <textarea
           className="chatTextField"
-          placeholder="질문을 입력하세요."
+          placeholder="메시지를 입력하세요..."
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={handleKeyPress}
           maxLength={3000}
         />
-        <button className="sendButton" onClick={handleSendClick}>
-          <span role="img" aria-label="send">➤</span>
-        </button>
+        <button className="sendButton" onClick={handleSendClick}>➤</button>
       </div>
     </div>
   );
