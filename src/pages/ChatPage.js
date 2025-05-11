@@ -49,19 +49,42 @@ function ChatPage() {
     try {
       setLoading(true);
       const result = await fetchScanResultById(chatId);
+  
+      // 결과 유효성 검사
+      if (!result || Object.keys(result).length === 0) {
+        throw new Error('서버에 분석 결과가 없습니다');
+      }
+  
       setAnalysisResult(result);
       setMessages([
-        { text: `${result.fileName || 'APK 파일'}을 분석해줘!`, isUser: true, file: result.fileName },
-        { text: `네, 다음은 ${result.fileName || 'APK 파일'}의 악성 코드를 분석한 결과입니다:`, isUser: false, jsonResult: result }
+        { 
+          text: `${result.fileName || 'APK 파일'}을 분석해줘!`, 
+          isUser: true, 
+          file: result.fileName 
+        },
+        { 
+          text: `네, 다음은 ${result.fileName || 'APK 파일'}의 분석 결과입니다:`, 
+          isUser: false, 
+          jsonResult: result 
+        }
       ]);
+  
     } catch (error) {
       console.error('채팅 불러오기 실패:', error);
+      setMessages(prev => [
+        ...prev,
+        {
+          text: `❌ 오류: ${error.message}`,
+          isUser: false,
+          timestamp: new Date().toISOString()
+        }
+      ]);
     } finally {
       setLoading(false);
       setShowChatList(false);
     }
   };
-
+  
   // 파일 첨부 버튼 클릭 시 숨겨진 파일 input 클릭
   const handleFileButtonClick = () => {
     fileInputRef.current.click();
@@ -106,17 +129,17 @@ function ChatPage() {
       alert('글자수는 최대 3000자까지 입력 가능합니다.');
       return;
     }
-
-    // "chatID: {id}" 형식인지 확인
-    const chatIdPattern = /^ID:\s*([a-zA-Z0-9]+)/i;
-    const match = text.match(chatIdPattern);
-
-    // chatID 명령이면 ID로 결과 가져오기
+  
+    // 1. "ID: ..." 형식인지 확인
+    const idPattern = /^ID:\s*([a-fA-F0-9]{24})$/;
+    const match = text.trim().match(idPattern);
+  
     if (match) {
+      // 2. ID 추출
       const id = match[1];
       setMessages(prev => [
         ...prev,
-        { text: text, isUser: true, timestamp: new Date().toISOString() }
+        { text, isUser: true, timestamp: new Date().toISOString() }
       ]);
       setText('');
       try {
@@ -146,8 +169,8 @@ function ChatPage() {
       }
       return;
     }
-
-    // 일반 메시지 처리 (기존 로직)
+  
+    // 기존 일반 메시지 처리
     const newUserMessage = {
       text: text,
       isUser: true,
@@ -164,6 +187,7 @@ function ChatPage() {
       setMessages(prev => [...prev, newResponse]);
     }, 1000);
   };
+  
 
   // 엔터키 전송
   const handleKeyPress = (e) => {
