@@ -1,6 +1,5 @@
 // Main.js
 import React, { useState, useRef, useEffect } from 'react';
-// SlidingPanel import 제거됨
 import './components/Main/Main.css';
 import Header from './components/Main/Header';
 import ChatList from './components/Main/ChatList';
@@ -20,19 +19,13 @@ function Main() {
 
   // 채팅 목록 예시 데이터
   const chatList = [
-    { id: 1, title: "'sample.apk' 파일의 악성 코드 분석", date: "오늘" },
+    { id: 1, title: "sample.apk 파일의 악성 코드 분석", date: "오늘" },
     { id: 2, title: "Aegis.apk 파일의 악성 코드...", date: "어제" },
     { id: 3, title: "DanS.apk 파일의 악성 코드...", date: "어제" },
     { id: 4, title: "Danjeong.apk 파일의 악성 코드...", date: "2 days ago" },
     { id: 5, title: "NEWSWEEK.apk 파일의 악성 코드...", date: "2 days ago" },
-    { id: 6, title: "ex.apk 악성 코드 분석 및 설명", date: "2 days ago" },
+    { id: 6, title: "example.apk 악성 코드 분석 및 설명", date: "2 days ago" },
   ];
-
-  // 날짜별 그룹핑
-  const groupedChats = chatList.reduce((acc, chat) => {
-    acc[chat.date] = acc[chat.date] ? [...acc[chat.date], chat] : [chat];
-    return acc;
-  }, {});
 
   // 채팅 전송
   const handleSendClick = () => {
