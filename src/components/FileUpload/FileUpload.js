@@ -1,36 +1,39 @@
-// src/components/FileUpload/FileUpload.js
-import React, { useState, useRef } from 'react';
-import { uploadAndAnalyzeFile as uploadFileForScan } from '../../services/ApiService';
+// FileUpload.js
+import React, { useRef, useState } from 'react';
 
 function FileUpload({ onUploadComplete }) {
-  const [file, setFile] = useState(null);
+  const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
-  const fileInputRef = useRef(null);
-
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-      setError(null);
-    }
-  };
 
   const handleUpload = async () => {
-    if (!file) {
+    if (!fileInputRef.current || !fileInputRef.current.files[0]) {
       setError('파일을 선택해주세요.');
       return;
     }
+    setError(null);
+    setUploading(true);
+
+    // Postman 코드 그대로
+    const formdata = new FormData();
+    formdata.append("file", fileInputRef.current.files[0], fileInputRef.current.files[0].name);
+
+    const requestOptions = {
+      method: "POST",
+      body: formdata,
+      redirect: "follow"
+    };
 
     try {
-      setUploading(true);
-      const result = await uploadFileForScan(file);
+      const response = await fetch("http://54.180.122.103:8080/upload", requestOptions);
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`서버 오류 (${response.status}): ${errText}`);
+      }
+      const result = await response.json();
       setUploading(false);
-      setFile(null);
-      // 파일 입력 초기화
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      
-      // 결과를 상위 컴포넌트로 전달
       if (onUploadComplete) onUploadComplete(result);
+      fileInputRef.current.value = '';
     } catch (err) {
       setError('파일 업로드 중 오류가 발생했습니다.');
       setUploading(false);
@@ -38,26 +41,16 @@ function FileUpload({ onUploadComplete }) {
   };
 
   return (
-    <div className="fileUploadContainer">
-      <h3>APK 파일 분석</h3>
-      <div className="uploadControls">
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          accept=".apk"
-          disabled={uploading}
-        />
-        <button 
-          className="uploadButton" 
-          onClick={handleUpload}
-          disabled={!file || uploading}
-        >
-          {uploading ? '분석 중...' : '파일 분석'}
-        </button>
-      </div>
-      {error && <div className="error">{error}</div>}
-      {file && <div className="selectedFile">선택된 파일: {file.name}</div>}
+    <div>
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept=".apk"
+      />
+      <button onClick={handleUpload} disabled={uploading}>
+        {uploading ? '업로드 중...' : '업로드'}
+      </button>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
     </div>
   );
 }
