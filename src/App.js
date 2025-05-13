@@ -12,8 +12,8 @@ function App() {
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/chat/:chatId" element={<ChatPage />} />
-        <Route path="/scan-results" element={<ScanResultsPage />} />
-        <Route path="/parsingresult" element={<ParsingResult />} /> {/* 추가 */}
+        <Route path="/scanresults" element={<ScanResultsPage />} />
+        <Route path="/parsingresult" element={<ParsingResult />} />
       </Routes>
     </Router>
   );

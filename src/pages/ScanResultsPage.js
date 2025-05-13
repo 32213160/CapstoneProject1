@@ -1,55 +1,47 @@
-// src/pages/ScanResultsPage.js
-import React, { useState } from 'react';
-import Header from '../components/Main/Header';
-import ScanResultsList from '../components/ScanResults/ScanResultsList';
-import ScanResultDetail from '../components/ScanResults/ScanResultDetail';
-import FileUpload from '../components/FileUpload/FileUpload';
-import '../components/Main/Main.css';
+// ScanResultsPage.js
+import React, { useState, useEffect } from "react";
 
-function ScanResultsPage() {
-  const [selectedResultId, setSelectedResultId] = useState(null);
-  const [uploadedResult, setUploadedResult] = useState(null);
-  const [showUploadResult, setShowUploadResult] = useState(false);
+const ScanResultsPage = () => {
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
 
-  const handleSelectResult = (id) => {
-    setSelectedResultId(id);
-    setShowUploadResult(false);
-  };
+  useEffect(() => {
+    const formdata = new FormData();
 
-  const handleUploadComplete = (result) => {
-    setUploadedResult(result);
-    setShowUploadResult(true);
-  };
+    const requestOptions = {
+      method: "GET",
+      //body: formdata,
+      redirect: "follow"
+    };
+
+    fetch("/json/scanresults", requestOptions)
+      .then((response) => response.text())
+      .then((result) => {
+        try {
+          setResult(JSON.parse(result));
+        } catch (e) {
+          setResult(result);
+        }
+      })
+      .catch((error) => setError(error.toString()));
+  }, []);
 
   return (
-    <div className="chatContainer">
-      <Header 
-        title="APK 악성코드 분석 결과" 
-        onMenuClick={() => {}} 
-        onProfileClick={() => {}}
-      />
-      
-      <div className="scanResultsContainer">
-        <div className="leftPanel">
-          <FileUpload onUploadComplete={handleUploadComplete} />
-          <div className="resultsList">
-            <ScanResultsList onSelectResult={handleSelectResult} />
-          </div>
-        </div>
-        
-        <div className="rightPanel">
-          {showUploadResult && uploadedResult ? (
-            <div className="uploadResultContainer">
-              <h3>업로드 파일 분석 결과</h3>
-              <pre className="jsonData">{JSON.stringify(uploadedResult, null, 2)}</pre>
-            </div>
-          ) : (
-            <ScanResultDetail resultId={selectedResultId} />
-          )}
-        </div>
-      </div>
+    <div>
+      <h2>Scan Results</h2>
+      {error && <div style={{ color: "red" }}>Error: {error}</div>}
+      {result ? (
+        <pre>
+          {typeof result === "object"
+            ? JSON.stringify(result, null, 2)
+            : result}
+        </pre>
+      ) : (
+        <div>Loading...</div>
+      )}
     </div>
   );
-}
+};
+
 
 export default ScanResultsPage;
