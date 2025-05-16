@@ -1,10 +1,12 @@
 // src/pages/MainPage.js
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+//import '../../components/UI/Main.css';
+import './MainPage.css';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../components/UI/Header';
+import '../../components/UI/Main.css';
+import Header from '../../components/Main/Header';
 import FileUpload from '../../components/FileHandler/FileUpload';
-import { uploadAndAnalyzeFile } from '../../services/ApiService'; // ApiService
-import '../../components/Main/Main.css';
+import { uploadAndAnalyzeFile } from '../../services/ApiService';
 
 function MainPage() {
   const [text, setText] = useState('');

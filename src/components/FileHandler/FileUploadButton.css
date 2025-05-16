@@ -1,0 +1,64 @@
+/* src/components/FileHandler/FileUploadButton.css */
+.file-button-container {
+  position: relative;
+}
+
+.file-button {
+  background: none;
+  border: none;
+  color: #4a6cf7;
+  font-size: 20px;
+  cursor: pointer;
+  margin-right: 10px;
+  padding: 5px;
+}
+
+.file-button:hover {
+  color: #3a5ce5;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #4a6cf7;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-preview {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  min-width: 150px;
+  z-index: 10;
+}
+
+.file-preview-name {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.file-preview-remove {
+  color: #f44336;
+  cursor: pointer;
+  margin-left: 5px;
+}

@@ -1,0 +1,70 @@
+/* src/components/JsonViewer/JsonViewer.css */
+.json-viewer {
+  margin-top: 10px;
+  background-color: #f8f8f8;
+  border-radius: 4px;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 13px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.json-viewer-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.json-viewer.empty {
+  color: #888;
+  font-style: italic;
+}
+
+.json-key {
+  color: #881391;
+}
+
+.json-string {
+  color: #1a1aa6;
+}
+
+.json-number {
+  color: #1c00cf;
+}
+
+.json-boolean {
+  color: #008000;
+}
+
+.json-null {
+  color: #808080;
+}
+
+.json-mark {
+  color: #555;
+}
+
+.json-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+
+.json-toggle:before {
+  content: "+";
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+
+.json-toggle.open:before {
+  content: "-";
+}
+
+.json-collapsed {
+  display: none;
+}
+
+.json-expanded {
+  display: block;
+}

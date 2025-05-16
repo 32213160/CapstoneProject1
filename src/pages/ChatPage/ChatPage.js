@@ -1,14 +1,15 @@
 // src/pages/ChatPage.js
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import Header from '../../components/UI/Header';
+//import '../../components/UI/Main.css';
+import './ChatPage.css';
+import Header from '../../components/Main/Header';
 import ChatList from '../../components/Main/ChatList';
-import ProfilePanel from '../../components/UI/ProfilePanel';
+import ProfilePanel from '../../components/Main/ProfilePanel';
 import { fetchScanResultById, uploadAndAnalyzeFile } from '../../services/ApiService';
 import JsonViewer from '../../components/JsonViewer/JsonViewer';
 import FileUploadButton from '../../components/FileHandler/FileUploadButton';
 import SendButton from '../../components/FileHandler/SendButton';
-import '../../components/Main/Main.css';
 
 function ChatPage() {
   const { chatId } = useParams();

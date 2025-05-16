@@ -1,10 +1,109 @@
 // Main.js
 import React, { useState, useRef, useEffect } from 'react';
-import './components/Main/Main.css';
-import Header from './components/Main/Header';
-import ChatList from './components/Main/ChatList';
-import ProfilePanel from './components/Main/ProfilePanel';
+import { useNavigate } from 'react-router-dom';
+import '../../components/UI/Main.css';
+import Header from '../../components/Main/Header';
+import ChatList from '../../components/Main/ChatList';
+import ProfilePanel from '../../components/Main/ProfilePanel';
+import FileUpload from '../../components/FileHandler/FileUpload';
+import { uploadAndAnalyzeFile } from '../../services/ApiService';
 
+/*
+// src/components/MainPage/Main.js
+
+function Main() {
+  const [text, setText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [scanId, setScanId] = useState(null); // scanId 상태 추가
+  const navigate = useNavigate();
+
+  // 파일 업로드 완료 시 호출될 함수
+  const handleUploadComplete = (result, file) => {
+    if (result) {
+      let scanKeyId = uploadAndAnalyzeFile(file);
+
+      // ID 설정 및 페이지 이동
+      setScanId(scanKeyId);
+      console.log("사용할 스캔 ID:", scanKeyId);
+      
+      navigate(`/chat/${scanKeyId}`, {
+        state: {
+          file: file,
+          message: text.trim(),
+          result: result  // 전체 결과도 함께 전달
+        }
+      });
+    }
+  };
+
+  // 파일 업로드 시작 시 호출될 함수
+  const handleUploadStart = () => {
+    setLoading(true);
+  };
+
+  // 메시지 전송
+  const handleSendClick = () => {
+    if (text.trim().length === 0) return;
+    if (text.length > 3000) {
+      alert('글자수는 최대 3000자까지 입력 가능합니다.');
+      return;
+    }
+
+    // 서버에 채팅 생성 요청 후, 채팅 고유번호(chatId)로 이동
+    // 아래는 예시: 실제로는 서버에서 chatId를 받아와야 함
+    const chatId = Date.now(); // 임시로 timestamp 사용 (실제로는 서버 응답값)
+    navigate(`/chat/${chatId}`);
+  };
+
+  // 엔터키 전송
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendClick();
+    }
+  };
+
+  // 로고 클릭
+  const handleLogoClick = () => {
+    window.location.href = 'http://localhost:3000/';
+  };
+
+  return (
+    <div className="main-container">
+      <Header />
+      <div className="main-content">
+        <div className="upload-section">
+          <h2>APK 파일을 업로드하여 악성 코드를 분석해보세요.</h2>
+          <FileUpload 
+            onUploadComplete={handleUploadComplete} 
+            onUploadStart={handleUploadStart}
+            buttonText="파일 선택"
+          />
+          
+          <div className="message-input-container">
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="분석 요청 메시지를 입력하세요 (선택사항)"
+              maxLength={3000}
+            />
+          </div>
+          
+          {scanId && (
+            <div className="scan-info">
+              <span>스캔 ID: {scanId}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Main;
+
+*/
 function Main() {
   // 상태 관리
   const [text, setText] = useState('');
@@ -16,16 +115,6 @@ function Main() {
   const [showProfile, setShowProfile] = useState(false);
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
-
-  // 채팅 목록 예시 데이터
-  const chatList = [
-    { id: 1, title: "sample.apk 파일의 악성 코드 분석", date: "오늘" },
-    { id: 2, title: "Aegis.apk 파일의 악성 코드...", date: "어제" },
-    { id: 3, title: "DanS.apk 파일의 악성 코드...", date: "어제" },
-    { id: 4, title: "Danjeong.apk 파일의 악성 코드...", date: "2 days ago" },
-    { id: 5, title: "NEWSWEEK.apk 파일의 악성 코드...", date: "2 days ago" },
-    { id: 6, title: "example.apk 악성 코드 분석 및 설명", date: "2 days ago" },
-  ];
 
   // 채팅 전송
   const handleSendClick = () => {
@@ -58,69 +147,6 @@ function Main() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  // 채팅 목록에서 채팅 선택
-  const handleSelectChat = (chatId) => {
-    // chatId에 따라 채팅 불러오기 (여기선 생략)
-    setShowChatList(false);
-  };
-
-  // 파일 첨부 버튼 클릭 시 숨겨진 파일 input 클릭
-  const handleFileButtonClick = () => {
-    fileInputRef.current.click();
-  };
-
-  // 파일 선택 후 메시지에 파일명 추가(예시)
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setMessages([...messages, { text: "", isUser: true, file: file.name }]);
-    }
-  };
-
-  // 메뉴 버튼 클릭 시
-  const handleMenuClick = () => setShowChatList(true);
-
-  // 프로필 버튼 클릭 시
-  const handleProfileClick = () => setShowProfile(true);
-
-  // 프로필 패널 닫기
-  const handleCloseProfile = () => setShowProfile(false);
-
-  // 채팅 리스트 패널 닫기
-  const handleCloseChatList = () => setShowChatList(false);
-
-  // 메시지 렌더링(코드블록, 파일, 일반 텍스트)
-  const renderMessageContent = (message) => {
-    // 파일 메시지
-    if (message.file) {
-      return (
-        <div>
-          <span role="img" aria-label="파일">📎</span> {message.file}
-        </div>
-      );
-    }
-    // 코드블록
-    const regex = /``````/g;
-    let lastIndex = 0;
-    let match;
-    const parts = [];
-    while ((match = regex.exec(message.text)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push(message.text.slice(lastIndex, match.index));
-      }
-      parts.push(
-        <pre key={match.index}>
-          <code>{match[2]}</code>
-        </pre>
-      );
-      lastIndex = regex.lastIndex;
-    }
-    if (lastIndex < message.text.length) {
-      parts.push(message.text.slice(lastIndex));
-    }
-    return parts.map((part, idx) => <span key={idx}>{part}</span>);
-  };
 
   return (
     <div className="chatContainer">
