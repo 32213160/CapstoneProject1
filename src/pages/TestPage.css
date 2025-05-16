@@ -1,0 +1,78 @@
+/* FileUploadPage.css */
+.file-upload-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  color: #333;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.upload-section {
+  display: flex;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.file-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.upload-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.upload-button:hover {
+  background-color: #45a049;
+}
+
+.upload-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.file-info {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.response-container {
+  background-color: #e8f5e9;
+  padding: 15px;
+  border-radius: 4px;
+  margin-top: 20px;
+  overflow: auto;
+}
+
+.response-container pre {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+h3 {
+  margin-top: 0;
+  color: #333;
+}

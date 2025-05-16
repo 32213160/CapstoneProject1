@@ -1,12 +1,19 @@
 // src/App.js
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import axios from 'axios';
 import MainPage from './pages/MainPage';
 import ChatPage from './pages/ChatPage';
 import ScanResultsPage from './pages/ScanResultsPage';
 import ParsingResult from './pages/ParsingResult';
+import TestPage from './pages/TestPage';
 
 function App() {
+  const [data, setData] = useState([]);
+  const [error, setError] = useState(null);
+
+  if (error) return <div>에러: {error}</div>;
+
   return (
     <Router>
       <Routes>
@@ -14,6 +21,7 @@ function App() {
         <Route path="/chat/:chatId" element={<ChatPage />} />
         <Route path="/scanresults" element={<ScanResultsPage />} />
         <Route path="/parsingresult" element={<ParsingResult />} />
+        <Route path="/test" element={<TestPage />} />
       </Routes>
     </Router>
   );
