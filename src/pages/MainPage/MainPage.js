@@ -1,9 +1,9 @@
 // src/pages/MainPage.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Main/Header';
-import FileUpload from '../components/FileHandler/FileUpload';
-import '../components/Main/Main.css';
+import Header from '../../components/UI/Header';
+import FileUpload from '../../components/FileHandler/FileUpload';
+import '../../components/Main/Main.css';
 
 function MainPage() {
   const [text, setText] = useState('');

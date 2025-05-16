@@ -1,6 +1,6 @@
 // src/components/ParsingResult.js
 import React, { useState } from 'react';
-import FileUpload from '../components/FileHandler/FileUpload';
+import FileUpload from '../../components/FileHandler/FileUpload';
 
 function ParsingResult() {
   const [selectedFileName, setSelectedFileName] = useState('');
