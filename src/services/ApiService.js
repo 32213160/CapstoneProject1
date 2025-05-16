@@ -34,19 +34,57 @@ export const fetchScanResultById = async (id) => {
 export const uploadAndAnalyzeFile = async (file) => {
   try {
     const formData = new FormData();
-    formData.append('file', file); // key는 반드시 'file'이어야 함
+    formData.append('file', file);
 
+    // API 엔드포인트 수정 - 서버 경로에 맞게 조정
     const response = await fetch(`${API_BASE_URL}/upload`, {
       method: 'POST',
       body: formData,
     });
 
     if (!response.ok) {
-      throw new Error('파일 업로드에 실패했습니다');
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    return await response.json(); // 서버에서 리턴하는 JSON 분석 결과
+
+    const responseText = await response.text();
+    
+    try {
+      // JSON 파싱
+      const jsonData = JSON.parse(responseText);
+      
+      // 스캔 ID 추출 로직 (다양한 위치에서 ID 찾기)
+      let scanKeyId = null;
+      
+      // 다양한 위치에서 ID 찾기
+      if (jsonData._id) {
+        scanKeyId = jsonData._id;
+      } else if (jsonData.scanId) {
+        scanKeyId = jsonData.scanId;
+      } else if (jsonData.reportfromVT && jsonData.reportfromVT._id) {
+        scanKeyId = jsonData.reportfromVT._id;
+      } else if (jsonData.reportfromVT && jsonData.reportfromVT.scan_id) {
+        scanKeyId = jsonData.reportfromVT.scan_id;
+      }
+      
+      // Debugging: 응답 데이터 확인
+      console.log("응답 데이터:", jsonData);
+      console.log("응답 데이터 중 _ID:", scanKeyId);
+      
+      return {
+        ...jsonData,
+        extractedId: scanKeyId // ID를 명시적으로 포함
+      };
+    } catch (parseError) {
+      console.error('JSON 파싱 오류:', parseError);
+      // 원본 텍스트도 함께 반환하여 디버깅 용이하게
+      return {
+        error: '응답 데이터 파싱 오류',
+        errorMessage: parseError.message,
+        rawResponse: responseText
+      };
+    }
   } catch (error) {
-    console.error('파일 업로드 오류:', error);
+    console.error('파일 분석 요청 실패:', error);
     throw error;
   }
 };
