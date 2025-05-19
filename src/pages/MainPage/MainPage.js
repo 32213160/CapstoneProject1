@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from 'react';
 //import '../../components/UI/Main.css';
 import './MainPage.css';
 import { useNavigate } from 'react-router-dom';
-import '../../components/UI/Main.css';
 import Header from '../../components/Main/Header';
 import FileUpload from '../../components/FileHandler/FileUpload';
 import { uploadAndAnalyzeFile } from '../../services/ApiService';
@@ -49,7 +48,13 @@ function MainPage() {
     // 서버에 채팅 생성 요청 후, 채팅 고유번호(chatId)로 이동
     // 아래는 예시: 실제로는 서버에서 chatId를 받아와야 함
     const chatId = Date.now(); // 임시로 timestamp 사용 (실제로는 서버 응답값)
-    navigate(`/chat/${chatId}`);
+    
+    // 메시지를 state로 전달하도록 수정
+    navigate(`/chat/${chatId}`, {
+      state: {
+        message: text.trim()
+      }
+    });
   };
 
   // 엔터키 전송
@@ -66,33 +71,45 @@ function MainPage() {
   };
 
   return (
-    <div className="main-container">
+    <div className="mainContainer">
       <Header />
-      <div className="main-content">
-        <div className="upload-section">
+      <div className="mainContent">
+        <div className="welcome-container">
           <h2>APK 파일을 업로드하여 악성 코드를 분석해보세요.</h2>
-          <FileUpload 
+        </div>
+
+        <div className="inputContainer">
+          <FileUpload
+            className="fileUploadButton"
             onUploadComplete={handleUploadComplete} 
             onUploadStart={handleUploadStart}
             buttonText="파일 선택"
           />
-          
-          <div className="message-input-container">
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="분석 요청 메시지를 입력하세요 (선택사항)"
-              maxLength={3000}
-            />
+          <textarea
+            className="textInput"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="분석 요청 메시지를 입력하세요 (선택사항)"
+            maxLength={3000}
+          />
+
+          <div className="sendButtonContainer">
+            <button 
+              className="sendButton"
+              onClick={handleSendClick}
+              disabled={text.trim().length === 0}
+            >
+              전송
+            </button>
           </div>
-          
-          {scanId && (
-            <div className="scan-info">
-              <span>스캔 ID: {scanId}</span>
-            </div>
-          )}
         </div>
+        
+        {scanId && (
+          <div className="scanInfo">
+            <span>스캔 ID: {scanId}</span>
+          </div>
+        )}
       </div>
     </div>
   );

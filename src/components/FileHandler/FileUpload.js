@@ -123,7 +123,7 @@ function FileUpload({ onUploadComplete, onUploadStart, buttonText }) {
   };
 
   return (
-    <div className="file-upload-container">
+    <div className="fileUploadContainer">
       <input
         type="file"
         ref={fileInputRef}

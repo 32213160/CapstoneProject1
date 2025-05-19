@@ -1,20 +1,17 @@
 /* src/components/UI/Header.css */
-.header {
+.headerContainer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  max-width: 100vw;
   padding: 15px 20px;
   background-color: #4a6cf7;
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-}
-
-.menu-button {
+.menuButton {
   background: none;
   border: none;
   color: white;
@@ -24,21 +21,16 @@
   padding: 5px;
 }
 
-.header-title {
+.title {
   font-size: 18px;
   font-weight: bold;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 300px;
+  max-width: 100%;
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-.profile-button {
+.profileButton {
   background: none;
   border: none;
   color: white;
@@ -49,6 +41,6 @@
 
 @media (max-width: 768px) {
   .header-title {
-    max-width: 200px;
+    max-width: 100%;
   }
 }

@@ -16,6 +16,7 @@ function ChatPage() {
   const location = useLocation();
   const initialFile = location.state?.file || null;
   const initialMessage = location.state?.message || '';
+  
   // 초기 메시지 설정
   const initialMessages = [];
   
@@ -34,6 +35,20 @@ function ChatPage() {
       text: "분석 중입니다...",
       isUser: false,
       isLoading: true,
+      timestamp: new Date().toISOString()
+    });
+  } else if (initialMessage) {
+    // 파일 없이 메시지만 있는 경우 처리
+    initialMessages.push({
+      text: initialMessage,
+      isUser: true,
+      timestamp: new Date().toISOString()
+    });
+    
+    // 시스템 응답 메시지 (필요한 경우)
+    initialMessages.push({
+      text: "메시지를 받았습니다. 어떻게 도와드릴까요?",
+      isUser: false,
       timestamp: new Date().toISOString()
     });
   }
@@ -259,7 +274,7 @@ function ChatPage() {
   };
   
   return (
-    <div className="chat-container">
+    <div className="chatContainer">
       <Header 
         onMenuClick={handleMenuClick} 
         onProfileClick={handleProfileClick}
@@ -277,7 +292,7 @@ function ChatPage() {
         <ProfilePanel onClose={handleCloseProfile} />
       )}
       
-      <div className="messages-container">
+      <div className="messagesContainer">
         {messages.map((message, index) => (
           <div 
             key={index} 
@@ -294,27 +309,27 @@ function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
       
-      <div className="input-container">
+      <div className="inputContainer">
+        <FileUploadButton 
+          className="fileUploadButton"
+          onFileSelect={handleFileSelect} 
+          disabled={loading}
+          ref={fileInputRef}
+        />
         <textarea
+          className="textInput"
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="메시지를 입력하세요..."
           disabled={loading}
         />
-        <div className="button-container">
-          <FileUploadButton 
-            onFileSelect={handleFileSelect} 
-            disabled={loading}
-            ref={fileInputRef}
-          />
-          {selectedFile && (
-            <div className="selected-file">
-              {selectedFile.name}
-            </div>
-          )}
-          <SendButton onClick={handleSendClick} disabled={loading || (!selectedFile && text.trim().length === 0)} />
-        </div>
+        {selectedFile && (
+          <div className="selected-file">
+            {selectedFile.name}
+          </div>
+        )}
+        <SendButton onClick={handleSendClick} disabled={loading || (!selectedFile && text.trim().length === 0)} />
       </div>
     </div>
   );

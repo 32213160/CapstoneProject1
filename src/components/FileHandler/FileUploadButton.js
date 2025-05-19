@@ -22,7 +22,7 @@ function FileUploadButton({ onFileSelect }) {
   };
 
   return (
-    <div className="file-upload-container">
+    <div className="fileUploadContainer">
       <input
         type="file"
         ref={fileInputRef}
