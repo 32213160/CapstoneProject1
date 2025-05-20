@@ -1,7 +1,8 @@
 // src/pages/MainPage.js
 import React, { useState, useRef, useEffect } from 'react';
-//import '../../components/UI/Main.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './MainPage.css';
+
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Main/Header';
 import FileUpload from '../../components/FileHandler/FileUpload';

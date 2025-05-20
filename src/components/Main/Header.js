@@ -1,6 +1,7 @@
 // src/components/Main/Header.js
 import React from 'react';
-import '../UI/Header.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+//import '../UI/Header.css';
 import { FaBars, FaUserCircle } from 'react-icons/fa';
 
 function Header({ onMenuClick, onProfileClick, title = "'sample.apk' 파일의 악성 코드 분석" }) {
@@ -68,13 +69,13 @@ function Header({ onMenuClick, onProfileClick, title = "'sample.apk' 파일의 �
   };
 
   return (
-    <div className="headerContainer">
-      <button className="menuButton" onClick={onMenuClick}>
-        <FaBars />
+    <div className="d-flex justify-content-between align-items-center w-100 px-3 py-2 bg-primary text-white shadow-sm">
+      <button className="btn btn-link text-white border-0 p-1 me-2" onClick={onMenuClick}>
+        <FaBars size={20} />
       </button>
-      <span className="title">{title}</span>
-      <button className="profileButton" onClick={onProfileClick}>
-        <FaUserCircle />
+      <h5 className="m-0 text-truncate font-weight-bold">{title}</h5>
+      <button className="btn btn-link text-white border-0 p-1" onClick={onProfileClick}>
+        <FaUserCircle size={20} />
       </button>
     </div>
   );
