@@ -2,7 +2,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
+import { FaPaperPlane, FaPaperclip } from 'react-icons/fa';
 import Header from '../../components/Main/Header';
+import ChatList from '../../components/Main/ChatList';
+import ProfilePanel from '../../components/Main/ProfilePanel';
 import FileUpload from '../../components/FileHandler/FileUpload';
 import { uploadAndAnalyzeFile } from '../../services/ApiService';
 
@@ -10,6 +13,9 @@ function MainPage() {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [scanId, setScanId] = useState(null);
+  const [showChatList, setShowChatList] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
   // 파일 업로드 완료 시 호출될 함수
@@ -31,6 +37,22 @@ function MainPage() {
   // 파일 업로드 시작 시 호출될 함수
   const handleUploadStart = () => {
     setLoading(true);
+  };
+
+  // 파일 선택 버튼 클릭 핸들러
+  const handleFileButtonClick = () => {
+    fileInputRef.current.click();
+  };
+
+  // 파일 선택 핸들러 (paste-6.txt의 FileUpload 컴포넌트 연동)
+  const handleFileSelect = (file) => {
+    // FileUpload 컴포넌트의 기능을 직접 호출
+    const fileUploadComponent = document.querySelector('.file-upload-component');
+    if (fileUploadComponent) {
+      // FileUpload 컴포넌트의 파일 처리 로직 실행
+      handleUploadStart();
+      handleUploadComplete(null, file);
+    }
   };
 
   // 메시지 전송
@@ -60,9 +82,110 @@ function MainPage() {
     window.location.href = 'http://localhost:3000/';
   };
 
+  // 메뉴 버튼 클릭 핸들러
+  const handleMenuClick = () => {
+    setShowChatList(true);
+    setShowProfile(false);
+  };
+
+  // 프로필 버튼 클릭 핸들러
+  const handleProfileClick = () => {
+    setShowProfile(true);
+    setShowChatList(false);
+  };
+
+  // 채팅 리스트 닫기 핸들러
+  const handleCloseChatList = () => {
+    setShowChatList(false);
+  };
+
+  // 프로필 패널 닫기 핸들러
+  const handleCloseProfile = () => {
+    setShowProfile(false);
+  };
+
+  // 채팅 선택 핸들러
+  const handleSelectChat = (chatId) => {
+    console.log('선택된 채팅 ID:', chatId);
+    navigate(`/chat/${chatId}`);
+    setShowChatList(false);
+  };
+
+  // 외부 클릭 시 패널 닫기
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showChatList || showProfile) {
+        const chatListElement = document.querySelector('.chat-list-panel');
+        const profileElement = document.querySelector('.profile-panel');
+        const headerElement = document.querySelector('.header');
+        
+        if (chatListElement && !chatListElement.contains(event.target) && 
+            !headerElement?.contains(event.target)) {
+          setShowChatList(false);
+        }
+        
+        if (profileElement && !profileElement.contains(event.target) && 
+            !headerElement?.contains(event.target)) {
+          setShowProfile(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showChatList, showProfile]);
+
   return (
-    <div className="container-fluid vh-100 d-flex flex-column">
-      <Header />
+    <div className="container-fluid vh-100 d-flex flex-column position-relative">
+      {/* Header */}
+      <Header 
+        onMenuClick={handleMenuClick}
+        onProfileClick={handleProfileClick}
+        title="APK 악성코드 분석 서비스"
+      />
+      
+      {/* 채팅 리스트 사이드 패널 */}
+      {showChatList && (
+        <div className="position-fixed top-0 start-0 h-100 bg-white shadow-lg chat-list-panel" 
+             style={{ 
+               width: '350px', 
+               zIndex: 1050,
+               transform: showChatList ? 'translateX(0)' : 'translateX(-100%)',
+               transition: 'transform 0.3s ease-in-out'
+             }}>
+          <ChatList 
+            onSelectChat={handleSelectChat}
+            onClose={handleCloseChatList}
+          />
+        </div>
+      )}
+
+      {/* 프로필 패널 사이드 패널 */}
+      {showProfile && (
+        <div className="position-fixed top-0 end-0 h-100 bg-white shadow-lg profile-panel" 
+             style={{ 
+               width: '350px', 
+               zIndex: 1050,
+               transform: showProfile ? 'translateX(0)' : 'translateX(100%)',
+               transition: 'transform 0.3s ease-in-out'
+             }}>
+          <ProfilePanel onClose={handleCloseProfile} />
+        </div>
+      )}
+
+      {/* 오버레이 */}
+      {(showChatList || showProfile) && (
+        <div 
+          className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50"
+          style={{ zIndex: 1040 }}
+          onClick={() => {
+            setShowChatList(false);
+            setShowProfile(false);
+          }}
+        />
+      )}
       
       {/* 메인 콘텐츠 영역 */}
       <div className="flex-grow-1 d-flex flex-column justify-content-center align-items-center px-3">
@@ -79,48 +202,61 @@ function MainPage() {
           </div>
         </div>
 
-        {/* 입력 컨테이너 */}
+        {/* 새로운 아이콘 버튼 형태의 입력 영역 */}
         <div className="w-100" style={{ maxWidth: '800px' }}>
-          <div className="row g-2 align-items-center mb-3">
-            {/* 파일 업로드 버튼 */}
-            <div className="col-auto">
-              <FileUpload
-                onUploadComplete={handleUploadComplete}
-                onUploadStart={handleUploadStart}
-                className="btn btn-outline-primary d-flex align-items-center justify-content-center"
-                style={{ width: '50px', height: '50px' }}
-              />
-            </div>
-            
-            {/* 텍스트 입력 */}
-            <div className="col">
-              <textarea
-                className="form-control"
-                placeholder="메시지를 입력하세요..."
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onKeyPress={handleKeyPress}
-                rows="2"
-                maxLength={3000}
-                style={{ resize: 'none' }}
-              />
-            </div>
-          </div>
-
-          {/* 전송 버튼 컨테이너 */}
-          <div className="d-flex justify-content-center">
+          <div className="d-flex align-items-center bg-white rounded-pill shadow-sm p-2 mb-3" style={{border: '1px solid #dee2e6'}}>
+            {/* 파일 선택 버튼 */}
             <button
-              className="btn btn-primary px-4 py-2"
+              type="button"
+              className="btn btn-outline-secondary rounded-circle me-2 d-flex align-items-center justify-content-center"
+              onClick={handleFileButtonClick}
+              disabled={loading}
+              style={{
+                width: '40px',
+                height: '40px',
+                border: 'none',
+                backgroundColor: 'transparent'
+              }}
+              title="파일 선택"
+            >
+              <FaPaperclip size={16} />
+            </button>
+
+            {/* 텍스트 입력창 - 높이 줄임 */}
+            <textarea
+              className="form-control border-0 flex-grow-1"
+              placeholder="메시지를 입력하세요..."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyPress={handleKeyPress}
+              rows="1"
+              maxLength={3000}
+              style={{ 
+                resize: 'none',
+                outline: 'none',
+                boxShadow: 'none',
+                minHeight: '38px',
+                maxHeight: '120px',
+                overflow: 'auto'
+              }}
+            />
+
+            {/* 전송 버튼 */}
+            <button
+              type="button"
+              className="btn btn-primary rounded-circle ms-2 d-flex align-items-center justify-content-center"
               onClick={handleSendClick}
               disabled={loading || text.trim().length === 0}
+              style={{
+                width: '40px',
+                height: '40px'
+              }}
+              title="전송"
             >
               {loading ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  분석 중...
-                </>
+                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
               ) : (
-                '전송'
+                <FaPaperPlane size={14} />
               )}
             </button>
           </div>
@@ -131,6 +267,28 @@ function MainPage() {
               {text.length}/3000
             </small>
           </div>
+        </div>
+
+        {/* 숨겨진 파일 입력 */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          accept=".apk"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file) {
+              handleFileSelect(file);
+            }
+          }}
+        />
+
+        {/* 기존 FileUpload 컴포넌트 - 숨김 처리하되 기능 연동 */}
+        <div style={{ display: 'none' }} className="file-upload-component">
+          <FileUpload
+            onUploadComplete={handleUploadComplete}
+            onUploadStart={handleUploadStart}
+          />
         </div>
 
         {/* 추가 정보 섹션 */}
