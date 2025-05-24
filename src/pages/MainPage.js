@@ -19,18 +19,26 @@ function MainPage() {
   const navigate = useNavigate();
 
   // 파일 업로드 완료 시 호출될 함수
-  const handleUploadComplete = (result, file) => {
-    if (result) {
-      let scanKeyId = uploadAndAnalyzeFile(file);
-      setScanId(scanKeyId);
-      console.log("사용할 스캔 ID:", scanKeyId);
-      navigate(`/chat/${scanKeyId}`, {
-        state: {
-          file: file,
-          message: text.trim(), // 여기서 텍스트 전달
-          result: result
-        }
-      });
+  const handleUploadComplete = async (result, file) => {
+    try {
+        setLoading(true);
+        
+        const scanKeyId = Date.now();
+        setScanId(scanKeyId);
+        
+        navigate(`/chat/${scanKeyId}`, {
+            state: {
+                file: file,
+                message: text.trim(),
+                result: result, // 이미 분석된 결과
+                skipAnalysis: true // 중복 분석 방지 플래그
+            }
+        });
+    } catch (error) {
+        console.error('파일 업로드 실패:', error);
+        alert('파일 업로드 중 오류가 발생했습니다.');
+    } finally {
+        setLoading(false);
     }
   };
 

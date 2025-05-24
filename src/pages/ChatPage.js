@@ -5,8 +5,9 @@ import Header from '../components/Main/Header';
 import Footer from '../components/Main/Footer';
 import ChatList from '../components/Main/ChatList';
 import ProfilePanel from '../components/Main/ProfilePanel';
-import { fetchScanResultById, uploadAndAnalyzeFile } from '../services/ApiService';
 import JsonViewer from '../components/JsonViewer/JsonViewer';
+import { fetchScanResultById, uploadAndAnalyzeFile } from '../services/ApiService';
+import { parseMalwareAnalysisResponse, formatAnalysisMessage } from '../utils/MalwareAnalysisParser';
 
 function ChatPage() {
   const { chatId } = useParams();
@@ -87,48 +88,71 @@ function ChatPage() {
 
   // 초기 파일 분석 실행
   useEffect(() => {
+    let isMounted = true;
+    
     const analyzeInitialFile = async () => {
-      if (initialFile) {
-        try {
-          const existingResult = location.state?.result;
-          let result;
-
-          if (existingResult) {
-            result = existingResult;
-          } else {
-            result = await uploadAndAnalyzeFile(initialFile);
-          }
-
-          setMessages(prev => prev.filter(msg => !msg.isLoading));
-          setAnalysisResult(result);
-
-          const aiMessage = {
-            text: `네, 다음은 ${initialFile.name}의 악성 코드를 분석한 결과입니다:`,
-            isUser: false,
-            jsonResult: result,
-            timestamp: new Date().toISOString()
-          };
-
-          setMessages(prev => [...prev, aiMessage]);
-        } catch (error) {
-          console.error('파일 분석 실패:', error);
-          setMessages(prev => prev.filter(msg => !msg.isLoading));
-
-          const errorMessage = {
-            text: `죄송합니다, 파일 분석 중 오류가 발생했습니다: ${error.message}`,
-            isUser: false,
-            timestamp: new Date().toISOString()
-          };
-
-          setMessages(prev => [...prev, errorMessage]);
-        } finally {
-          setLoading(false);
+        // skipAnalysis 플래그 확인
+        const skipAnalysis = location.state?.skipAnalysis;
+        const existingResult = location.state?.result;
+        
+        if (initialFile && isMounted && !skipAnalysis) {
+            try {
+                let result;
+                
+                if (existingResult) {
+                    // 이미 결과가 있으면 바로 사용
+                    result = existingResult;
+                } else {
+                    // 결과가 없을 때만 새로 분석
+                    result = await uploadAndAnalyzeFile(initialFile);
+                }
+                
+                if (!isMounted) return;
+                
+                // 파싱 함수 사용
+                const parsedResult = parseMalwareAnalysisResponse(result);
+                const userFriendlyMessage = formatAnalysisMessage(parsedResult);
+                
+                setMessages(prev => prev.filter(msg => !msg.isLoading));
+                setAnalysisResult(parsedResult);
+                
+                const aiMessage = {
+                    text: `네, 다음은 ${initialFile.name}의 악성 코드를 분석한 결과입니다:`,
+                    isUser: false,
+                    jsonResult: result,
+                    parsedResult: parsedResult,
+                    summary: userFriendlyMessage,
+                    timestamp: new Date().toISOString()
+                };
+                
+                setMessages(prev => [...prev, aiMessage]);
+            } catch (error) {
+                if (!isMounted) return;
+                
+                console.error('파일 분석 실패:', error);
+                setMessages(prev => prev.filter(msg => !msg.isLoading));
+                
+                const errorMessage = {
+                    text: `죄송합니다, 파일 분석 중 오류가 발생했습니다: ${error.message}`,
+                    isUser: false,
+                    timestamp: new Date().toISOString()
+                };
+                
+                setMessages(prev => [...prev, errorMessage]);
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
         }
-      }
     };
-
+    
     analyzeInitialFile();
-  }, [initialFile, location.state]);
+    
+    return () => {
+        isMounted = false;
+    };
+  }, [initialFile]);
 
   // 자동 스크롤
   useEffect(() => {
