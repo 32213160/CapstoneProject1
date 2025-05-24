@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './TestPage.css';
 
 function TestPage() {
   const [selectedFile, setSelectedFile] = useState(null);

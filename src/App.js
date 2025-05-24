@@ -2,9 +2,9 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import axios from 'axios';
-import MainPage from './pages/MainPage/MainPage';
-import ChatPage from './pages/ChatPage/ChatPage';
-import TestPage from './pages/TestPage/TestPage';
+import MainPage from './pages/MainPage';
+import ChatPage from './pages/ChatPage';
+import TestPage from './pages/TestPage';
 
 function App() {
   const [data, setData] = useState([]);

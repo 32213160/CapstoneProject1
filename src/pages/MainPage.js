@@ -3,11 +3,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
 import { FaPaperPlane, FaPaperclip } from 'react-icons/fa';
-import Header from '../../components/Main/Header';
-import ChatList from '../../components/Main/ChatList';
-import ProfilePanel from '../../components/Main/ProfilePanel';
-import FileUpload from '../../components/FileHandler/FileUpload';
-import { uploadAndAnalyzeFile } from '../../services/ApiService';
+import Header from '../components/Main/Header';
+import ChatList from '../components/Main/ChatList';
+import ProfilePanel from '../components/Main/ProfilePanel';
+import FileUpload from '../components/FileHandler/FileUpload';
+import { uploadAndAnalyzeFile } from '../services/ApiService';
 
 function MainPage() {
   const [text, setText] = useState('');
@@ -27,7 +27,7 @@ function MainPage() {
       navigate(`/chat/${scanKeyId}`, {
         state: {
           file: file,
-          message: text.trim(),
+          message: text.trim(), // 여기서 텍스트 전달
           result: result
         }
       });
@@ -44,18 +44,16 @@ function MainPage() {
     fileInputRef.current.click();
   };
 
-  // 파일 선택 핸들러 (paste-6.txt의 FileUpload 컴포넌트 연동)
+  // 파일 선택 핸들러
   const handleFileSelect = (file) => {
-    // FileUpload 컴포넌트의 기능을 직접 호출
     const fileUploadComponent = document.querySelector('.file-upload-component');
     if (fileUploadComponent) {
-      // FileUpload 컴포넌트의 파일 처리 로직 실행
       handleUploadStart();
       handleUploadComplete(null, file);
     }
   };
 
-  // 메시지 전송
+  // 메시지 전송 - 텍스트 전달 확실히 하기
   const handleSendClick = () => {
     if (text.trim().length === 0) return;
     if (text.length > 3000) {
@@ -65,7 +63,9 @@ function MainPage() {
 
     const chatId = Date.now();
     navigate(`/chat/${chatId}`, {
-      state: { message: text.trim() }
+      state: { 
+        message: text.trim() // 텍스트만 있을 때도 확실히 전달
+      }
     });
   };
 
@@ -222,7 +222,7 @@ function MainPage() {
               <FaPaperclip size={16} />
             </button>
 
-            {/* 텍스트 입력창 - 높이 줄임 */}
+            {/* 텍스트 입력창 */}
             <textarea
               className="form-control border-0 flex-grow-1"
               placeholder="메시지를 입력하세요..."
