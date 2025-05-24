@@ -1,7 +1,6 @@
 // src/components/Main/Header.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-//import '../UI/Header.css';
 import { FaBars, FaUserCircle } from 'react-icons/fa';
 
 function Header({ onMenuClick, onProfileClick, title = "'sample.apk' 파일의 악성 코드 분석" }) {
@@ -69,15 +68,32 @@ function Header({ onMenuClick, onProfileClick, title = "'sample.apk' 파일의 �
   };
 
   return (
-    <div className="d-flex justify-content-between align-items-center w-100 px-3 py-2 bg-primary text-white shadow-sm">
-      <button className="btn btn-link text-white border-0 p-1 me-2" onClick={onMenuClick}>
-        <FaBars size={20} />
-      </button>
-      <h5 className="m-0 text-truncate font-weight-bold">{title}</h5>
-      <button className="btn btn-link text-white border-0 p-1" onClick={onProfileClick}>
-        <FaUserCircle size={20} />
-      </button>
-    </div>
+    <nav className="navbar navbar-light fixed-top shadow-sm" style={{
+      backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0.9) 100%)',
+      padding: '0.8rem 1rem',
+      height: '65px',
+      zIndex: 1030
+    }}>
+      <div className="container-fluid d-flex justify-content-between align-items-center">
+        <button 
+          className="btn btn-link text-dark border-0 p-1" 
+          onClick={onMenuClick}
+          style={{ fontSize: '1.2rem' }}
+        >
+          <FaBars />
+        </button>
+        <h5 className="m-0 text-center text-truncate fw-bold" style={{ flex: 1, maxWidth: '70%' }}>
+          {title}
+        </h5>
+        <button 
+          className="btn btn-link text-dark border-0 p-1" 
+          onClick={onProfileClick}
+          style={{ fontSize: '1.2rem' }}
+        >
+          <FaUserCircle />
+        </button>
+      </div>
+    </nav>
   );
 }
 

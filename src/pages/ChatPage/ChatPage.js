@@ -1,15 +1,13 @@
-// src/pages/ChatPage.js
+// src/pages/ChatPage.js (수정된 부분)
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-//import '../../components/UI/Main.css';
 import './ChatPage.css';
 import Header from '../../components/Main/Header';
+import Footer from '../../components/Main/Footer'; // Footer 컴포넌트 import
 import ChatList from '../../components/Main/ChatList';
 import ProfilePanel from '../../components/Main/ProfilePanel';
 import { fetchScanResultById, uploadAndAnalyzeFile } from '../../services/ApiService';
 import JsonViewer from '../../components/JsonViewer/JsonViewer';
-import FileUploadButton from '../../components/FileHandler/FileUploadButton';
-import SendButton from '../../components/FileHandler/SendButton';
 
 function ChatPage() {
   const { chatId } = useParams();
@@ -273,64 +271,59 @@ function ChatPage() {
     window.location.href = 'http://localhost:3000/';
   };
   
+  
   return (
-    <div className="chatContainer">
+    <div className="chat-page">
       <Header 
         onMenuClick={handleMenuClick} 
-        onProfileClick={handleProfileClick}
-        onLogoClick={handleLogoClick}
+        onProfileClick={handleProfileClick} 
+        title={`'${initialFile?.name || chatId}' 파일의 악성 코드 분석`} 
       />
       
+      {/* 채팅 리스트 패널 */}
       {showChatList && (
         <ChatList 
           onClose={handleCloseChatList} 
-          onSelectChat={handleSelectChat}
+          onSelectChat={handleSelectChat} 
         />
       )}
       
+      {/* 프로필 패널 */}
       {showProfile && (
-        <ProfilePanel onClose={handleCloseProfile} />
+        <ProfilePanel 
+          onClose={handleCloseProfile} 
+        />
       )}
       
-      <div className="messagesContainer">
-        {messages.map((message, index) => (
-          <div 
-            key={index} 
-            className={`message ${message.isUser ? 'user-message' : 'ai-message'}`}
-          >
-            <div className="message-content">
-              {renderMessageContent(message)}
+      {/* 메인 채팅 영역 */}
+      <div className="chat-container pb-5">
+        <div className="messages-container">
+          {messages.map((message, index) => (
+            <div 
+              key={index} 
+              className={`message ${message.isUser ? 'user-message' : 'ai-message'}`}
+            >
+              <div className="message-content">
+                {renderMessageContent(message)}
+              </div>
+              <div className="message-time">
+                {new Date(message.timestamp).toLocaleTimeString()}
+              </div>
             </div>
-            <div className="message-time">
-              {new Date(message.timestamp).toLocaleTimeString()}
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
       
-      <div className="inputContainer">
-        <FileUploadButton 
-          className="fileUploadButton"
-          onFileSelect={handleFileSelect} 
-          disabled={loading}
-          ref={fileInputRef}
-        />
-        <textarea
-          className="textInput"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="메시지를 입력하세요..."
-          disabled={loading}
-        />
-        {selectedFile && (
-          <div className="selected-file">
-            {selectedFile.name}
-          </div>
-        )}
-        <SendButton onClick={handleSendClick} disabled={loading || (!selectedFile && text.trim().length === 0)} />
-      </div>
+      {/* Footer 컴포넌트로 채팅 입력 부분 대체 */}
+      <Footer
+        text={text}
+        setText={setText}
+        handleSendClick={handleSendClick}
+        handleKeyPress={handleKeyPress}
+        handleFileSelect={handleFileSelect}
+        loading={loading}
+      />
     </div>
   );
 }
