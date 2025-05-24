@@ -20,20 +20,28 @@ function MainPage() {
 
   // 파일 업로드 완료 시 호출될 함수
   const handleUploadComplete = async (result, file) => {
+    console.log('handleUploadComplete 호출됨:', { result, file });
+    
+    if (!result) {
+        console.error('업로드 결과가 없습니다.');
+        alert('파일 업로드에 실패했습니다.');
+        return;
+    }
+
     try {
-        setLoading(true);
-        
         const scanKeyId = Date.now();
         setScanId(scanKeyId);
         
-        navigate(`/chat/${scanKeyId}`, {
-            state: {
-                file: file,
-                message: text.trim(),
-                result: result, // 이미 분석된 결과
-                skipAnalysis: true // 중복 분석 방지 플래그
-            }
-        });
+        const navigationState = {
+            file: file,
+            message: text.trim(),
+            result: result,
+            skipAnalysis: true
+        };
+        
+        console.log('ChatPage로 이동 중...', navigationState);
+        
+        navigate(`/chat/${scanKeyId}`, { state: navigationState });
     } catch (error) {
         console.error('파일 업로드 실패:', error);
         alert('파일 업로드 중 오류가 발생했습니다.');
@@ -43,9 +51,10 @@ function MainPage() {
   };
 
   // 파일 업로드 시작 시 호출될 함수
-  const handleUploadStart = () => {
-    setLoading(true);
-  };
+    const handleUploadStart = (file) => {
+        console.log('파일 업로드 시작:', file.name); // 디버깅용
+        setLoading(true);
+    };
 
   // 파일 선택 버튼 클릭 핸들러
   const handleFileButtonClick = () => {
@@ -53,15 +62,51 @@ function MainPage() {
   };
 
   // 파일 선택 핸들러
-  const handleFileSelect = (file) => {
-    const fileUploadComponent = document.querySelector('.file-upload-component');
-    if (fileUploadComponent) {
-      handleUploadStart();
-      handleUploadComplete(null, file);
+  const handleFileSelect = async (file) => {
+    console.log('파일 선택됨:', file.name);
+    
+    try {
+      setLoading(true);
+      
+      // 파일 크기 체크 (예: 100MB 제한)
+      const maxSize = 100 * 1024 * 1024; // 100MB
+      if (file.size > maxSize) {
+        throw new Error('파일 크기가 너무 큽니다. 100MB 이하의 파일만 업로드 가능합니다.');
+      }
+      
+      // 파일 형식 체크
+      if (!file.name.toLowerCase().endsWith('.apk')) {
+        throw new Error('APK 파일만 업로드 가능합니다.');
+      }
+      
+      const result = await uploadAndAnalyzeFile(file);
+      console.log('업로드 결과:', result);
+      
+      // 업로드 완료 후 ChatPage로 이동
+      handleUploadComplete(result, file);
+    } catch (error) {
+      console.error('파일 업로드 실패:', error);
+      
+      // 사용자에게 구체적인 에러 메시지 표시
+      let userMessage = '파일 업로드 중 오류가 발생했습니다.';
+      
+      if (error.message.includes('서버에 연결할 수 없습니다')) {
+        userMessage = '서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.';
+      } else if (error.message.includes('파일 크기')) {
+        userMessage = error.message;
+      } else if (error.message.includes('APK 파일만')) {
+        userMessage = error.message;
+      } else if (error.message.includes('서버 오류')) {
+        userMessage = '서버에서 파일 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      }
+      
+      alert(userMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 메시지 전송 - 텍스트 전달 확실히 하기
+  // 메시지 전송
   const handleSendClick = () => {
     if (text.trim().length === 0) return;
     if (text.length > 3000) {
@@ -77,7 +122,7 @@ function MainPage() {
     });
   };
 
-  // 엔터키 전송
+  // 엔터키 전송 - 비활성화
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -233,12 +278,13 @@ function MainPage() {
             {/* 텍스트 입력창 */}
             <textarea
               className="form-control border-0 flex-grow-1"
-              placeholder="메시지를 입력하세요..."
+              placeholder="좌측 버튼을 눌러 APK 파일을 첨부하세요."
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyPress={handleKeyPress}
               rows="1"
               maxLength={3000}
+              readOnly // 이 속성 추가
               style={{ 
                 resize: 'none',
                 outline: 'none',
@@ -248,6 +294,7 @@ function MainPage() {
                 overflow: 'auto'
               }}
             />
+
 
             {/* 전송 버튼 */}
             <button

@@ -1,5 +1,6 @@
 // src/pages/ChatPage.js
 import React, { useState, useRef, useEffect } from 'react';
+import { FaFile, FaPaperPlane, FaPaperclip } from 'react-icons/fa';
 import { useParams, useLocation } from 'react-router-dom';
 import Header from '../components/Main/Header';
 import Footer from '../components/Main/Footer';
@@ -14,22 +15,21 @@ function ChatPage() {
   const location = useLocation();
   const initialFile = location.state?.file || null;
   const initialMessage = location.state?.message || '';
-
-  // 초기 메시지 설정 - 텍스트가 확실히 표시되도록 수정
+  
+  // useRef로 분석 실행 여부 추적 (Strict Mode 대응)
+  const hasAnalyzedRef = useRef(false);
+  const isMountedRef = useRef(true);
+  
+  // 초기 메시지 설정
   const initialMessages = [];
   if (initialFile) {
-    // 파일과 메시지가 모두 있는 경우
-    const userMessageText = initialMessage ? 
-      `${initialFile.name}\n${initialMessage}` : 
-      `${initialFile.name}`;
-    
+    const userMessageText = initialMessage ? `${initialFile.name}\n${initialMessage}` : `${initialFile.name}`;
     initialMessages.push({
       text: userMessageText,
       isUser: true,
       file: initialFile.name,
       timestamp: new Date().toISOString()
     });
-
     initialMessages.push({
       text: "분석 중입니다...",
       isUser: false,
@@ -37,13 +37,11 @@ function ChatPage() {
       timestamp: new Date().toISOString()
     });
   } else if (initialMessage && initialMessage.trim()) {
-    // 텍스트만 있는 경우 - 확실히 표시
     initialMessages.push({
       text: initialMessage.trim(),
       isUser: true,
       timestamp: new Date().toISOString()
     });
-
     initialMessages.push({
       text: "메시지를 받았습니다. 어떻게 도와드릴까요?",
       isUser: false,
@@ -58,101 +56,120 @@ function ChatPage() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [loading, setLoading] = useState(initialFile ? true : false);
   const [selectedFile, setSelectedFile] = useState(null);
+  
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  // 메뉴 버튼 클릭 시
-  const handleMenuClick = () => {
-    setShowChatList(true);
-  };
+  // 메뉴 및 프로필 핸들러들
+  const handleMenuClick = () => setShowChatList(true);
+  const handleProfileClick = () => setShowProfile(true);
+  const handleCloseChatList = () => setShowChatList(false);
+  const handleCloseProfile = () => setShowProfile(false);
+  const handleSelectChat = (chatId) => setShowChatList(false);
 
-  // 프로필 버튼 클릭 시
-  const handleProfileClick = () => {
-    setShowProfile(true);
-  };
-
-  // 채팅 리스트 패널 닫기
-  const handleCloseChatList = () => {
-    setShowChatList(false);
-  };
-
-  // 프로필 패널 닫기
-  const handleCloseProfile = () => {
-    setShowProfile(false);
-  };
-
-  // 채팅 선택 핸들러
-  const handleSelectChat = (chatId) => {
-    setShowChatList(false);
-  };
-
-  // 초기 파일 분석 실행
+  // 초기 파일 분석 실행 - useRef로 중복 방지
   useEffect(() => {
-    let isMounted = true;
-    
     const analyzeInitialFile = async () => {
-        // skipAnalysis 플래그 확인
-        const skipAnalysis = location.state?.skipAnalysis;
-        const existingResult = location.state?.result;
+      // useRef로 중복 실행 방지
+      if (hasAnalyzedRef.current || !initialFile || !isMountedRef.current) {
+        console.log('분석 스킵:', { 
+          hasAnalyzed: hasAnalyzedRef.current, 
+          hasFile: !!initialFile,
+          isMounted: isMountedRef.current 
+        });
+        return;
+      }
+
+      // 분석 시작 표시
+      hasAnalyzedRef.current = true;
+      
+      const skipAnalysis = location.state?.skipAnalysis;
+      const existingResult = location.state?.result;
+      
+      console.log('ChatPage 초기화 (단일 실행):', { 
+        initialFile: initialFile?.name, 
+        skipAnalysis, 
+        hasExistingResult: !!existingResult
+      });
+
+      try {
+        let result;
         
-        if (initialFile && isMounted && !skipAnalysis) {
-            try {
-                let result;
-                
-                if (existingResult) {
-                    // 이미 결과가 있으면 바로 사용
-                    result = existingResult;
-                } else {
-                    // 결과가 없을 때만 새로 분석
-                    result = await uploadAndAnalyzeFile(initialFile);
-                }
-                
-                if (!isMounted) return;
-                
-                // 파싱 함수 사용
-                const parsedResult = parseMalwareAnalysisResponse(result);
-                const userFriendlyMessage = formatAnalysisMessage(parsedResult);
-                
-                setMessages(prev => prev.filter(msg => !msg.isLoading));
-                setAnalysisResult(parsedResult);
-                
-                const aiMessage = {
-                    text: `네, 다음은 ${initialFile.name}의 악성 코드를 분석한 결과입니다:`,
-                    isUser: false,
-                    jsonResult: result,
-                    parsedResult: parsedResult,
-                    summary: userFriendlyMessage,
-                    timestamp: new Date().toISOString()
-                };
-                
-                setMessages(prev => [...prev, aiMessage]);
-            } catch (error) {
-                if (!isMounted) return;
-                
-                console.error('파일 분석 실패:', error);
-                setMessages(prev => prev.filter(msg => !msg.isLoading));
-                
-                const errorMessage = {
-                    text: `죄송합니다, 파일 분석 중 오류가 발생했습니다: ${error.message}`,
-                    isUser: false,
-                    timestamp: new Date().toISOString()
-                };
-                
-                setMessages(prev => [...prev, errorMessage]);
-            } finally {
-                if (isMounted) {
-                    setLoading(false);
-                }
-            }
+        if (existingResult) {
+          console.log('기존 결과 사용:', existingResult);
+          result = existingResult;
+        } else if (!skipAnalysis) {
+          console.log('새로 분석 시작');
+          result = await uploadAndAnalyzeFile(initialFile);
+        } else {
+          console.error('결과가 없는데 skipAnalysis가 true입니다.');
+          throw new Error('분석 결과를 찾을 수 없습니다.');
         }
+
+        if (!isMountedRef.current) return;
+
+        console.log('분석 결과 처리 중:', result);
+        
+        // 파싱 함수 사용
+        const parsedResult = parseMalwareAnalysisResponse(result);
+        const userFriendlyMessage = formatAnalysisMessage(parsedResult);
+        
+        console.log('파싱된 결과:', parsedResult);
+
+        // 로딩 메시지 제거하고 AI 메시지 추가 (한 번에 처리)
+        setMessages(prev => {
+          const filteredMessages = prev.filter(msg => !msg.isLoading);
+          const aiMessage = {
+            text: `네, 다음은 ${initialFile.name}의 악성 코드를 분석한 결과입니다:`,
+            isUser: false,
+            jsonResult: result,
+            parsedResult: parsedResult,
+            summary: userFriendlyMessage,
+            timestamp: new Date().toISOString()
+          };
+          console.log('AI 메시지 추가 (단일):', aiMessage);
+          return [...filteredMessages, aiMessage];
+        });
+        
+        setAnalysisResult(parsedResult);
+        
+      } catch (error) {
+        if (!isMountedRef.current) return;
+        
+        console.error('파일 분석 실패:', error);
+        
+        setMessages(prev => {
+          const filteredMessages = prev.filter(msg => !msg.isLoading);
+          const errorMessage = {
+            text: `죄송합니다, 파일 분석 중 오류가 발생했습니다: ${error.message}`,
+            isUser: false,
+            timestamp: new Date().toISOString()
+          };
+          return [...filteredMessages, errorMessage];
+        });
+        
+      } finally {
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
+      }
     };
-    
+
     analyzeInitialFile();
     
+    // 클린업 함수
     return () => {
-        isMounted = false;
+      isMountedRef.current = false;
     };
-  }, [initialFile]);
+  }, []); // 빈 의존성 배열 유지
+
+  // 컴포넌트 마운트 상태 추적
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // 자동 스크롤
   useEffect(() => {
@@ -164,13 +181,12 @@ function ChatPage() {
     setSelectedFile(file);
   };
 
-  // 메시지 전송 - MainPage와 동일한 로직 적용
+  // 메시지 전송
   const handleSendClick = async () => {
-    console.log('handleSendClick 호출됨!', text); // 디버깅용
+    console.log('handleSendClick 호출됨!', text);
     
     if ((!selectedFile && text.trim().length === 0) || loading) return;
-    
-    // 글자 수 제한 체크 (MainPage와 동일)
+
     if (text.length > 3000) {
       alert('글자수는 최대 3000자까지 입력 가능합니다.');
       return;
@@ -178,12 +194,10 @@ function ChatPage() {
 
     let userMessageText = text;
     let fileToUpload = null;
-
+    
     if (selectedFile) {
       fileToUpload = selectedFile;
-      userMessageText = text.trim() ? 
-        `${selectedFile.name}\n${text}` : 
-        `${selectedFile.name}`;
+      userMessageText = text.trim() ? `${selectedFile.name}\n${text}` : `${selectedFile.name}`;
     }
 
     const userMessage = {
@@ -209,37 +223,42 @@ function ChatPage() {
 
     try {
       let result;
-
+      
       if (fileToUpload) {
         result = await uploadAndAnalyzeFile(fileToUpload);
       } else {
         result = { message: "텍스트 메시지에 대한 응답입니다." };
       }
 
-      setMessages(prev => prev.filter(msg => !msg.isLoading));
+      // 로딩 메시지 제거하고 AI 메시지 추가 (한 번에 처리)
+      setMessages(prev => {
+        const filteredMessages = prev.filter(msg => !msg.isLoading);
+        const aiMessage = {
+          text: fileToUpload 
+            ? `네, 다음은 ${fileToUpload.name}의 악성 코드를 분석한 결과입니다:` 
+            : `네, 다음은 요청하신 내용에 대한 응답입니다:`,
+          isUser: false,
+          jsonResult: result,
+          timestamp: new Date().toISOString()
+        };
+        return [...filteredMessages, aiMessage];
+      });
+      
       setAnalysisResult(result);
-
-      const aiMessage = {
-        text: fileToUpload ? 
-          `네, 다음은 ${fileToUpload.name}의 악성 코드를 분석한 결과입니다:` : 
-          `네, 다음은 요청하신 내용에 대한 응답입니다:`,
-        isUser: false,
-        jsonResult: result,
-        timestamp: new Date().toISOString()
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
+      
     } catch (error) {
       console.error('처리 실패:', error);
-      setMessages(prev => prev.filter(msg => !msg.isLoading));
-
-      const errorMessage = {
-        text: `죄송합니다, 처리 중 오류가 발생했습니다: ${error.message}`,
-        isUser: false,
-        timestamp: new Date().toISOString()
-      };
-
-      setMessages(prev => [...prev, errorMessage]);
+      
+      setMessages(prev => {
+        const filteredMessages = prev.filter(msg => !msg.isLoading);
+        const errorMessage = {
+          text: `죄송합니다, 처리 중 오류가 발생했습니다: ${error.message}`,
+          isUser: false,
+          timestamp: new Date().toISOString()
+        };
+        return [...filteredMessages, errorMessage];
+      });
+      
     } finally {
       setLoading(false);
       if (fileInputRef.current) {
@@ -248,10 +267,9 @@ function ChatPage() {
     }
   };
 
-  // 엔터키 전송 - MainPage와 동일한 로직
+  // 엔터키 전송
   const handleKeyPress = (e) => {
-    console.log('handleKeyPress 호출됨!', e.key); // 디버깅용
-    
+    console.log('handleKeyPress 호출됨!', e.key);
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendClick();
@@ -267,6 +285,21 @@ function ChatPage() {
             <span className="visually-hidden">Loading...</span>
           </div>
           {message.text}
+        </div>
+      );
+    }
+
+    // 사용자 메시지에 파일이 포함된 경우
+    if (message.isUser && message.file) {
+      return (
+        <div>
+          <div className="d-flex align-items-center mb-2 p-2 bg-light rounded">
+            <FaFile className="me-2 text-primary" />
+            <strong className="text-primary">{message.file}</strong>
+          </div>
+          {message.text.replace(message.file, '').trim() && (
+            <div className="mt-2">{message.text.replace(message.file, '').trim()}</div>
+          )}
         </div>
       );
     }

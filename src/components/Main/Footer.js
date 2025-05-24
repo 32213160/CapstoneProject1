@@ -35,8 +35,11 @@ function Footer({
           {/* 왼쪽: 파일 첨부 버튼 - 불필요한 여백 제거 */}
           <button 
             className="btn btn-link text-dark border-0 p-2 me-2" 
+            // 파일 첨부 버튼 비활성화
+            /*
             onClick={handleFileButtonClick}
             disabled={loading}
+            */
           >
             <FaPaperclip size={20} />
           </button>
