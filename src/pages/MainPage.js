@@ -40,7 +40,6 @@ function MainPage() {
         };
         
         console.log('ChatPage로 이동 중...', navigationState);
-        
         navigate(`/chat/${scanKeyId}`, { state: navigationState });
     } catch (error) {
         console.error('파일 업로드 실패:', error);
@@ -122,7 +121,7 @@ function MainPage() {
     });
   };
 
-  // 엔터키 전송 - 비활성화
+  // 엔터키 전송
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -130,7 +129,7 @@ function MainPage() {
     }
   };
 
-  // 로고 클릭
+  // 로고 클릭 - 미사용
   const handleLogoClick = () => {
     window.location.href = 'http://localhost:3000/';
   };
@@ -196,7 +195,8 @@ function MainPage() {
       <Header 
         onMenuClick={handleMenuClick}
         onProfileClick={handleProfileClick}
-        title="APK 악성코드 분석 서비스"
+        onLogoClick={handleLogoClick}
+        title={null} // MainPage에서는 title을 null로 설정
       />
       
       {/* 채팅 리스트 사이드 패널 */}
@@ -284,7 +284,7 @@ function MainPage() {
               onKeyPress={handleKeyPress}
               rows="1"
               maxLength={3000}
-              readOnly // 이 속성 추가
+              readOnly // 텍스트 입력 비활성화
               style={{ 
                 resize: 'none',
                 outline: 'none',

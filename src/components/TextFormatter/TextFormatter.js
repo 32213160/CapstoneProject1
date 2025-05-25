@@ -15,22 +15,22 @@ import React from 'react';
  * 3. 마지막 줄에는 <br/> 태그를 추가하지 않습니다
  */
 function TextFormatter({ text }) {
-    if (!text) return null;
-    
-    // 텍스트를 \n 기준으로 분할
-    const lines = text.split('\n');
-    
-    return (
-        <div style={{ whiteSpace: 'pre-wrap' }}>
-            {lines.map((line, index) => (
-                <React.Fragment key={index}>
-                    {line}
-                    {/* 마지막 줄이 아닌 경우에만 <br/> 추가 */}
-                    {index < lines.length - 1 && <br />}
-                </React.Fragment>
-            ))}
-        </div>
-    );
+  if (!text) return null;
+  
+  // 텍스트를 \n 기준으로 분할
+  const lines = text.split('\n');
+  
+  return (
+    <div style={{ whiteSpace: 'pre-wrap' }}>
+      {lines.map((line, index) => (
+        <React.Fragment key={index}>
+          {line}
+          {/* 마지막 줄이 아닌 경우에만 <br/> 추가 */}
+          {index < lines.length - 1 && <br />}
+        </React.Fragment>
+      ))}
+    </div>
+  );
 }
 
 export default TextFormatter;

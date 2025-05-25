@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaBars, FaUserCircle } from 'react-icons/fa';
 
-function Header({ onMenuClick, onProfileClick, title = "'sample.apk' 파일의 악성 코드 분석" }) {
+function Header({ onMenuClick, onProfileClick, onLogoClick, title = null }) {
   
   return (
     <header 
@@ -34,8 +34,12 @@ function Header({ onMenuClick, onProfileClick, title = "'sample.apk' 파일의 �
 
       {/* 중앙: 제목 - 유연한 너비, 양쪽 마진 제거 */}
       <div className="flex-grow-1 text-center mx-2">
-        <h1 className="h5 mb-0 text-truncate">
-          {title}
+        <h1 
+          className="h5 mb-0 text-truncate" 
+          onClick={onLogoClick}
+          style={{ cursor: 'pointer' }}
+        >
+          {title || 'APK 분석 서비스'}
         </h1>
       </div>
 
