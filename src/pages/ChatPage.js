@@ -8,7 +8,7 @@ import ChatList from '../components/Main/ChatList';
 import ProfilePanel from '../components/Main/ProfilePanel';
 import JsonViewer from '../components/JsonViewer/JsonViewer';
 import TextFormatter from '../components/TextFormatter/TextFormatter';
-import { fetchScanResultById, uploadAndAnalyzeFile } from '../services/ApiService';
+import { fetchScanResultById, uploadAndAnalyzeFile, sendChatMessage } from '../services/ApiService';
 import { parseMalwareAnalysisResponse, formatAnalysisMessage } from '../utils/MalwareAnalysisParser';
 
 function ChatPage() {
@@ -61,6 +61,7 @@ function ChatPage() {
   const [parsedData, setParsedData] = useState(null);
   const [loading, setLoading] = useState(initialFile ? true : false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [chatId_VT, setChatId_VT] = useState(null);
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -87,6 +88,10 @@ function ChatPage() {
       const reportVT = response?.reportfromVT || {};
       const reportLLM = response?.reportfromLLM || {};
       const extractedId = response?.extractedId || '';
+
+      // 채팅용 ID 추출
+      const vtChatId = reportVT?._id || null;
+      console.log('추출된 채팅 ID (reportfromVT._id):', vtChatId);
       
       // VirusTotal 데이터 파싱
       const vtData = reportVT?.data || {};
@@ -112,6 +117,7 @@ function ChatPage() {
       
       const parsedResult = {
         // VirusTotal 기본 정보
+        vtChatId: vtChatId,
         vtId: reportVT?._id || '',
         vtScanId: vtData?.id || '',
         vtMaliciousCount: lastAnalysisStats?.malicious || 0,
@@ -146,11 +152,16 @@ function ChatPage() {
         analysisDate: new Date().toISOString(),
         rawResponse: response
       };
+
+      // 채팅 ID 설정
+      if (vtChatId) {
+          setChatId_VT(vtChatId);
+      }
       
       // localStorage에 저장하여 세션 간 유지
       localStorage.setItem('chatSessionData', JSON.stringify(parsedResult));
       
-      console.log('=== 확장된 파싱 완료 ===');
+      console.log('=== 확장된 파싱 완료, 채팅 ID 설정 ===', vtChatId);
       console.log('저장된 변수들:', Object.keys(parsedResult));
       
       return parsedResult;
@@ -165,6 +176,7 @@ function ChatPage() {
     if (!parsedData) return false;
     
     const availableVariables = [
+      'vtChatId',
       'vtId', 'vtScanId', 'vtMaliciousCount', 'vtSuspiciousCount', 
       'vtUndetectedCount', 'vtHarmlessCount', 'vtTimeoutCount', 
       'vtFailureCount', 'vtTotalEngines', 'vtDetectionRate',
@@ -181,6 +193,7 @@ function ChatPage() {
     if (!parsedData) return null;
     
     const variableMap = {
+      'vtChatId': parsedData.vtChatId,
       'vtId': parsedData.vtId,
       'vtScanId': parsedData.vtScanId,
       'vtMaliciousCount': parsedData.vtMaliciousCount,
@@ -397,7 +410,16 @@ function ChatPage() {
       } else {
         // 2단계: 변수가 아닌 경우 서버에 질문 전송
         console.log('변수가 아닌 질문이므로 서버에 전송:', currentText);
+    
+        if (chatId_VT) {
+          console.log('채팅 API 호출:', { id: chatId_VT, message: currentText });
+          const chatResponse = await sendChatMessage(chatId_VT, currentText);
+          responseText = chatResponse?.answer || chatResponse?.response || chatResponse?.message || '응답을 받지 못했습니다.';
+        } else {
+          responseText = `채팅을 위해서는 먼저 APK 파일을 분석해야 합니다. 다음 변수들을 조회할 수 있습니다: vtId, vtScanId, vtMaliciousCount, fileName, fileSize, md5, sha256, llmReport 등`;
+        }
         
+        /*
         try {
           responseText = await sendQuestionToServer(currentText, currentParsedData);
           console.log('서버 응답:', responseText);
@@ -406,6 +428,7 @@ function ChatPage() {
           console.error('서버 통신 실패:', serverError);
           responseText = `죄송합니다. 현재 서버와 연결할 수 없습니다. 다음 변수들을 조회할 수 있습니다: vtId, vtScanId, vtMaliciousCount, fileName, fileSize, md5, sha256, llmReport 등`;
         }
+        */
       }
       
       // 파일 업로드 처리 (기존 로직 유지)
