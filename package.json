@@ -11,7 +11,6 @@
     "axios": "^1.9.0",
     "bootstrap": "^5.3.6",
     "cors": "^2.8.5",
-    "gh-pages": "^6.3.0",
     "http-proxy-middleware": "^3.0.5",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.10",
@@ -21,14 +20,11 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
-  "homepage": "https://32213160.github.io/CapstoneProject1/",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
