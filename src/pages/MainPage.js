@@ -61,11 +61,11 @@ function MainPage() {
       
       setScanId(responseId);
 
-      // 채팅 세션 데이터 생성 - 제목 형식 수정
+      // 채팅 세션 데이터 생성
       const chatSession = {
         id: responseId,
         chatId: responseId,
-        title: `${file.name} 파일의 악성 코드 분석`, // 제목 형식 수정
+        title: `${file.name} 파일의 악성 코드 분석`,
         fileName: file.name,
         fileSize: file.size,
         analysisResult: result,
@@ -124,15 +124,15 @@ function MainPage() {
       setLoading(true);
       
       // 파일 크기 체크 (예: 100MB 제한)
-      const maxSize = 100 * 1024 * 1024; // 100MB
+      const maxSize = 500 * 1024 * 1024; // 500MB
       if (file.size > maxSize) {
-        throw new Error('파일 크기가 너무 큽니다. 100MB 이하의 파일만 업로드 가능합니다.');
+        throw new Error('파일 크기가 너무 큽니다. 500MB 이하의 파일만 업로드 가능합니다.');
       }
       
-      // 파일 형식 체크
-      if (!file.name.toLowerCase().endsWith('.apk')) {
-        throw new Error('APK 파일만 업로드 가능합니다.');
-      }
+      // 파일 형식 체크 - 제외외
+      //if (!file.name.toLowerCase().endsWith('.apk')) {
+      //  throw new Error('APK 파일만 업로드 가능합니다.');
+      //}
       
       const result = await uploadAndAnalyzeFile(file);
       console.log('업로드 결과:', result);
@@ -326,11 +326,8 @@ function MainPage() {
         <div className="text-center mb-5">
           <div className="mb-4">
             <h2 className="display-6 fw-bold text-primary mb-3">
-              APK 파일을 업로드하여 악성 코드를 분석해보세요.
+              파일 바이러스 분석 서비스
             </h2>
-            <p className="lead text-muted">
-              안전하고 빠른 악성코드 분석 서비스를 제공합니다.
-            </p>
           </div>
         </div>
 
@@ -462,9 +459,9 @@ function MainPage() {
                   <div className="text-primary mb-3">
                     <i className="fas fa-chart-line fa-2x"></i>
                   </div>
-                  <h5 className="card-title">상세 리포트</h5>
+                  <h5 className="card-title">APK 특화 상세 서비스</h5>
                   <p className="card-text text-muted">
-                    포괄적인 보안 분석 리포트를 제공합니다.
+                    APK 파일의 경우, 상세 분석 결과를 제공합니다.
                   </p>
                 </div>
               </div>
