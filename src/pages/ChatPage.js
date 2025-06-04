@@ -1,6 +1,6 @@
 // src/pages/ChatPage.js
-import React, { useState, useRef, useEffect } from 'react';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { FaFile, FaPaperPlane, FaPaperclip } from 'react-icons/fa';
 import Header from '../components/Main/Header';
 import Footer from '../components/Main/Footer';
@@ -12,38 +12,21 @@ import { fetchScanResultById, uploadAndAnalyzeFile, sendChatMessage } from '../s
 import { parseMalwareAnalysisResponse, formatAnalysisMessage } from '../utils/MalwareAnalysisParser';
 
 function ChatPage() {
-  const { chatId } = useParams();
   const location = useLocation();
+  const [messages, setMessages] = useState([]);
+
+  // **첫 번째 useEffect 제거 - 중복 처리 방지**
+
+  const { chatId } = useParams();
   const navigate = useNavigate();
   const initialFile = location.state?.file || null;
   const initialMessage = location.state?.message || '';
-  
-  // 로컬 저장소에서 세션 복원
   const loadFromStorage = location.state?.loadFromStorage || false;
   const existingChatSession = location.state?.chatSession || null;
 
-  /*
-  // Header title 생성
-  const [headerTitle, setHeaderTitle] = useState(() => {
-    if (initialFile) {
-      return `${initialFile.name} 파일의 악성 코드 분석`;
-    }
-    // ChatList에서 온 경우 기존 세션의 title 사용
-    if (existingChatSession?.title) {
-      return existingChatSession.title;
-    }
-    return null;
-  });
-  */
-
-  // headerTitle을 state로 관리 - 초기값은 null로 설정
   const [headerTitle, setHeaderTitle] = useState(null);
-
-  // useRef로 분석 실행 여부 추적 (Strict Mode 대응)
   const hasAnalyzedRef = useRef(false);
   const isMountedRef = useRef(true);
-
-  const [messages, setMessages] = useState([]); // 빈 배열로 시작
   const [text, setText] = useState('');
   const [showChatList, setShowChatList] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -52,17 +35,14 @@ function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [chatId_VT, setChatId_VT] = useState(null);
-
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  // 메뉴 및 프로필 핸들러들
   const handleMenuClick = () => setShowChatList(true);
   const handleProfileClick = () => setShowProfile(true);
   const handleCloseChatList = () => setShowChatList(false);
   const handleCloseProfile = () => setShowProfile(false);
 
-  // 난수 chatID 생성 함수
   const generateRandomChatId = () => {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
@@ -72,14 +52,12 @@ function ChatPage() {
     return result;
   };
 
-  // 새 채팅 시작 핸들러
   const handleStartNewChat = () => {
     const newChatId = generateRandomChatId();
     console.log('새 채팅 시작:', newChatId);
     navigate(`/chat/${newChatId}`);
   };
 
-  // 로컬 저장소에서 특정 chatId의 세션 불러오기
   const loadChatSessionFromStorage = (targetChatId) => {
     try {
       const sessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
@@ -91,62 +69,52 @@ function ChatPage() {
     }
   };
 
-  // 세션 복원 함수
   const restoreChatSession = (sessionData) => {
     if (!sessionData) return;
-    
     console.log('채팅 세션 복원 중:', sessionData);
-    
-    // 메시지 복원
+
     if (sessionData.messages && sessionData.messages.length > 0) {
       setMessages(sessionData.messages);
     }
-    
-    // 분석 결과 복원
+
     if (sessionData.analysisResult) {
       setAnalysisResult(sessionData.analysisResult);
       const parsed = parseAnalysisResponse(sessionData.analysisResult);
       setParsedData(parsed);
       setSessionParsedData(parsed);
     }
-    
-    // 제목 복원 및 설정
+
     if (sessionData.title) {
       console.log('복원된 제목:', sessionData.title);
-      setHeaderTitle(sessionData.title); // 여기서 headerTitle 업데이트
+      setHeaderTitle(sessionData.title);
     } else if (sessionData.fileName) {
       const generatedTitle = `${sessionData.fileName} 파일의 악성 코드 분석`;
       console.log('생성된 제목:', generatedTitle);
-      setHeaderTitle(generatedTitle); // 여기서도 headerTitle 업데이트
+      setHeaderTitle(generatedTitle);
     }
-    
     setLoading(false);
   };
 
-  // 채팅 세션 업데이트 함수
   const updateChatSession = (newMessage, isUser = false) => {
     try {
       const sessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
       const sessionIndex = sessions.findIndex(session => session.chatId === chatId);
-      
+
       if (sessionIndex >= 0) {
         sessions[sessionIndex].messages.push(newMessage);
         sessions[sessionIndex].messageCount = sessions[sessionIndex].messages.length;
         sessions[sessionIndex].lastUpdated = new Date().toISOString();
-        
-        // 제목 업데이트 (headerTitle이 있는 경우)
+
         if (headerTitle) {
           sessions[sessionIndex].title = headerTitle;
         }
-        
         localStorage.setItem('chatSessions', JSON.stringify(sessions));
         console.log('채팅 세션 업데이트됨:', chatId);
       } else {
-        // 새 세션 생성 시 제목 포함
         const newSession = {
           id: chatId,
           chatId: chatId,
-          title: headerTitle || `${initialFile?.name || 'Unknown'} 파일의 악성 코드 분석`, // 제목 형식 수정
+          title: headerTitle || `${initialFile?.name || 'Unknown'} 파일의 악성 코드 분석`,
           fileName: initialFile?.name || null,
           fileSize: initialFile?.size || 0,
           analysisResult: analysisResult,
@@ -155,7 +123,6 @@ function ChatPage() {
           lastUpdated: new Date().toISOString(),
           createdAt: new Date().toISOString()
         };
-        
         sessions.unshift(newSession);
         localStorage.setItem('chatSessions', JSON.stringify(sessions));
         console.log('새 채팅 세션 생성됨:', chatId);
@@ -165,28 +132,22 @@ function ChatPage() {
     }
   };
 
-  // 세션 전체에서 파싱된 데이터를 유지하기 위한 state 추가
   const [sessionParsedData, setSessionParsedData] = useState(() => {
-    // 페이지 로드 시 localStorage에서 기존 데이터 복원
     const saved = localStorage.getItem('chatSessionData');
     return saved ? JSON.parse(saved) : null;
   });
 
-  // 개선된 파싱 함수 - 더 많은 변수들을 추출하고 저장
   const parseAnalysisResponse = (response) => {
     try {
       console.log('=== 확장된 파싱 시작 ===');
       console.log('원본 응답:', response);
-
       const reportVT = response?.reportfromVT || {};
       const reportLLM = response?.reportfromLLM || {};
       const extractedId = response?.extractedId || '';
 
-      // 채팅용 ID 추출
       const vtChatId = reportVT?._id || null;
       console.log('추출된 채팅 ID (reportfromVT._id):', vtChatId);
 
-      // VirusTotal 데이터 파싱
       const vtData = reportVT?.data || {};
       const vtAttributes = vtData?.attributes || {};
       const lastAnalysisResults = vtAttributes?.lastAnalysisResults || {};
@@ -198,18 +159,15 @@ function ChatPage() {
       const sha1Hash = vtAttributes?.sha1 || '';
       const sha256Hash = vtAttributes?.sha256 || '';
 
-      // 악성 탐지 엔진들 추출
       const maliciousEngines = Object.entries(lastAnalysisResults)
         .filter(([engine, result]) => result.category === 'malicious')
         .map(([engine, result]) => ({ engine, result: result.result }));
 
-      // 의심스러운 엔진들 추출
       const suspiciousEngines = Object.entries(lastAnalysisResults)
         .filter(([engine, result]) => result.category === 'suspicious')
         .map(([engine, result]) => ({ engine, result: result.result }));
 
       const parsedResult = {
-        // VirusTotal 기본 정보
         vtChatId: vtChatId,
         vtId: reportVT?._id || '',
         vtScanId: vtData?.id || '',
@@ -221,63 +179,45 @@ function ChatPage() {
         vtFailureCount: lastAnalysisStats?.failure || 0,
         vtTotalEngines: Object.keys(lastAnalysisResults).length,
         vtDetectionRate: `${lastAnalysisStats?.malicious || 0}/${Object.keys(lastAnalysisResults).length}`,
-
-        // 파일 정보
         fileName: fileInfo[0] || '',
         fileSize: fileSize,
         fileType: fileType,
         md5: md5Hash,
         sha1: sha1Hash,
         sha256: sha256Hash,
-
-        // 탐지 엔진 상세 정보
         vtMaliciousEngines: maliciousEngines,
         vtSuspiciousEngines: suspiciousEngines,
         vtMaliciousEnginesList: maliciousEngines.map(e => e.engine).join(', '),
         vtSuspiciousEnginesList: suspiciousEngines.map(e => e.engine).join(', '),
-
-        // LLM 관련
         llmId: reportLLM?._id || '',
         llmReport: reportLLM?.report || '',
-
-        // 기타
         extractedId: extractedId,
         analysisDate: new Date().toISOString(),
         rawResponse: response
       };
 
-      // 채팅 ID 설정
       if (vtChatId) {
         setChatId_VT(vtChatId);
       }
 
-      // localStorage에 저장하여 세션 간 유지
       localStorage.setItem('chatSessionData', JSON.stringify(parsedResult));
-
       console.log('=== 확장된 파싱 완료, 채팅 ID 설정 ===', vtChatId);
       console.log('저장된 변수들:', Object.keys(parsedResult));
       return parsedResult;
-
     } catch (error) {
       console.error('파싱 오류:', error);
       return null;
     }
   };
 
-  // 사용 가능한 변수 목록을 확인하는 함수
   const checkVariableExists = (variableName, parsedData) => {
     if (!parsedData) return false;
     const availableVariables = [
-      'vtChatId', 'vtId', 'vtScanId', 'vtMaliciousCount', 'vtSuspiciousCount',
-      'vtUndetectedCount', 'vtHarmlessCount', 'vtTimeoutCount', 'vtFailureCount',
-      'vtTotalEngines', 'vtDetectionRate', 'fileName', 'fileSize', 'fileType',
-      'md5', 'sha1', 'sha256', 'vtMaliciousEnginesList', 'vtSuspiciousEnginesList',
-      'llmId', 'llmReport', 'extractedId', 'analysisDate'
+      'vtChatId', 'vtId', 'vtScanId', 'vtMaliciousCount', 'vtSuspiciousCount', 'vtUndetectedCount', 'vtHarmlessCount', 'vtTimeoutCount', 'vtFailureCount', 'vtTotalEngines', 'vtDetectionRate', 'fileName', 'fileSize', 'fileType', 'md5', 'sha1', 'sha256', 'vtMaliciousEnginesList', 'vtSuspiciousEnginesList', 'llmId', 'llmReport', 'extractedId', 'analysisDate'
     ];
     return availableVariables.includes(variableName);
   };
 
-  // 변수명으로 값 조회하는 함수 (기존 함수 확장)
   const getValueByVariableName = (variableName, parsedData) => {
     if (!parsedData) return null;
     const variableMap = {
@@ -310,34 +250,120 @@ function ChatPage() {
     return variableMap[variableName];
   };
 
-  // chatId 변경 시 메시지 초기화 및 세션 복원
+  // **수정된 chatId 변경 useEffect - MainPage에서 넘어온 데이터 처리 통합**
   useEffect(() => {
     const analyzeInitialFile = async () => {
-      console.log('chatId 변경됨:', chatId, 'loadFromStorage:', loadFromStorage);
+      console.log('=== ChatPage 초기화 시작 ===');
+      console.log('chatId:', chatId);
+      console.log('location.state:', location.state);
       
-      // chatId가 변경될 때마다 headerTitle 초기화
       setHeaderTitle(null);
-      
-      // 로딩 상태 초기화
       setLoading(false);
       setText('');
 
-      // 세션 복원 로직 먼저 체크
+      // 기존 세션 복원 처리
       if (loadFromStorage && existingChatSession && existingChatSession.chatId === chatId) {
-        // URL에서 전달받은 세션 데이터로 복원
         restoreChatSession(existingChatSession);
         return;
       }
 
-      // 로컬 저장소에서 해당 chatId의 세션 찾기
       const storedSession = loadChatSessionFromStorage(chatId);
       if (storedSession) {
-        // 저장된 세션이 있으면 복원
         restoreChatSession(storedSession);
         return;
       }
 
-      // 기존 파일 분석 로직
+      // MainPage에서 넘어온 데이터 처리
+      const { file, result, preGeneratedReport } = location.state || {};
+      const message = location.state?.message;
+
+      if (file && result) {
+        console.log('=== MainPage에서 넘어온 데이터 처리 ===');
+        console.log('파일:', file.name);
+        console.log('결과:', result);
+        console.log('미리 생성된 리포트:', preGeneratedReport);
+
+        // 1. 사용자 메시지 생성
+        const userMsg = {
+          isUser: true,
+          text: message?.trim() ? `${file.name}\n${message.trim()}` : `${file.name}`,
+          file: file.name,
+          timestamp: new Date().toISOString()
+        };
+
+        // 2. AI 응답 메시지 생성
+        let aiResponseText = '';
+        
+        if (preGeneratedReport && preGeneratedReport.trim()) {
+          // MainPage에서 미리 생성된 report 사용
+          aiResponseText = preGeneratedReport;
+          console.log('미리 생성된 리포트 사용');
+        } else {
+          // 기존 파싱 로직 사용
+          try {
+            const parsed = parseMalwareAnalysisResponse(result);
+            console.log('parseMalwareAnalysisResponse 결과:', parsed);
+
+            const internalParsed = parseAnalysisResponse(result);
+            setParsedData(internalParsed);
+            setSessionParsedData(internalParsed);
+            setAnalysisResult(result);
+
+            const llmReport = parsed?.llmAnalysis?.report || parsed?.llmReport || internalParsed?.llmReport;
+            if (llmReport && llmReport.trim()) {
+              aiResponseText = llmReport;
+            } else {
+              const formattedMsg = formatAnalysisMessage(parsed);
+              if (formattedMsg && formattedMsg !== '분석 결과를 파싱할 수 없습니다.') {
+                aiResponseText = formattedMsg;
+              } else {
+                aiResponseText = `파일 분석이 완료되었습니다.\n\n파싱 결과:\n${JSON.stringify(internalParsed, null, 2)}`;
+              }
+            }
+          } catch (error) {
+            console.error('파싱 오류:', error);
+            aiResponseText = `파일 분석이 완료되었습니다.\n\n원본 결과:\n${JSON.stringify(result, null, 2)}`;
+          }
+        }
+
+        // 빈 문자열 방지
+        if (!aiResponseText || aiResponseText.trim() === '') {
+          aiResponseText = '파일 분석이 완료되었습니다. 분석 결과를 확인하려면 질문해주세요.';
+        }
+
+        // 3. AI 메시지 생성
+        const aiMsg = {
+          isUser: false,
+          text: aiResponseText,
+          timestamp: new Date().toISOString()
+        };
+
+        console.log('=== 대화창에 메시지 설정 ===');
+        console.log('사용자 메시지:', userMsg);
+        console.log('AI 메시지:', aiMsg);
+
+        // 4. 메시지 설정 (TestPage처럼 즉시 표시)
+        setMessages([userMsg, aiMsg]);
+
+        // 5. 헤더 제목 설정
+        setHeaderTitle(`${file.name} 파일의 악성 코드 분석`);
+
+        // 6. 분석 결과 파싱 및 저장
+        if (!preGeneratedReport) {
+          try {
+            const internalParsed = parseAnalysisResponse(result);
+            setParsedData(internalParsed);
+            setSessionParsedData(internalParsed);
+            setAnalysisResult(result);
+          } catch (error) {
+            console.error('분석 결과 파싱 실패:', error);
+          }
+        }
+
+        return;
+      }
+
+      // 기존 파일 분석 로직 (MainPage에서 오지 않은 경우)
       if (hasAnalyzedRef.current || !initialFile || !isMountedRef.current) {
         console.log('분석 스킵:', { hasAnalyzed: hasAnalyzedRef.current, hasFile: !!initialFile, isMounted: isMountedRef.current });
         return;
@@ -347,39 +373,61 @@ function ChatPage() {
       const skipAnalysis = location.state?.skipAnalysis;
       const existingResult = location.state?.result;
 
-      console.log('ChatPage 초기화 (단일 실행):', { initialFile: initialFile?.name, skipAnalysis, hasExistingResult: !!existingResult });
-
-      // 초기 메시지 설정
-      const initialMessages = [];
       if (initialFile) {
         const userMessageText = initialMessage ? `${initialFile.name}\n${initialMessage}` : `${initialFile.name}`;
-        initialMessages.push({
+        const userMsg = {
           text: userMessageText,
           isUser: true,
           file: initialFile.name,
           timestamp: new Date().toISOString()
-        });
-        initialMessages.push({
-          text: "분석 중입니다...",
-          isUser: false,
-          isLoading: true,
-          timestamp: new Date().toISOString()
-        });
-        setMessages(initialMessages);
-        setLoading(true);
-      } else if (initialMessage && initialMessage.trim()) {
-        initialMessages.push({
-          text: initialMessage.trim(),
-          isUser: true,
-          timestamp: new Date().toISOString()
-        });
-        initialMessages.push({
-          text: "메시지를 받았습니다. 어떻게 도와드릴까요?",
-          isUser: false,
-          timestamp: new Date().toISOString()
-        });
-        setMessages(initialMessages);
+        };
+
+        if (existingResult) {
+          console.log('=== 기존 결과로 AI 메시지 생성 ===');
+          const parsed = parseAnalysisResponse(existingResult);
+          setParsedData(parsed);
+          setSessionParsedData(parsed);
+          setAnalysisResult(existingResult);
+
+          let aiResponseText = '';
+          try {
+            const llmReport = parsed?.llmReport || parsed?.llmAnalysis?.report;
+            if (llmReport) {
+              aiResponseText = llmReport;
+            } else {
+              const formattedMsg = formatAnalysisMessage(parsed);
+              if (formattedMsg && formattedMsg !== '분석 결과를 파싱할 수 없습니다.') {
+                aiResponseText = formattedMsg;
+              } else {
+                aiResponseText = `파일 분석이 완료되었습니다.\n\n파싱 결과:\n${JSON.stringify(parsed, null, 2)}`;
+              }
+            }
+          } catch (error) {
+            console.error('AI 메시지 생성 오류:', error);
+            aiResponseText = `파일 분석이 완료되었습니다.\n\n원본 결과:\n${JSON.stringify(existingResult, null, 2)}`;
+          }
+
+          if (!aiResponseText || aiResponseText.trim() === '') {
+            aiResponseText = '파일 분석이 완료되었습니다. 분석 결과를 확인하려면 질문해주세요.';
+          }
+
+          const aiMsg = {
+            text: aiResponseText,
+            isUser: false,
+            timestamp: new Date().toISOString()
+          };
+
+          setMessages([userMsg, aiMsg]);
+        } else {
+          setMessages([
+            userMsg,
+            { text: "분석 중입니다...", isUser: false, isLoading: true, timestamp: new Date().toISOString() }
+          ]);
+          setLoading(true);
+        }
       }
+
+      console.log('ChatPage 초기화 (단일 실행):', { initialFile: initialFile?.name, skipAnalysis, hasExistingResult: !!existingResult });
 
       try {
         let result;
@@ -398,20 +446,16 @@ function ChatPage() {
 
         if (result) {
           console.log('분석 결과 처리 중:', result);
-
-          // 새로운 파싱 함수 사용
           const parsed = parseAnalysisResponse(result);
           setParsedData(parsed);
           setSessionParsedData(parsed);
 
-          // LLM 리포트만 표시
           const llmReport = parsed?.llmReport || '분석 리포트를 찾을 수 없습니다.';
 
-          // 로딩 메시지 제거하고 AI 메시지 추가
           setMessages(prev => {
             const filteredMessages = prev.filter(msg => !msg.isLoading);
             const aiMessage = {
-              text: llmReport, // LLM 리포트만 표시
+              text: llmReport,
               isUser: false,
               timestamp: new Date().toISOString()
             };
@@ -421,7 +465,6 @@ function ChatPage() {
 
           setAnalysisResult(result);
         }
-
       } catch (error) {
         if (!isMountedRef.current) return;
         console.error('파일 분석 실패:', error);
@@ -440,20 +483,18 @@ function ChatPage() {
         }
       }
 
-      // location.state 초기화 (한 번만 사용)
       if (loadFromStorage && location.state) {
         window.history.replaceState({}, document.title);
       }
     };
 
     analyzeInitialFile();
-
+    
     return () => {
       isMountedRef.current = false;
     };
-  }, [chatId]); // chatId만 의존성으로 설정
+  }, [chatId, location.state]); // location.state도 의존성에 추가
 
-  // 컴포넌트 마운트 상태 추적
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -461,17 +502,14 @@ function ChatPage() {
     };
   }, []);
 
-  // 자동 스크롤
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 파일 선택 핸들러
   const handleFileSelect = (file) => {
     setSelectedFile(file);
   };
 
-  // 메시지 전송
   const handleSendClick = async () => {
     console.log('handleSendClick 호출됨!', text);
     if ((!selectedFile && text.trim().length === 0) || loading) return;
@@ -483,19 +521,17 @@ function ChatPage() {
     const currentText = text.trim();
     const currentParsedData = sessionParsedData || parsedData;
 
-    // 사용자 메시지 추가
     const userMessage = {
       text: currentText,
       isUser: true,
       timestamp: new Date().toISOString()
     };
-
     setMessages(prev => [...prev, userMessage]);
-    updateChatSession(userMessage, true); // 세션 업데이트 추가
+    updateChatSession(userMessage, true);
+
     setText('');
     setLoading(true);
 
-    // 로딩 메시지 추가
     const loadingMessage = {
       text: "처리 중입니다...",
       isUser: false,
@@ -507,14 +543,11 @@ function ChatPage() {
     try {
       let responseText;
 
-      // 1단계: 변수명인지 확인
       if (checkVariableExists(currentText, currentParsedData)) {
-        // 변수가 존재하는 경우 해당 값 반환
         const variableValue = getValueByVariableName(currentText, currentParsedData);
         responseText = variableValue !== null ? `${currentText}: ${variableValue}` : `변수 '${currentText}'의 값을 찾을 수 없습니다.`;
         console.log('변수 조회 결과:', responseText);
       } else {
-        // 2단계: 변수가 아닌 경우 서버에 질문 전송
         console.log('변수가 아닌 질문이므로 서버에 전송:', currentText);
         if (chatId_VT) {
           console.log('채팅 API 호출:', { id: chatId_VT, message: currentText });
@@ -525,7 +558,6 @@ function ChatPage() {
         }
       }
 
-      // 파일 업로드 처리 (기존 로직 유지)
       if (selectedFile) {
         const result = await uploadAndAnalyzeFile(selectedFile);
         const newParsedData = parseAnalysisResponse(result);
@@ -536,20 +568,16 @@ function ChatPage() {
         setSelectedFile(null);
       }
 
-      // AI 응답 메시지 추가
       const aiMessage = {
         text: responseText,
         isUser: false,
         timestamp: new Date().toISOString()
       };
-
       setMessages(prev => {
         const filteredMessages = prev.filter(msg => !msg.isLoading);
         return [...filteredMessages, aiMessage];
       });
-
-      updateChatSession(aiMessage, false); // AI 응답도 세션 업데이트
-
+      updateChatSession(aiMessage, false);
     } catch (error) {
       console.error('처리 실패:', error);
       setMessages(prev => {
@@ -569,7 +597,6 @@ function ChatPage() {
     }
   };
 
-  // 엔터키 전송
   const handleKeyPress = (e) => {
     console.log('handleKeyPress 호출됨!', e.key);
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -578,44 +605,37 @@ function ChatPage() {
     }
   };
 
-  // 채팅 선택 핸들러
   const handleSelectChat = (selectedChatId, sessionData) => {
     console.log('선택된 채팅 ID:', selectedChatId, sessionData);
-    navigate(`/chat/${selectedChatId}`, { 
-      state: { 
+    navigate(`/chat/${selectedChatId}`, {
+      state: {
         chatSession: sessionData,
-        loadFromStorage: true 
-      } 
+        loadFromStorage: true
+      }
     });
     setShowChatList(false);
   };
 
-  // 메시지 렌더링 (기존 코드 유지)
   const renderMessageContent = (message) => {
     if (message.isLoading) {
       return (
-        <div className="d-flex align-items-center">
-          <div className="spinner-border spinner-border-sm me-2" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          {message.text}
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <span>처리 중...</span>
         </div>
       );
     }
 
-    return (
-      <div>
-        {message.file && (
-          <div className="d-flex align-items-center mb-2 text-muted">
-            <FaFile className="me-2" />
-            <small>{message.file}</small>
-          </div>
-        )}
-        <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-          {message.text}
-        </div>
-      </div>
-    );
+    if (message.text && (message.text.includes('{') || message.text.includes('['))) {
+      try {
+        const jsonData = JSON.parse(message.text);
+        return <JsonViewer data={jsonData} />;
+      } catch (e) {
+        return <div className="message-text">{message.text}</div>;
+      }
+    }
+
+    return <div className="message-text">{message.text}</div>;
   };
 
   return (

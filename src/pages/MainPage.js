@@ -55,29 +55,38 @@ function MainPage() {
     }
 
     try {
-      // response에서 _id 추출 - reportfromVT._id를 우선 사용
+      // response에서 _id 추출
       const responseId = result?.reportfromVT?._id || result?._id || Date.now().toString();
       console.log('추출된 _id:', responseId);
-      
       setScanId(responseId);
 
-      // 채팅 세션 데이터 생성 - 제목 형식 수정
+      // response에서 report 추출 및 파싱
+      const reportContent = extractReportFromResponse(result);
+      console.log('추출된 report 내용:', reportContent);
+
+      // 채팅 세션 데이터 생성 - 사용자 메시지와 AI 응답 포함
+      const userMessage = {
+        text: text.trim() ? `${file.name}\n${text.trim()}` : file.name,
+        isUser: true,
+        file: file.name,
+        timestamp: new Date().toISOString()
+      };
+
+      const aiMessage = {
+        text: reportContent,
+        isUser: false,
+        timestamp: new Date().toISOString()
+      };
+
       const chatSession = {
         id: responseId,
         chatId: responseId,
-        title: `${file.name} 파일의 악성 코드 분석`, // 제목 형식 수정
+        title: `${file.name} 파일의 악성 코드 분석`,
         fileName: file.name,
         fileSize: file.size,
         analysisResult: result,
-        messages: [
-          {
-            text: text.trim() ? `${file.name}\n${text.trim()}` : file.name,
-            isUser: true,
-            file: file.name,
-            timestamp: new Date().toISOString()
-          }
-        ],
-        messageCount: 1,
+        messages: [userMessage, aiMessage], // 두 메시지 모두 포함
+        messageCount: 2,
         lastUpdated: new Date().toISOString(),
         createdAt: new Date().toISOString()
       };
@@ -90,18 +99,63 @@ function MainPage() {
         message: text.trim(),
         result: result,
         skipAnalysis: true,
-        chatSession: chatSession
+        chatSession: chatSession,
+        preGeneratedReport: reportContent // report 내용 전달
       };
 
       console.log('ChatPage로 이동 중...', navigationState);
-      // chatId를 response의 _id로 설정
       navigate(`/chat/${responseId}`, { state: navigationState });
-      
+
     } catch (error) {
       console.error('파일 업로드 실패:', error);
       alert('파일 업로드 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // response에서 report 내용을 추출하는 함수 추가
+  const extractReportFromResponse = (response) => {
+    try {
+      // 다양한 경로에서 report 추출 시도
+      const reportFromLLM = response?.reportfromLLM?.report;
+      const reportFromVT = response?.reportfromVT?.report;
+      const directReport = response?.report;
+      
+      // 우선순위: LLM report > VT report > 직접 report
+      let reportContent = reportFromLLM || reportFromVT || directReport;
+      
+      if (reportContent && typeof reportContent === 'string' && reportContent.trim()) {
+        return reportContent.trim();
+      }
+      
+      // report가 없거나 빈 문자열인 경우 기본 분석 정보 생성
+      const vtData = response?.reportfromVT?.data?.attributes;
+      if (vtData) {
+        const stats = vtData.lastAnalysisStats || {};
+        const fileName = vtData.names?.[0] || '알 수 없는 파일';
+        const fileSize = vtData.size || 0;
+        const maliciousCount = stats.malicious || 0;
+        const totalEngines = Object.keys(vtData.lastAnalysisResults || {}).length;
+        
+        return `파일 분석이 완료되었습니다.
+
+  **파일 정보:**
+  - 파일명: ${fileName}
+  - 파일 크기: ${(fileSize / 1024).toFixed(2)} KB
+  - 검사 결과: ${maliciousCount}/${totalEngines} 엔진에서 악성코드 탐지
+
+  ${maliciousCount > 0 ? '⚠️ 이 파일은 악성코드로 의심됩니다.' : '✅ 이 파일은 안전한 것으로 보입니다.'}
+
+  더 자세한 정보가 필요하시면 질문해주세요.`;
+      }
+      
+      // 모든 추출 시도가 실패한 경우
+      return `파일 분석이 완료되었습니다.\n\n분석 결과를 확인하려면 질문해주세요.`;
+      
+    } catch (error) {
+      console.error('Report 추출 중 오류:', error);
+      return `파일 분석이 완료되었습니다.\n\n분석 결과 파싱 중 오류가 발생했지만, 데이터는 정상적으로 저장되었습니다.`;
     }
   };
 
