@@ -18,34 +18,90 @@ function MainPage() {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
+  // 채팅 세션 저장 함수
+  const saveChatSession = (sessionData) => {
+    try {
+      const existingSessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
+      const sessionIndex = existingSessions.findIndex(session => session.id === sessionData.id);
+      
+      if (sessionIndex >= 0) {
+        // 기존 세션 업데이트
+        existingSessions[sessionIndex] = { ...existingSessions[sessionIndex], ...sessionData };
+      } else {
+        // 새 세션 추가
+        existingSessions.unshift(sessionData);
+      }
+      
+      // 최대 50개 세션만 유지
+      if (existingSessions.length > 50) {
+        existingSessions.splice(50);
+      }
+      
+      localStorage.setItem('chatSessions', JSON.stringify(existingSessions));
+      console.log('채팅 세션 저장됨:', sessionData.id);
+    } catch (error) {
+      console.error('채팅 세션 저장 실패:', error);
+    }
+  };
+
   // 파일 업로드 완료 시 호출될 함수
   const handleUploadComplete = async (result, file) => {
     console.log('handleUploadComplete 호출됨:', { result, file });
     
     if (!result) {
-        console.error('업로드 결과가 없습니다.');
-        alert('파일 업로드에 실패했습니다.');
-        return;
+      console.error('업로드 결과가 없습니다.');
+      alert('파일 업로드에 실패했습니다.');
+      return;
     }
 
     try {
-        const scanKeyId = Date.now();
-        setScanId(scanKeyId);
-        
-        const navigationState = {
-            file: file,
-            message: text.trim(),
-            result: result,
-            skipAnalysis: true
-        };
-        
-        console.log('ChatPage로 이동 중...', navigationState);
-        navigate(`/chat/${scanKeyId}`, { state: navigationState });
+      // response에서 _id 추출 - reportfromVT._id를 우선 사용
+      const responseId = result?.reportfromVT?._id || result?._id || Date.now().toString();
+      console.log('추출된 _id:', responseId);
+      
+      setScanId(responseId);
+
+      // 채팅 세션 데이터 생성 - 제목 형식 수정
+      const chatSession = {
+        id: responseId,
+        chatId: responseId,
+        title: `${file.name} 파일의 악성 코드 분석`, // 제목 형식 수정
+        fileName: file.name,
+        fileSize: file.size,
+        analysisResult: result,
+        messages: [
+          {
+            text: text.trim() ? `${file.name}\n${text.trim()}` : file.name,
+            isUser: true,
+            file: file.name,
+            timestamp: new Date().toISOString()
+          }
+        ],
+        messageCount: 1,
+        lastUpdated: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      };
+
+      // 로컬 저장소에 채팅 세션 저장
+      saveChatSession(chatSession);
+
+      const navigationState = {
+        file: file,
+        message: text.trim(),
+        result: result,
+        skipAnalysis: true,
+        chatSession: chatSession
+      };
+
+      console.log('ChatPage로 이동 중...', navigationState);
+      // chatId를 response의 _id로 설정
+      navigate(`/chat/${responseId}`, { state: navigationState });
+      
     } catch (error) {
-        console.error('파일 업로드 실패:', error);
-        alert('파일 업로드 중 오류가 발생했습니다.');
+      console.error('파일 업로드 실패:', error);
+      alert('파일 업로드 중 오류가 발생했습니다.');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -156,10 +212,32 @@ function MainPage() {
     setShowProfile(false);
   };
 
+  // 난수 chatID 생성 함수
+  const generateRandomChatId = () => {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 12; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  // 새 채팅 시작 핸들러 추가
+  const handleStartNewChat = () => {
+    const newChatId = generateRandomChatId();
+    console.log('새 채팅 시작:', newChatId);
+    navigate(`/chat/${newChatId}`);
+  };
+
   // 채팅 선택 핸들러
-  const handleSelectChat = (chatId) => {
-    console.log('선택된 채팅 ID:', chatId);
-    navigate(`/chat/${chatId}`);
+  const handleSelectChat = (chatId, sessionData) => {
+    console.log('선택된 채팅 ID:', chatId, sessionData);
+    navigate(`/chat/${chatId}`, { 
+      state: { 
+        chatSession: sessionData,
+        loadFromStorage: true 
+      } 
+    });
     setShowChatList(false);
   };
 
@@ -202,15 +280,16 @@ function MainPage() {
       {/* 채팅 리스트 사이드 패널 */}
       {showChatList && (
         <div className="position-fixed top-0 start-0 h-100 bg-white shadow-lg chat-list-panel" 
-             style={{ 
-               width: '350px', 
-               zIndex: 1050,
-               transform: showChatList ? 'translateX(0)' : 'translateX(-100%)',
-               transition: 'transform 0.3s ease-in-out'
-             }}>
+          style={{ 
+            width: '350px', 
+            zIndex: 1050,
+            transform: showChatList ? 'translateX(0)' : 'translateX(-100%)',
+            transition: 'transform 0.3s ease-in-out'
+        }}>
           <ChatList 
             onSelectChat={handleSelectChat}
             onClose={handleCloseChatList}
+            onNewChat={handleStartNewChat} // 이 줄 추가
           />
         </div>
       )}

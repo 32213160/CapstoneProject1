@@ -3,23 +3,19 @@ import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaBars, FaUserCircle } from 'react-icons/fa';
 
-function Header({ onMenuClick, onProfileClick, onLogoClick, title = null }) {
-  
+function Header({ title = null, onMenuClick, onProfileClick, onLogoClick, onStartNewChat, className, style }) {
   return (
     <header 
-      className="header d-flex align-items-center justify-content-between px-3 px-md-3 px-lg-4 px-xl-5 py-3 position-fixed w-100 top-0"
-      style={{ 
-        zIndex: 1030,
-        height: '80px',
-        background: `linear-gradient(
-          to bottom, 
-          rgba(255, 255, 255, 1) 0%,
-          rgba(255, 255, 255, 0.7) 50%,
-          rgba(255, 255, 255, 0) 100%
-        )`,
-        borderBottom: 'none'
+      className={`d-flex justify-content-between align-items-center p-3 ${className || ''}`}
+      style={{
+        //style,
+        height: '11vh',
+        background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 40%, rgba(255,255,255,0.5) 75%, rgba(255,255,255,1) 100%)',
+        backdropFilter: 'blur(5px)',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
       }}
     >
+      {/* Header 내용 */}
 
       {/* 왼쪽: 메뉴 버튼 - 고정 너비 */}
       <div className="d-flex align-items-center" style={{ minWidth: '40px' }}>
