@@ -35,7 +35,7 @@ function Header({ title = null, onMenuClick, onProfileClick, onLogoClick, onStar
           onClick={onLogoClick}
           style={{ cursor: 'pointer' }}
         >
-          {title || 'APK 분석 서비스'}
+          {title || '파일 내 악성 코드 분석 서비스'}
         </h1>
       </div>
 

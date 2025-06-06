@@ -15,8 +15,6 @@ function ChatPage() {
   const location = useLocation();
   const [messages, setMessages] = useState([]);
 
-  // **첫 번째 useEffect 제거 - 중복 처리 방지**
-
   const { chatId } = useParams();
   const navigate = useNavigate();
   const initialFile = location.state?.file || null;
@@ -626,23 +624,26 @@ function ChatPage() {
       );
     }
 
+    // JSON 데이터 처리
     if (message.text && (message.text.includes('{') || message.text.includes('['))) {
       try {
         const jsonData = JSON.parse(message.text);
         return <JsonViewer data={jsonData} />;
       } catch (e) {
-        return <div className="message-text">{message.text}</div>;
+        // JSON 파싱 실패시 TextFormatter로 처리
+        return <TextFormatter text={message.text} />;
       }
     }
 
-    return <div className="message-text">{message.text}</div>;
+    // 일반 텍스트는 TextFormatter로 처리
+    return <TextFormatter text={message.text} />;
   };
-
+  
   return (
     <div className="chat-container d-flex flex-column vh-100">
       {/* Header - fixed 위치 */}
       <Header 
-        title={headerTitle} // 이제 state로 관리되는 headerTitle 사용 
+        title={headerTitle} // state로 관리되는 headerTitle 사용 
         onMenuClick={handleMenuClick}
         onProfileClick={handleProfileClick}
         onStartNewChat={handleStartNewChat}
@@ -669,7 +670,7 @@ function ChatPage() {
           <ChatList 
             onSelectChat={handleSelectChat}
             onClose={handleCloseChatList}
-            onNewChat={handleStartNewChat} // 이 줄 추가
+            onNewChat={handleStartNewChat}
           />
         </div>
       )}
