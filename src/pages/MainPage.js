@@ -203,9 +203,9 @@ function MainPage() {
         userMessage = '서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.';
       } else if (error.message.includes('파일 크기')) {
         userMessage = error.message;
-      } else if (error.message.includes('APK 파일만')) {
+      } /*else if (error.message.includes('APK 파일만')) {
         userMessage = error.message;
-      } else if (error.message.includes('서버 오류')) {
+      }*/ else if (error.message.includes('서버 오류')) {
         userMessage = '서버에서 파일 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
       }
       
@@ -408,7 +408,7 @@ function MainPage() {
             {/* 텍스트 입력창 */}
             <textarea
               className="form-control border-0 flex-grow-1"
-              placeholder="좌측 버튼을 눌러 APK 파일을 첨부하세요."
+              placeholder="좌측 첨부 버튼을 눌러 파일을 첨부하세요."
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -459,7 +459,7 @@ function MainPage() {
           type="file"
           ref={fileInputRef}
           style={{ display: 'none' }}
-          accept=".apk"
+          //accept=".apk"
           onChange={(e) => {
             const file = e.target.files[0];
             if (file) {
