@@ -1,6 +1,5 @@
 // src/components/Main/ProfilePanel.js
 import React from 'react';
-import '../UI/ProfilePanel.css';
 import { FaTimes } from 'react-icons/fa';
 
 function ProfilePanel({ onClose }) {

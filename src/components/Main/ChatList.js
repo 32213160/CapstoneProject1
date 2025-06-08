@@ -110,7 +110,7 @@ function ChatList({ onSelectChat, onClose }) {
     <div 
       className="position-fixed top-0 start-0 h-100 bg-light shadow-lg"
       style={{ 
-        width: '300px', 
+        width: '350px', 
         zIndex: 1000, 
         overflowY: 'auto',
         transform: 'translateX(0)',
