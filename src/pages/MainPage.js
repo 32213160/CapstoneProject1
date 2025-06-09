@@ -140,14 +140,14 @@ function MainPage() {
         
         return `파일 분석이 완료되었습니다.
 
-  **파일 정보:**
-  - 파일명: ${fileName}
-  - 파일 크기: ${(fileSize / 1024).toFixed(2)} KB
-  - 검사 결과: ${maliciousCount}/${totalEngines} 엔진에서 악성코드 탐지
+          **파일 정보:**
+          - 파일명: ${fileName}
+          - 파일 크기: ${(fileSize / 1024).toFixed(2)} KB
+          - 검사 결과: ${maliciousCount}/${totalEngines} 엔진에서 악성코드 탐지
 
-  ${maliciousCount > 0 ? '⚠️ 이 파일은 악성코드로 의심됩니다.' : '✅ 이 파일은 안전한 것으로 보입니다.'}
+          ${maliciousCount > 0 ? '⚠️ 이 파일은 악성코드로 의심됩니다.' : '✅ 이 파일은 안전한 것으로 보입니다.'}
 
-  더 자세한 정보가 필요하시면 질문해주세요.`;
+          더 자세한 정보가 필요하시면 질문해주세요.`;
       }
       
       // 모든 추출 시도가 실패한 경우
@@ -160,10 +160,10 @@ function MainPage() {
   };
 
   // 파일 업로드 시작 시 호출될 함수
-    const handleUploadStart = (file) => {
-        console.log('파일 업로드 시작:', file.name); // 디버깅용
-        setLoading(true);
-    };
+  const handleUploadStart = (file) => {
+    console.log('파일 업로드 시작:', file.name); // 디버깅용
+    setLoading(true);
+  };
 
   // 파일 선택 버튼 클릭 핸들러
   const handleFileButtonClick = () => {

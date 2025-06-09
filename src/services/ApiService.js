@@ -1,6 +1,7 @@
 // src/services/ApiService.js
 
-const API_BASE_URL = 'http://15.165.108.226:8080';
+const API_BASE_URL = 'http://43.203.38.224:8080';
+//const API_BASE_URL = 'http://15.165.108.226:8080';
 //const API_BASE_URL = 'http://54.180.122.103:8080';
 
 // 모든 스캔 결과 가져오기
