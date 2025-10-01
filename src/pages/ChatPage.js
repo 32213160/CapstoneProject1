@@ -2,14 +2,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { FaFile, FaPaperPlane, FaPaperclip } from 'react-icons/fa';
-import Header from '../components/Main/Header';
-import Footer from '../components/Main/Footer';
-import ChatList from '../components/Main/ChatList';
-import ProfilePanel from '../components/Main/ProfilePanel';
-import JsonViewer from '../components/JsonViewer/JsonViewer';
-import TextFormatter from '../components/TextFormatter/TextFormatter';
+import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
+import ChatList from '../components/chat/ChatList';
+import ProfilePanel from '../components/layout/ProfilePanel';
+import JsonViewer from '../components/common/JsonViewer/JsonViewer';
+import TextFormatter from '../components/common/TextFormatter/TextFormatter';
 import { fetchScanResultById, uploadAndAnalyzeFile, sendChatMessage } from '../services/ApiService';
-import { parseMalwareAnalysisResponse, formatAnalysisMessage } from '../utils/MalwareAnalysisParser';
+import { parseMalwareAnalysisResponse, formatAnalysisMessage } from '../utils/parsers/MalwareAnalysisParser';
 
 function ChatPage() {
   const location = useLocation();

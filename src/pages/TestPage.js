@@ -3,9 +3,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { FaFile, FaPaperPlane, FaPaperclip } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import Header from '../components/Main/Header';
-import ChatList from '../components/Main/ChatList';
-import ProfilePanel from '../components/Main/ProfilePanel';
+import Header from '../components/layout/Header';
+import ChatList from '../components/chat/ChatList';
+import ProfilePanel from '../components/layout/ProfilePanel';
 
 function TestPage() {
   const { chatId } = useParams();

@@ -3,10 +3,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
 import { FaPaperPlane, FaPaperclip } from 'react-icons/fa';
-import Header from '../components/Main/Header';
-import ChatList from '../components/Main/ChatList';
-import ProfilePanel from '../components/Main/ProfilePanel';
-import FileUpload from '../components/FileHandler/FileUpload';
+import Header from '../components/layout/Header';
+import ChatList from '../components/chat/ChatList';
+import ProfilePanel from '../components/layout/ProfilePanel';
+import FileUpload from '../components/file/FileUpload/FileUpload';
 import { uploadAndAnalyzeFile } from '../services/ApiService';
 
 function MainPage() {
