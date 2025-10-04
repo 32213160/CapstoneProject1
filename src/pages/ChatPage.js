@@ -22,7 +22,7 @@ function ChatPage() {
   const loadFromStorage = location.state?.loadFromStorage || false;
   const existingChatSession = location.state?.chatSession || null;
 
-  const [headerTitle, setHeaderTitle] = useState(null);
+  const [headerTitle, setHeaderTitle] = useState('파일 내 악성 코드 분석 서비스');
   const hasAnalyzedRef = useRef(false);
   const isMountedRef = useRef(true);
   const [text, setText] = useState('');
@@ -640,22 +640,20 @@ function ChatPage() {
   };
   
   return (
-    <div className="chat-container d-flex flex-column vh-100">
+    <div className="chat-container d-flex flex-column">
       {/* Header - fixed 위치 */}
       <Header 
         title={headerTitle} // state로 관리되는 headerTitle 사용 
         onMenuClick={handleMenuClick}
         onProfileClick={handleProfileClick}
         onStartNewChat={handleStartNewChat}
-        className="position-relative"
-        /*
+        className="position-fixed w-100"
         style={{
-          height: '18vh',
+          height: '10vh',
           background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 40%, rgba(255,255,255,0.5) 75%, rgba(255,255,255,1) 100%)',
           backdropFilter: 'blur(5px)',
           borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
         }}
-        */
       />
       
       {/* 채팅 리스트 사이드 패널 */}

@@ -1,18 +1,20 @@
-// src/components/Main/Header.js
+// src/components/layout/Header.js
+
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaBars, FaUserCircle } from 'react-icons/fa';
 
 function Header({ title = null, onMenuClick, onProfileClick, onLogoClick, onStartNewChat, className, style }) {
+
   return (
     <header 
-      className={`d-flex justify-content-between align-items-center p-3 ${className || ''}`}
+      className={`d-flex justify-content-between align-items-center p-3 border-bottom bg-white sticky-top ${className || ''}`}
       style={{
-        //style,
-        height: '11vh',
+        height: '80px',
         background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 40%, rgba(255,255,255,0.5) 75%, rgba(255,255,255,1) 100%)',
         backdropFilter: 'blur(5px)',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
+        borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+        ...style
       }}
     >
       {/* Header 내용 */}

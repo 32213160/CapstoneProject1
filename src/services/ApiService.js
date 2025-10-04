@@ -1,6 +1,6 @@
 // src/services/ApiService.js
 
-const API_BASE_URL = 'http://43.203.38.224:8080';
+const API_BASE_URL = 'http://74.227.130.20:8080';
 //const API_BASE_URL = 'http://15.165.108.226:8080';
 //const API_BASE_URL = 'http://54.180.122.103:8080';
 
@@ -38,15 +38,17 @@ export const sendChatMessage = async (id, message) => {
         console.log('채팅 메시지 전송:', { id, message });
         
         // URL에 쿼리 파라미터로 추가
-        const url = `${API_BASE_URL}/chat?id=${encodeURIComponent(id)}&message=${encodeURIComponent(message)}`;
+        const url = `${API_BASE_URL}/api/chat?id=${encodeURIComponent(id)}&message=${encodeURIComponent(message)}`;
         
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            // body는 빈 객체 또는 제거
-            body: JSON.stringify({})
+            body: new URLSearchParams({
+                sessionId: id,
+                message: message,
+            })
         });
         
         console.log('채팅 서버 응답 상태:', response.status, response.statusText);
@@ -99,10 +101,10 @@ export const uploadAndAnalyzeFile = async (file) => {
         const formData = new FormData();
         formData.append('file', file);
         
-        const response = await fetch(`${API_BASE_URL}/upload`, {
+        const response = await fetch(`${API_BASE_URL}/api/upload`, {
             method: 'POST',
             body: formData,
-            // Content-Type 헤더를 명시적으로 설정하지 않음 (브라우저가 자동 설정)
+            credentials: 'include',  // 쿠키 포함
         });
         
         console.log('서버 응답 상태:', response.status, response.statusText);
