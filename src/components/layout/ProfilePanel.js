@@ -2,23 +2,25 @@
 import React from 'react';
 import BaseComponent from '../../core/BaseComponent';
 import { FaTimes, FaUser, FaCode, FaCog } from 'react-icons/fa';
+import LoginForm from '../auth/LoginForm';
+import SignupForm from '../auth/SignupForm';
+import LogoutButton from '../auth/LogoutButton';
 
 /**
  * 상속: BaseComponent를 상속받은 프로필 패널 컴포넌트
  * 캡슐화: 프로필 관련 상태와 동작을 내부에 캡슐화
  */
 export default class ProfilePanel extends BaseComponent {
-  constructor(props) {
-    super(props);
-    this.state = {
-      ...this.state,
-      userInfo: {
-        name: '사용자',
-        role: '파일 분석 · 챗봇 사용',
-        sessionCount: 0
-      }
-    };
-  }
+  state = {
+    ...this.state,
+    isAuthenticated: !!localStorage.getItem('userToken'), // 임시 예시
+    showLogin: false,
+    showSignup: false,
+  };
+
+  handleAuthChange = (authStatus) => {
+    this.setState({ isAuthenticated: authStatus, showLogin: false, showSignup: false });
+  };
 
   onMount() {
     super.onMount();
@@ -62,7 +64,8 @@ export default class ProfilePanel extends BaseComponent {
   }
 
   render() {
-    const { userInfo } = this.state;
+    const { isAuthenticated, showLogin, showSignup } = this.state;
+    const userInfo = this.state.userInfo || { name: 'guest', role: 'guest', sessionCount: 0 };
 
     const panelStyle = {
       position: 'fixed',
@@ -130,6 +133,26 @@ export default class ProfilePanel extends BaseComponent {
         </div>
         
         <div className="panel-content" style={contentStyle}>
+          {/* 인증 버튼/패널 부분 */}
+          {!isAuthenticated && (
+            <div style={sectionStyle}>
+              {showLogin ? (
+                <LoginForm onAuthenticated={() => this.handleAuthChange(true)} onGoSignup={() => this.setState({ showSignup: true, showLogin: false })} />
+              ) : showSignup ? (
+                <SignupForm onSignedUp={() => this.setState({ showSignup: false, showLogin: true })} onGoLogin={() => this.setState({ showSignup: false, showLogin: true })} />
+              ) : (
+                <>
+                  <button style={buttonStyle} onClick={() => this.setState({ showLogin: true })}>로그인</button>
+                  <button style={buttonStyle} onClick={() => this.setState({ showSignup: true })}>회원가입</button>
+                </>
+              )}
+            </div>
+          )}
+          {isAuthenticated && (
+            <div style={sectionStyle}>
+              <LogoutButton onLogout={() => this.handleAuthChange(false)} />
+            </div>
+          )}
           <div className="user-info" style={sectionStyle}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{
