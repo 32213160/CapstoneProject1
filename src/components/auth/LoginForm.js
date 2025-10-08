@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaUser, FaLock, FaEye, FaEyeSlash, FaInfoCircle } from 'react-icons/fa';
 import { login } from '../../services/ApiService';
 
 function LoginForm({ onAuthenticated, onGoSignup }) {
@@ -47,14 +47,7 @@ function LoginForm({ onAuthenticated, onGoSignup }) {
       }
     } catch (err) {
       console.error('로그인 에러:', err);
-      // 구체적인 에러 메시지 표시
-      if (err.message.includes('Bad credentials')) {
-        setError('아이디 또는 비밀번호가 올바르지 않습니다.');
-      } else if (err.message.includes('401')) {
-        setError('인증에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
-      } else {
-        setError(err.message || '로그인 중 오류가 발생했습니다.');
-      }
+      setError(err.message || '로그인 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -63,6 +56,15 @@ function LoginForm({ onAuthenticated, onGoSignup }) {
   return (
     <div className="login-form" style={{ padding: '16px 0' }}>
       <h5 className="mb-3 text-center">로그인</h5>
+      
+      {/* 안내 메시지 추가 */}
+      <div className="alert alert-info d-flex align-items-center mb-3" role="alert">
+        <FaInfoCircle className="me-2" />
+        <small>
+          처음 사용하시나요? 먼저 회원가입을 진행해주세요.
+        </small>
+      </div>
+
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label htmlFor="username" className="form-label">
@@ -111,19 +113,33 @@ function LoginForm({ onAuthenticated, onGoSignup }) {
         {error && (
           <div className="alert alert-danger" role="alert">
             {error}
+            {error.includes('계정이 존재하지 않을') && (
+              <div className="mt-2">
+                <small>
+                  <button 
+                    type="button"
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={onGoSignup}
+                  >
+                    회원가입 하러 가기
+                  </button>
+                </small>
+              </div>
+            )}
           </div>
         )}
         <button 
           type="submit" 
-          className="btn btn-primary w-100" 
+          className="btn btn-primary w-100 mb-2" 
           disabled={loading}
         >
           {loading ? '로그인 중...' : '로그인'}
         </button>
       </form>
-      <div className="text-center mt-3">
+      
+      <div className="text-center">
         <button 
-          className="btn btn-link" 
+          className="btn btn-success w-100" 
           onClick={onGoSignup}
           disabled={loading}
         >

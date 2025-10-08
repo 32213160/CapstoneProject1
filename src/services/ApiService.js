@@ -2,10 +2,24 @@
 
 const API_BASE_URL = 'http://74.227.130.20:8080';
 
+// 서버 연결 상태 확인
+export const checkServerStatus = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/status`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('서버 연결 확인 실패:', error);
+    return false;
+  }
+};
+
 // 로그인 API
 export const login = async (username, password) => {
   try {
-    console.log('로그인 요청:', { username, password: '***' }); // 비밀번호는 숨김
+    console.log('로그인 요청:', { username, password: '***' });
 
     const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: 'POST',
@@ -20,14 +34,48 @@ export const login = async (username, password) => {
     console.log('로그인 응답 데이터:', data);
 
     if (!response.ok) {
-      // 서버에서 반환한 구체적인 에러 메시지 사용
-      const errorMessage = data.message || data.error || `로그인 실패 (${response.status})`;
-      throw new Error(errorMessage);
+      // 더 구체적인 에러 메시지 생성
+      if (response.status === 401) {
+        if (data.message && data.message.includes('Bad credentials')) {
+          throw new Error('아이디 또는 비밀번호가 올바르지 않습니다. 계정이 존재하지 않을 수 있습니다.');
+        }
+        throw new Error('인증에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
+      }
+      throw new Error(data.message || data.error || `로그인 실패 (${response.status})`);
     }
 
     return data;
   } catch (error) {
     console.error('로그인 API 에러:', error);
+    throw error;
+  }
+};
+
+// 회원가입 API
+export const register = async (username, password, email, name) => {
+  try {
+    console.log('회원가입 요청:', { username, email, name, password: '***' });
+
+    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, email, name }),
+      credentials: 'include'
+    });
+
+    console.log('회원가입 응답 상태:', response.status);
+    const data = await response.json();
+    console.log('회원가입 응답:', data);
+
+    if (!response.ok) {
+      if (response.status === 400) {
+        throw new Error(data.error || '입력 정보를 확인해주세요.');
+      }
+      throw new Error(data.error || data.message || '회원가입 실패');
+    }
+    return data;
+  } catch (error) {
+    console.error('회원가입 API 에러:', error);
     throw error;
   }
 };
@@ -49,30 +97,7 @@ export const logout = async () => {
   }
 };
 
-// 회원가입 API
-export const register = async (username, password, email, name) => {
-  try {
-    console.log('회원가입 요청:', { username, email, name, password: '***' });
-
-    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, email, name }),
-      credentials: 'include'
-    });
-
-    const data = await response.json();
-    console.log('회원가입 응답:', data);
-
-    if (!response.ok) throw new Error(data.error || data.message || '회원가입 실패');
-    return data;
-  } catch (error) {
-    console.error('회원가입 API 에러:', error);
-    throw error;
-  }
-};
-
-// 기존 다른 함수들...
+// 기존 다른 API 함수들은 그대로 유지...
 export const fetchAllScanResults = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/json/scanresults`);
