@@ -1,14 +1,13 @@
 // src/pages/ChatPage.js
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
-import { FaFile, FaPaperPlane, FaPaperclip } from 'react-icons/fa';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import ChatList from '../components/chat/ChatList';
 import ProfilePanel from '../components/layout/ProfilePanel';
 import JsonViewer from '../components/common/JsonViewer/JsonViewer';
 import TextFormatter from '../components/common/TextFormatter/TextFormatter';
-import { fetchScanResultById, uploadAndAnalyzeFile, sendChatMessage } from '../services/ApiService';
+import { uploadAndAnalyzeFile, sendChatMessage } from '../services/ApiService';
 import { parseMalwareAnalysisResponse, formatAnalysisMessage } from '../utils/parsers/MalwareAnalysisParser';
 
 function ChatPage() {
@@ -139,45 +138,57 @@ function ChatPage() {
     try {
       console.log('=== 확장된 파싱 시작 ===');
       console.log('원본 응답:', response);
+      
       const reportVT = response?.reportfromVT || {};
       const reportLLM = response?.reportfromLLM || {};
       const extractedId = response?.extractedId || '';
-
+      
       const vtChatId = reportVT?._id || null;
       console.log('추출된 채팅 ID (reportfromVT._id):', vtChatId);
-
+      
       const vtData = reportVT?.data || {};
       const vtAttributes = vtData?.attributes || {};
+      
+      // lastAnalysisResults가 null일 수 있으므로 빈 객체로 처리
       const lastAnalysisResults = vtAttributes?.lastAnalysisResults || {};
       const lastAnalysisStats = vtAttributes?.lastAnalysisStats || {};
+      
+      // 파일 정보들
       const fileInfo = vtAttributes?.names || [];
       const fileSize = vtAttributes?.size || 0;
       const fileType = vtAttributes?.type_description || '';
-      const md5Hash = vtAttributes?.md5 || '';
+      const md5Hash = vtAttributes?.md5 || vtData?.id_SHA256 || ''; // SHA256을 md5 대신 사용
       const sha1Hash = vtAttributes?.sha1 || '';
-      const sha256Hash = vtAttributes?.sha256 || '';
-
-      const maliciousEngines = Object.entries(lastAnalysisResults)
-        .filter(([engine, result]) => result.category === 'malicious')
-        .map(([engine, result]) => ({ engine, result: result.result }));
-
-      const suspiciousEngines = Object.entries(lastAnalysisResults)
-        .filter(([engine, result]) => result.category === 'suspicious')
-        .map(([engine, result]) => ({ engine, result: result.result }));
-
+      const sha256Hash = vtAttributes?.sha256 || vtData?.id_SHA256 || '';
+      
+      // lastAnalysisResults가 null이 아닐 때만 엔진 분석
+      const maliciousEngines = lastAnalysisResults 
+        ? Object.entries(lastAnalysisResults)
+            .filter(([engine, result]) => result.category === 'malicious')
+            .map(([engine, result]) => ({ engine, result: result.result }))
+        : [];
+      
+      const suspiciousEngines = lastAnalysisResults
+        ? Object.entries(lastAnalysisResults)
+            .filter(([engine, result]) => result.category === 'suspicious')
+            .map(([engine, result]) => ({ engine, result: result.result }))
+        : [];
+      
+      const totalEngines = lastAnalysisResults ? Object.keys(lastAnalysisResults).length : 0;
+      
       const parsedResult = {
         vtChatId: vtChatId,
         vtId: reportVT?._id || '',
-        vtScanId: vtData?.id || '',
+        vtScanId: vtData?.id_SHA256 || '', // SHA256을 scanId로 사용
         vtMaliciousCount: lastAnalysisStats?.malicious || 0,
         vtSuspiciousCount: lastAnalysisStats?.suspicious || 0,
         vtUndetectedCount: lastAnalysisStats?.undetected || 0,
         vtHarmlessCount: lastAnalysisStats?.harmless || 0,
         vtTimeoutCount: lastAnalysisStats?.timeout || 0,
         vtFailureCount: lastAnalysisStats?.failure || 0,
-        vtTotalEngines: Object.keys(lastAnalysisResults).length,
-        vtDetectionRate: `${lastAnalysisStats?.malicious || 0}/${Object.keys(lastAnalysisResults).length}`,
-        fileName: fileInfo[0] || '',
+        vtTotalEngines: totalEngines,
+        vtDetectionRate: `${lastAnalysisStats?.malicious || 0}/${totalEngines}`,
+        fileName: fileInfo[0] || response?.fileName || 'Unknown File', // 파일명 추가
         fileSize: fileSize,
         fileType: fileType,
         md5: md5Hash,
@@ -188,19 +199,21 @@ function ChatPage() {
         vtMaliciousEnginesList: maliciousEngines.map(e => e.engine).join(', '),
         vtSuspiciousEnginesList: suspiciousEngines.map(e => e.engine).join(', '),
         llmId: reportLLM?._id || '',
-        llmReport: reportLLM?.report || '',
+        llmReport: reportLLM?.report || '', // 이 부분이 핵심!
         extractedId: extractedId,
         analysisDate: new Date().toISOString(),
         rawResponse: response
       };
-
+      
       if (vtChatId) {
         setChatId_VT(vtChatId);
       }
-
+      
       localStorage.setItem('chatSessionData', JSON.stringify(parsedResult));
       console.log('=== 확장된 파싱 완료, 채팅 ID 설정 ===', vtChatId);
       console.log('저장된 변수들:', Object.keys(parsedResult));
+      console.log('LLM 리포트:', parsedResult.llmReport); // 디버깅용
+      
       return parsedResult;
     } catch (error) {
       console.error('파싱 오류:', error);

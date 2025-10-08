@@ -1,10 +1,78 @@
 // src/services/ApiService.js
 
 const API_BASE_URL = 'http://74.227.130.20:8080';
-//const API_BASE_URL = 'http://15.165.108.226:8080';
-//const API_BASE_URL = 'http://54.180.122.103:8080';
 
-// 모든 스캔 결과 가져오기
+// 로그인 API
+export const login = async (username, password) => {
+  try {
+    console.log('로그인 요청:', { username, password: '***' }); // 비밀번호는 숨김
+
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+      credentials: 'include'
+    });
+
+    console.log('로그인 응답 상태:', response.status);
+
+    const data = await response.json();
+    console.log('로그인 응답 데이터:', data);
+
+    if (!response.ok) {
+      // 서버에서 반환한 구체적인 에러 메시지 사용
+      const errorMessage = data.message || data.error || `로그인 실패 (${response.status})`;
+      throw new Error(errorMessage);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('로그인 API 에러:', error);
+    throw error;
+  }
+};
+
+// 로그아웃 API
+export const logout = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || data.error || '로그아웃 실패');
+    return data;
+  } catch (error) {
+    console.error('로그아웃 API 에러:', error);
+    throw error;
+  }
+};
+
+// 회원가입 API
+export const register = async (username, password, email, name) => {
+  try {
+    console.log('회원가입 요청:', { username, email, name, password: '***' });
+
+    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, email, name }),
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+    console.log('회원가입 응답:', data);
+
+    if (!response.ok) throw new Error(data.error || data.message || '회원가입 실패');
+    return data;
+  } catch (error) {
+    console.error('회원가입 API 에러:', error);
+    throw error;
+  }
+};
+
+// 기존 다른 함수들...
 export const fetchAllScanResults = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/json/scanresults`);
@@ -18,7 +86,6 @@ export const fetchAllScanResults = async () => {
   }
 };
 
-// 특정 ID의 스캔 결과 가져오기
 export const fetchScanResultById = async (id) => {
   try {
     const response = await fetch(`${API_BASE_URL}/json/scanresults/${id}`);
@@ -32,144 +99,123 @@ export const fetchScanResultById = async (id) => {
   }
 };
 
-// 채팅 메시지 전송 함수 추가
 export const sendChatMessage = async (id, message) => {
-    try {
-        console.log('채팅 메시지 전송:', { id, message });
-        
-        // URL에 쿼리 파라미터로 추가
-        const url = `${API_BASE_URL}/api/chat?id=${encodeURIComponent(id)}&message=${encodeURIComponent(message)}`;
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: new URLSearchParams({
-                sessionId: id,
-                message: message,
-            })
-        });
-        
-        console.log('채팅 서버 응답 상태:', response.status, response.statusText);
-        
-        const responseText = await response.text();
-        console.log('채팅 서버 응답 내용:', responseText);
-        
-        if (!response.ok) {
-            let errorMessage = `서버 오류 (${response.status}): ${response.statusText}`;
-            try {
-                const errorData = JSON.parse(responseText);
-                if (errorData.error) {
-                    errorMessage = errorData.error;
-                } else if (errorData.message) {
-                    errorMessage = errorData.message;
-                }
-            } catch (parseError) {
-                if (responseText.trim()) {
-                    errorMessage = responseText;
-                }
-            }
-            throw new Error(errorMessage);
+  try {
+    console.log('채팅 메시지 전송:', { id, message });
+    const url = `${API_BASE_URL}/api/chat?id=${encodeURIComponent(id)}&message=${encodeURIComponent(message)}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: new URLSearchParams({
+        sessionId: id,
+        message: message,
+      })
+    });
+
+    console.log('채팅 서버 응답 상태:', response.status, response.statusText);
+    const responseText = await response.text();
+    console.log('채팅 서버 응답 내용:', responseText);
+
+    if (!response.ok) {
+      let errorMessage = `서버 오류 (${response.status}): ${response.statusText}`;
+      try {
+        const errorData = JSON.parse(responseText);
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
         }
-        
-        try {
-            const jsonData = JSON.parse(responseText);
-            console.log("채팅 응답 데이터:", jsonData);
-            return jsonData;
-        } catch (parseError) {
-            console.error('채팅 응답 JSON 파싱 오류:', parseError);
-            throw new Error(`응답 데이터 파싱 오료: ${parseError.message}`);
+      } catch (parseError) {
+        if (responseText.trim()) {
+          errorMessage = responseText;
         }
-        
-    } catch (error) {
-        console.error('채팅 메시지 전송 실패:', error);
-        
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            throw new Error('서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.');
-        }
-        
-        throw error;
+      }
+      throw new Error(errorMessage);
     }
+
+    try {
+      const jsonData = JSON.parse(responseText);
+      console.log("채팅 응답 데이터:", jsonData);
+      return jsonData;
+    } catch (parseError) {
+      console.error('채팅 응답 JSON 파싱 오류:', parseError);
+      throw new Error(`응답 데이터 파싱 오류: ${parseError.message}`);
+    }
+  } catch (error) {
+    console.error('채팅 메시지 전송 실패:', error);
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.');
+    }
+    throw error;
+  }
 };
 
-// 파일 업로드 및 분석 결과 받기 - 개선된 에러 처리
 export const uploadAndAnalyzeFile = async (file) => {
-    try {
-        console.log('파일 업로드 시작:', file.name, file.size, 'bytes');
-        
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        const response = await fetch(`${API_BASE_URL}/api/upload`, {
-            method: 'POST',
-            body: formData,
-            credentials: 'include',  // 쿠키 포함
-        });
-        
-        console.log('서버 응답 상태:', response.status, response.statusText);
-        
-        // 응답 텍스트를 먼저 읽어서 로깅
-        const responseText = await response.text();
-        console.log('서버 응답 내용:', responseText);
-        
-        if (!response.ok) {
-            // 서버에서 반환한 에러 메시지 파싱 시도
-            let errorMessage = `서버 오류 (${response.status}): ${response.statusText}`;
-            try {
-                const errorData = JSON.parse(responseText);
-                if (errorData.error) {
-                    errorMessage = errorData.error;
-                } else if (errorData.message) {
-                    errorMessage = errorData.message;
-                }
-            } catch (parseError) {
-                // JSON 파싱 실패 시 원본 텍스트 사용
-                if (responseText.trim()) {
-                    errorMessage = responseText;
-                }
-            }
-            throw new Error(errorMessage);
+  try {
+    console.log('파일 업로드 시작:', file.name, file.size, 'bytes');
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/api/upload`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    console.log('서버 응답 상태:', response.status, response.statusText);
+    const responseText = await response.text();
+    console.log('서버 응답 내용:', responseText);
+
+    if (!response.ok) {
+      let errorMessage = `서버 오류 (${response.status}): ${response.statusText}`;
+      try {
+        const errorData = JSON.parse(responseText);
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
         }
-        
-        try {
-            // JSON 파싱
-            const jsonData = JSON.parse(responseText);
-            
-            // 스캔 ID 추출 로직 (다양한 위치에서 ID 찾기)
-            let scanKeyId = null;
-            if (jsonData._id) {
-                scanKeyId = jsonData._id;
-            } else if (jsonData.scanId) {
-                scanKeyId = jsonData.scanId;
-            } else if (jsonData.reportfromVT && jsonData.reportfromVT._id) {
-                scanKeyId = jsonData.reportfromVT._id;
-            } else if (jsonData.reportfromVT && jsonData.reportfromVT.scan_id) {
-                scanKeyId = jsonData.reportfromVT.scan_id;
-            }
-            
-            console.log("파싱된 응답 데이터:", jsonData);
-            console.log("추출된 스캔 ID:", scanKeyId);
-            
-            return {
-                ...jsonData,
-                extractedId: scanKeyId
-            };
-        } catch (parseError) {
-            console.error('JSON 파싱 오류:', parseError);
-            console.error('파싱 실패한 응답:', responseText);
-            throw new Error(`응답 데이터 파싱 오류: ${parseError.message}`);
+      } catch (parseError) {
+        if (responseText.trim()) {
+          errorMessage = responseText;
         }
-        
-    } catch (error) {
-        console.error('파일 분석 요청 실패:', error);
-        
-        // 네트워크 오류와 서버 오류를 구분
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            throw new Error('서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.');
-        }
-        
-        throw error;
+      }
+      throw new Error(errorMessage);
     }
+
+    try {
+      const jsonData = JSON.parse(responseText);
+      let scanKeyId = null;
+      if (jsonData._id) {
+        scanKeyId = jsonData._id;
+      } else if (jsonData.scanId) {
+        scanKeyId = jsonData.scanId;
+      } else if (jsonData.reportfromVT && jsonData.reportfromVT._id) {
+        scanKeyId = jsonData.reportfromVT._id;
+      } else if (jsonData.reportfromVT && jsonData.reportfromVT.scan_id) {
+        scanKeyId = jsonData.reportfromVT.scan_id;
+      }
+
+      console.log("파싱된 응답 데이터:", jsonData);
+      console.log("추출된 스캔 ID:", scanKeyId);
+      return {
+        ...jsonData,
+        extractedId: scanKeyId
+      };
+    } catch (parseError) {
+      console.error('JSON 파싱 오류:', parseError);
+      console.error('파싱 실패한 응답:', responseText);
+      throw new Error(`응답 데이터 파싱 오류: ${parseError.message}`);
+    }
+  } catch (error) {
+    console.error('파일 분석 요청 실패:', error);
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.');
+    }
+    throw error;
+  }
 };
 
+export default API_BASE_URL;

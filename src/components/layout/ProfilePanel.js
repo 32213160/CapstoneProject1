@@ -1,7 +1,7 @@
 // src/components/layout/ProfilePanel/ProfilePanel.js
 import React from 'react';
 import BaseComponent from '../../core/BaseComponent';
-import { FaTimes, FaUser, FaCode, FaCog } from 'react-icons/fa';
+import { FaTimes, FaUser, FaCog } from 'react-icons/fa';
 import LoginForm from '../auth/LoginForm';
 import SignupForm from '../auth/SignupForm';
 import LogoutButton from '../auth/LogoutButton';
@@ -133,26 +133,6 @@ export default class ProfilePanel extends BaseComponent {
         </div>
         
         <div className="panel-content" style={contentStyle}>
-          {/* 인증 버튼/패널 부분 */}
-          {!isAuthenticated && (
-            <div style={sectionStyle}>
-              {showLogin ? (
-                <LoginForm onAuthenticated={() => this.handleAuthChange(true)} onGoSignup={() => this.setState({ showSignup: true, showLogin: false })} />
-              ) : showSignup ? (
-                <SignupForm onSignedUp={() => this.setState({ showSignup: false, showLogin: true })} onGoLogin={() => this.setState({ showSignup: false, showLogin: true })} />
-              ) : (
-                <>
-                  <button style={buttonStyle} onClick={() => this.setState({ showLogin: true })}>로그인</button>
-                  <button style={buttonStyle} onClick={() => this.setState({ showSignup: true })}>회원가입</button>
-                </>
-              )}
-            </div>
-          )}
-          {isAuthenticated && (
-            <div style={sectionStyle}>
-              <LogoutButton onLogout={() => this.handleAuthChange(false)} />
-            </div>
-          )}
           <div className="user-info" style={sectionStyle}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{
@@ -188,14 +168,29 @@ export default class ProfilePanel extends BaseComponent {
               <div>총 채팅 세션: {userInfo.sessionCount}개</div>
             </div>
           </div>
+          {/* 인증 버튼/패널 부분 */}
+          {!isAuthenticated && (
+            <div style={sectionStyle}>
+              {showLogin ? (
+                <LoginForm onAuthenticated={() => this.handleAuthChange(true)} onGoSignup={() => this.setState({ showSignup: true, showLogin: false })} />
+              ) : showSignup ? (
+                <SignupForm onSignedUp={() => this.setState({ showSignup: false, showLogin: true })} onGoLogin={() => this.setState({ showSignup: false, showLogin: true })} />
+              ) : (
+                <>
+                  <button style={buttonStyle} onClick={() => this.setState({ showLogin: true })}>로그인</button>
+                  <button style={buttonStyle} onClick={() => this.setState({ showSignup: true })}>회원가입</button>
+                </>
+              )}
+            </div>
+          )}
+          {isAuthenticated && (
+            <div style={sectionStyle}>
+              <LogoutButton onLogout={() => this.handleAuthChange(false)} />
+            </div>
+          )}
           
           <div className="actions" style={sectionStyle}>
             <h4 style={{ marginBottom: '12px', fontSize: '16px' }}>설정</h4>
-            
-            <button style={buttonStyle}>
-              <FaCode />
-              개발자 정보
-            </button>
             
             <button style={buttonStyle}>
               <FaCog />

@@ -1,7 +1,9 @@
 // src/components/auth/LogoutButton.js
+
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaSignOutAlt, FaSpinner } from 'react-icons/fa';
+import { logout } from '../../services/ApiService';
 
 function LogoutButton({ onLogout }) {
   const [loading, setLoading] = useState(false);
@@ -13,22 +15,13 @@ function LogoutButton({ onLogout }) {
     if (!confirmed) return;
 
     setLoading(true);
-
     try {
-      // 로그아웃 처리 시뮬레이션 (실제로는 API 호출)
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // localStorage에서 인증 관련 정보 제거
-      localStorage.removeItem('userToken');
+      await logout();
+      // 로컬스토리지에 저장했던 인증 정보 삭제
+      localStorage.removeItem('sessionId');
       localStorage.removeItem('userInfo');
-      
-      // 선택적으로 다른 사용자 관련 데이터도 정리
-      // localStorage.removeItem('userPreferences');
-      
-      if (onLogout) {
-        onLogout();
-      }
-      
+      // 필요한 경우 추가 사용자 정보 삭제
+      if (onLogout) onLogout();
     } catch (error) {
       console.error('로그아웃 중 오류 발생:', error);
       alert('로그아웃 중 오류가 발생했습니다.');

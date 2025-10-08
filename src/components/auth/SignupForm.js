@@ -1,14 +1,17 @@
 // src/components/auth/SignupForm.js
+
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaUser, FaLock, FaEye, FaEyeSlash, FaEnvelope } from 'react-icons/fa';
+import { register } from '../../services/ApiService';
 
 function SignupForm({ onSignedUp, onGoLogin }) {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    name: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -17,99 +20,50 @@ function SignupForm({ onSignedUp, onGoLogin }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // 입력 시 해당 필드의 에러 메시지 초기화
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const validateForm = () => {
     const newErrors = {};
-
-    // 아이디 검증
-    if (!formData.username.trim()) {
-      newErrors.username = '아이디를 입력해주세요.';
-    } else if (formData.username.length < 4) {
-      newErrors.username = '아이디는 4자 이상이어야 합니다.';
+    if (!formData.username.trim()) newErrors.username = '아이디를 입력해주세요.';
+    else if (formData.username.length < 4) newErrors.username = '아이디는 4자 이상이어야 합니다.';
+    if (!formData.email.trim()) newErrors.email = '이메일을 입력해주세요.';
+    else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) newErrors.email = '유효한 이메일 주소가 아닙니다.';
     }
+    if (!formData.password) newErrors.password = '비밀번호를 입력해주세요.';
+    else if (formData.password.length < 6) newErrors.password = '비밀번호는 6자 이상이어야 합니다.';
+    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
+    if (!formData.name.trim()) newErrors.name = '실명을 입력해주세요.';
 
-    // 이메일 검증
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim()) {
-      newErrors.email = '이메일을 입력해주세요.';
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = '올바른 이메일 형식이 아닙니다.';
-    }
-
-    // 비밀번호 검증
-    if (!formData.password) {
-      newErrors.password = '비밀번호를 입력해주세요.';
-    } else if (formData.password.length < 6) {
-      newErrors.password = '비밀번호는 6자 이상이어야 합니다.';
-    }
-
-    // 비밀번호 확인 검증
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = '비밀번호 확인을 입력해주세요.';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
+    const formErrors = validateForm();
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
       return;
     }
-
     setLoading(true);
-
     try {
-      // 실제로는 회원가입 API 호출
-      // 여기서는 간단히 localStorage에 저장
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 로딩 시뮬레이션
-      
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      
-      // 중복 아이디 검사
-      if (users.find(user => user.username === formData.username)) {
-        setErrors({ username: '이미 사용중인 아이디입니다.' });
-        return;
+      const data = await register(
+        formData.username,
+        formData.password,
+        formData.email,
+        formData.name
+      );
+      if (data.result === 'success') {
+        alert('회원가입이 완료되었습니다.');
+        if (onSignedUp) onSignedUp();
+      } else {
+        alert(data.error || '회원가입에 실패했습니다.');
       }
-
-      // 새 사용자 추가
-      const newUser = {
-        id: Date.now(),
-        username: formData.username,
-        email: formData.email,
-        password: formData.password, // 실제로는 해시화해야 함
-        name: formData.username,
-        role: '일반 사용자',
-        createdAt: new Date().toISOString()
-      };
-
-      users.push(newUser);
-      localStorage.setItem('users', JSON.stringify(users));
-
-      alert('회원가입이 완료되었습니다!');
-      
-      if (onSignedUp) {
-        onSignedUp();
-      }
-    } catch (error) {
-      setErrors({ general: '회원가입 중 오류가 발생했습니다.' });
+    } catch (err) {
+      alert(err.message || '회원가입 도중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
