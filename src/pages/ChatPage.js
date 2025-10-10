@@ -689,12 +689,11 @@ function ChatPage() {
       {/* 프로필 패널 사이드 패널 */}
       {showProfile && (
         <div className="position-fixed top-0 end-0 h-100 bg-white shadow-lg profile-panel" 
-             style={{ 
-               width: '350px', 
-               zIndex: 1050,
-               transform: showProfile ? 'translateX(0)' : 'translateX(100%)',
-               transition: 'transform 0.3s ease-in-out'
-             }}>
+          style={{
+            zIndex: 1050,
+            transform: showProfile ? 'translateX(0)' : 'translateX(100%)',
+            transition: 'transform 0.3s ease-in-out'
+          }}>
           <ProfilePanel onClose={handleCloseProfile} />
         </div>
       )}
