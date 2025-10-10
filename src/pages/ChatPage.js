@@ -713,7 +713,7 @@ function ChatPage() {
       {/* 메시지 영역 - 구조 단순화 */}
       <div className="flex-grow-1 overflow-auto d-flex justify-content-center"
         style={{ 
-          paddingTop: '0vh',     // Header 높이
+          paddingTop: '10vh',     // Header 높이
           marginBottom: '8vh',  // Footer 높이
       }}>
         {/* 단순화된 구조 */}

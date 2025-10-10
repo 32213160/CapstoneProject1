@@ -70,7 +70,9 @@ function ChatList({ onSelectChat, onClose }) {
   };
 
   // 제목 생성 (파일명 또는 첫 번째 메시지)
-  const generateTitle = (session) => {
+  const generateTitle = (session, maxLength = 25) => {
+    let title = '';
+
     // 저장된 title이 있으면 사용
     if (session.title) {
       return session.title;
@@ -91,7 +93,10 @@ function ChatList({ onSelectChat, onClose }) {
       }
     }
     
-    return '새 채팅';
+    // 모든 제목에 글자수 제한 적용
+    return title.length > maxLength 
+        ? title.substring(0, maxLength) + '...'
+        : title;
   };
 
   // 시간 포맷팅
@@ -131,7 +136,7 @@ function ChatList({ onSelectChat, onClose }) {
       </div>
 
       {/* 채팅 목록 */}
-      <div className="p-2">
+      <div className="p-0">
         {chatSessions.length === 0 ? (
           <div className="text-center text-muted p-4">
             <FaComment size={48} className="mb-3 opacity-50" />
@@ -155,39 +160,55 @@ function ChatList({ onSelectChat, onClose }) {
                       key={session.id}
                       action
                       onClick={() => handleSelectChat(session)}
-                      className="d-flex justify-content-between align-items-start py-3 border-0 border-bottom"
+                      className="d-flex align-items-start py-3 px-2 border-0 border-bottom"
                       style={{ cursor: 'pointer' }}
                     >
-                      <div className="flex-grow-1 me-2">
-                        <div className="d-flex align-items-center mb-1">
-                          {session.fileName && (
-                            <FaFile className="text-primary me-2" size={14} />
-                          )}
-                          <h6 className="mb-0 text-truncate" style={{ fontSize: '14px' }}>
-                            {generateTitle(session)}
-                          </h6>
+                      <div className="d-flex w-100">
+                        {/* 1열: 아이콘·제목·시간 */}
+                        <div className="flex-grow-1 px-3" style={{ minWidth: 0 }}>
+                          <div className="d-flex align-items-center mb-1">
+                            {session.fileName ? 
+                              <FaFile className="text-primary me-2 flex-shrink-0" size={14} /> : 
+                              <FaComment className="text-success me-2 flex-shrink-0" size={14} />
+                            }
+                            <h6
+                              className="mb-0"
+                              style={{
+                                fontSize: '14px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                              title={generateTitle(session, 100)}
+                            >
+                              {generateTitle(session)}
+                            </h6>
+                          </div>
+                          <div className="mb-1">
+                            <small className="text-muted">{formatTime(session.lastUpdated)}</small>
+                          </div>
                         </div>
-                        <div className="d-flex justify-content-between align-items-center">
-                          <small className="text-muted">
-                            {formatTime(session.lastUpdated)}
-                          </small>
+
+                        {/* 2열: 메시지 개수 배지 */}
+                        <div className="d-flex align-items-center flex-shrink-0 me-2">
                           {session.messageCount > 0 && (
-                            <Badge bg="secondary" pill>
+                            <Badge bg="secondary" pill style={{ fontSize: '12px' }}>
                               {session.messageCount}
                             </Badge>
                           )}
                         </div>
+
+                        {/* 3열: 삭제 버튼 */}
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={(e) => handleDeleteSession(e, session.id)}
+                          className="border-0"
+                          style={{ fontSize: '12px' }}
+                        >
+                          <FaTimes />
+                        </Button>
                       </div>
-                      
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={(e) => handleDeleteSession(e, session.id)}
-                        className="ms-2 border-0"
-                        style={{ fontSize: '12px' }}
-                      >
-                        <FaTimes />
-                      </Button>
                     </ListGroup.Item>
                   ))}
                 </ListGroup>

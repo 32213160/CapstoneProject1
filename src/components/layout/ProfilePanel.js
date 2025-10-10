@@ -205,7 +205,7 @@ export default class ProfilePanel extends BaseComponent {
                 borderColor: '#fed7d7'
               }}
             >
-              채팅 기록 삭제
+              채팅 기록 초기화
             </button>
           </div>
           
