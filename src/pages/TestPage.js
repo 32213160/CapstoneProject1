@@ -1,6 +1,7 @@
 // src/pages/TestPage.js
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import TextFormatter from '../components/common/TextFormatter/TextFormatter';
 
 export default function TestPage() {
   const BASE_URL = '';
@@ -417,35 +418,24 @@ export default function TestPage() {
             <div className="alert alert-success mt-3">
               <h5>분석 결과</h5>
               <p><strong>세션 ID:</strong> {uploadResult.sessionId}</p>
-              <p><strong>파일명:</strong> {uploadResult.fileInfo?.fileName}</p>
-              <p><strong>파일 크기:</strong> {uploadResult.fileInfo?.fileSize} bytes</p>
-              <p><strong>파일 해시:</strong> {uploadResult.fileInfo?.fileHash}</p>
-              <p><strong>업로드 시간:</strong> {uploadResult.fileInfo?.uploadTime}</p>
+              <p><strong>파일명:</strong> {uploadResult.fileName}</p>
               
               {uploadResult.analysisResult && (
                 <>
                   <hr />
-                  <h6>VirusTotal 결과</h6>
-                  <p><strong>감지:</strong> {uploadResult.analysisResult.virusTotalResult?.positives} / {uploadResult.analysisResult.virusTotalResult?.total}</p>
-                  <p><strong>스캔 날짜:</strong> {uploadResult.analysisResult.virusTotalResult?.scanDate}</p>
+                  <h6>VirusTotal 보고서</h6>
+                  <p><strong>ID:</strong> {uploadResult.analysisResult.reportfromVT._id}</p>
+                  <p><strong>ID(SHA256):</strong> {uploadResult.analysisResult.reportfromVT.data.id_SHA256}</p>
+                  <p><strong>감지:</strong></p>
+                  <pre style={{whiteSpace: 'pre-wrap', backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '4px'}}>
+                    {JSON.stringify(uploadResult.analysisResult.reportfromVT.data.attributes, null, 2)}
+                  </pre>
                   
                   <hr />
                   <h6>LLM 분석</h6>
-                  <p><strong>위험 수준:</strong> {uploadResult.analysisResult.llmAnalysis?.riskLevel}</p>
-                  <p><strong>위험 점수:</strong> {uploadResult.analysisResult.llmAnalysis?.riskScore}</p>
-                  <p><strong>행위 패턴:</strong></p>
-                  <ul>
-                    {uploadResult.analysisResult.llmAnalysis?.behaviors?.map((behavior, idx) => (
-                      <li key={idx}>{behavior}</li>
-                    ))}
-                  </ul>
-                  <p><strong>요약:</strong> {uploadResult.analysisResult.llmAnalysis?.summary}</p>
-                  
-                  <hr />
-                  <h6>최종 평가</h6>
-                  <p><strong>판단:</strong> {uploadResult.analysisResult.overallAssessment?.verdict}</p>
-                  <p><strong>신뢰도:</strong> {uploadResult.analysisResult.overallAssessment?.confidence}</p>
-                  <p><strong>권장 조치:</strong> {uploadResult.analysisResult.overallAssessment?.recommendation}</p>
+                  <p><strong>ID:</strong> {uploadResult.analysisResult.reportfromLLM._id}</p>
+                  <p><strong>내용:</strong></p>
+                  <p>{uploadResult.analysisResult.reportfromLLM.report}</p>
                 </>
               )}
               

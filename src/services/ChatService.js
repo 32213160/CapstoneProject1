@@ -6,9 +6,36 @@ import { loadChatSessionFromStorage, updateChatSession } from '../utils/helpers/
  * 채팅 관련 비즈니스 로직을 처리하는 서비스 (수정된 버전)
  */
 class ChatService {
-  /**
-   * 채팅 세션 관리
-   */
+  /* 로그인한 사용자의 채팅 세션 목록 불러오기 */
+  static async fetchUserChatSessions() {
+    const BASE_URL = '';
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/chats-of-user/my-sessions`, {
+        method: 'GET',
+        credentials: 'include', // 세션 쿠키 포함
+      });
+
+      if (!response.ok) {
+        const text = await response.text(); // 서버 오류 응답 체크용
+        console.error('서버 응답:', text);
+        throw new Error(`채팅 세션 목록을 불러올 수 없습니다. (상태 코드: ${response.status})`);
+      }
+
+      const data = await response.json();
+      console.log('서버 응답 데이터:', data);
+      return data.chatSessions || [];
+    } catch (error) {
+      console.error('ChatService fetchUserChatSessions:', error);
+      throw error;
+    }
+  }
+
+  static getChatSession(chatId) {
+    return loadChatSessionFromStorage(chatId);
+  }
+
+  /* 채팅 세션 관리 */
   static getChatSession(chatId) {
     return loadChatSessionFromStorage(chatId);
   }
@@ -17,9 +44,7 @@ class ChatService {
     updateChatSession(chatId, messageData, headerTitle, initialFile, analysisResult);
   }
 
-  /**
-   * 채팅 메시지 전송 및 응답 처리
-   */
+  /* 채팅 메시지 전송 및 응답 처리 */
   static async sendMessage(chatId, message) {
     try {
       console.log('ChatService: 메시지 전송 시작', { chatId, message });
@@ -41,9 +66,7 @@ class ChatService {
     }
   }
 
-  /**
-   * 채팅 히스토리 관리
-   */
+  /* 채팅 히스토리 관리 */
   static getChatHistory() {
     try {
       return JSON.parse(localStorage.getItem('chatSessions') || '[]');

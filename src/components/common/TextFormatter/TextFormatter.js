@@ -1,4 +1,4 @@
-// src/components/TextFormatter/TextFormatter.js
+// src/components/common/TextFormatter/TextFormatter.js
 
 import React from 'react';
 

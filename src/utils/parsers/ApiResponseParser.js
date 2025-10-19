@@ -1,32 +1,44 @@
 // src/utils/parsers/ApiResponseParser.js
-/**
- * API 응답 전용 파서
- * 새로운 GET API 응답 형식을 처리하는 전용 파서
- */
 
 /**
- * 새로운 API 응답 형식 파싱
- * {
- *   "sessionId": "session_778e2d85e5a8d3f9",
- *   "fileName": "advchange.exe",
- *   "analysisResult": {
- *     "reportfromVT": { ... },
- *     "reportfromLLM": { ... }
- *   },
- *   "extractedId": null
- * }
- */
+* API 응답 전용 파서
+* 새로운 GET API 응답 형식을 처리하는 전용 파서
+*/
+
+/**
+* 새로운 API 응답 형식 파싱
+* {
+*   "sessionId": "session_6217bae592103f03",
+*   "fileName": "BANDIZIP-SETUP-STD-X64.EXE",
+*   "analysisResult": {
+*     "reportfromVT": { 
+*       "_id": "68f50fcfd1d57b79447c46a2",
+*       "data": {
+*         "id_SHA256": "73edf7411b00e2531daa9d8b97b511969e6bcfe00fc501c12ae8edd06eaabb74",
+*         "attributes": {
+*           "lastAnalysisResults": { ... },
+*           "lastAnalysisStats": { ... }
+*         }
+*       }
+*     },
+*     "reportfromLLM": { 
+*       "_id": "68f50fd3d1d57b79447c46a3",
+*       "report": "🔒 보안 리포트 🔒\n\n..."
+*     }
+*   }
+* }
+*/
 export const parseNewApiResponse = (response) => {
   try {
     console.log('=== parseNewApiResponse 시작 ===');
     console.log('원본 응답:', response);
 
-    // 새로운 응답 형식 체크
+    // 새로운 응답 형식 체크 (analysisResult 구조)
     if (response.sessionId && response.analysisResult) {
       const analysisResult = response.analysisResult;
       const reportVT = analysisResult.reportfromVT || {};
       const reportLLM = analysisResult.reportfromLLM || {};
-      
+
       return {
         sessionId: response.sessionId,
         fileName: response.fileName,
@@ -59,7 +71,6 @@ export const parseNewApiResponse = (response) => {
 
     console.warn('알 수 없는 API 응답 형식:', response);
     return null;
-
   } catch (error) {
     console.error('parseNewApiResponse 오류:', error);
     return null;
@@ -67,8 +78,8 @@ export const parseNewApiResponse = (response) => {
 };
 
 /**
- * VirusTotal 데이터 파싱
- */
+* VirusTotal 데이터 파싱
+*/
 export const parseVirusTotalData = (vtData) => {
   try {
     const attributes = vtData.attributes || {};
@@ -76,13 +87,13 @@ export const parseVirusTotalData = (vtData) => {
     const lastAnalysisResults = attributes.lastAnalysisResults || {};
 
     // 엔진별 탐지 결과
-    const maliciousEngines = lastAnalysisResults 
+    const maliciousEngines = lastAnalysisResults
       ? Object.entries(lastAnalysisResults)
           .filter(([engine, result]) => result.category === 'malicious')
           .map(([engine, result]) => ({ engine, result: result.result }))
       : [];
 
-    const suspiciousEngines = lastAnalysisResults 
+    const suspiciousEngines = lastAnalysisResults
       ? Object.entries(lastAnalysisResults)
           .filter(([engine, result]) => result.category === 'suspicious')
           .map(([engine, result]) => ({ engine, result: result.result }))
@@ -117,15 +128,15 @@ export const parseVirusTotalData = (vtData) => {
 };
 
 /**
- * 통합 API 응답 파싱 (화면 표시용)
- */
+* 통합 API 응답 파싱 (화면 표시용)
+*/
 export const parseForDisplay = (response) => {
   try {
     const parsedResponse = parseNewApiResponse(response);
     if (!parsedResponse) return null;
 
     const vtParsed = parseVirusTotalData(parsedResponse.vtData);
-    
+
     const result = {
       // 기본 정보
       sessionId: parsedResponse.sessionId,
@@ -133,13 +144,13 @@ export const parseForDisplay = (response) => {
       vtChatId: parsedResponse.vtId,
       llmId: parsedResponse.llmId,
       extractedId: parsedResponse.extractedId,
-      
+
       // VirusTotal 정보
       ...vtParsed,
-      
+
       // LLM 리포트
       llmReport: parsedResponse.llmReportText,
-      
+
       // 기타
       analysisDate: new Date().toISOString(),
       rawResponse: response
@@ -147,7 +158,6 @@ export const parseForDisplay = (response) => {
 
     console.log('=== parseForDisplay 완료 ===');
     console.log('파싱된 결과:', result);
-
     return result;
   } catch (error) {
     console.error('parseForDisplay 오류:', error);
@@ -156,11 +166,11 @@ export const parseForDisplay = (response) => {
 };
 
 /**
- * 변수 존재 여부 체크
- */
+* 변수 존재 여부 체크
+*/
 export const checkVariableExists = (variableName, parsedData) => {
   if (!parsedData || !variableName) return false;
-  
+
   const availableVariables = [
     'sessionId', 'fileName', 'vtChatId', 'llmId', 'extractedId',
     'fileSize', 'fileType', 'md5', 'sha1', 'sha256',
@@ -169,27 +179,27 @@ export const checkVariableExists = (variableName, parsedData) => {
     'vtDetectionRate', 'vtMaliciousEnginesList', 'vtSuspiciousEnginesList',
     'llmReport', 'analysisDate'
   ];
-  
+
   return availableVariables.includes(variableName) && parsedData.hasOwnProperty(variableName);
 };
 
 /**
- * 변수명으로 값 조회
- */
+* 변수명으로 값 조회
+*/
 export const getVariableValue = (variableName, parsedData) => {
   if (!parsedData || !variableName) return null;
-  
+
   // 직접 속성 접근
   if (parsedData.hasOwnProperty(variableName)) {
     const value = parsedData[variableName];
-    
+
     // 객체나 배열은 JSON 문자열로 변환
     if (typeof value === 'object' && value !== null) {
       return JSON.stringify(value, null, 2);
     }
-    
+
     return value;
   }
-  
+
   return null;
 };

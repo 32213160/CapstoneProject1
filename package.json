@@ -2,7 +2,7 @@
   "name": "project-250326-01",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://54.180.122.103:8080",
+  "proxy": "http://74.227.130.20:8080",
   "homepage": ".",
   "dependencies": {
     "@testing-library/dom": "^10.4.0",

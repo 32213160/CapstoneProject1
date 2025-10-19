@@ -3,27 +3,29 @@ import React, { useState, useEffect } from 'react';
 import { ListGroup, Button, Badge } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaTimes, FaFile, FaComment } from 'react-icons/fa';
+import ChatService from '../../services/ChatService';
+import { useAuth } from '../auth/AuthContext';
+
 
 function ChatList({ onSelectChat, onClose, currentChatId }) {
-  
+  const { isAuthenticated } = useAuth();
   const [chatSessions, setChatSessions] = useState([]);
+
 
   // 로컬 저장소에서 채팅 세션 불러오기
   useEffect(() => {
-    loadChatSessions();
-  }, []);
-
-  const loadChatSessions = () => {
-    try {
-      const sessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
-      // 날짜순으로 정렬 (최신순)
-      const sortedSessions = sessions.sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
-      setChatSessions(sortedSessions);
-    } catch (error) {
-      console.error('채팅 세션 로드 실패:', error);
-      setChatSessions([]);
+    if (isAuthenticated) {
+      // 로그인 시: 서버에서 세션 조회
+      ChatService.fetchUserChatSessions()
+        .then(sessions => setChatSessions(sessions))
+        .catch(() => setChatSessions([]));
+    } else {
+      // 비로그인 시: 로컬스토리지에서 세션 조회
+      const local = JSON.parse(localStorage.getItem('chatSessions') || '[]');
+      setChatSessions(local);
     }
-  };
+  }, [isAuthenticated]);  // 로그인 상태 변경 시 다시 실행
+
 
   // 날짜별로 그룹화
   const groupSessionsByDate = (sessions) => {
@@ -36,6 +38,7 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
       '어제': [],
       '이전': []
     };
+
 
     sessions.forEach(session => {
       const sessionDate = new Date(session.lastUpdated);
@@ -50,8 +53,10 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
       }
     });
 
+
     return groups;
   };
+
 
   // 채팅 세션 선택 핸들러
   const handleSelectChat = (session) => {
@@ -59,6 +64,7 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
     onSelectChat(session.chatId, session);
     onClose();
   };
+
 
   // 채팅 세션 삭제
   const handleDeleteSession = (e, sessionId) => {
@@ -70,9 +76,11 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
     }
   };
 
+
   // 제목 생성 (파일명 또는 첫 번째 메시지)
   const generateTitle = (session, maxLength = 25) => {
     let title = '';
+
 
     // 저장된 title이 있으면 사용
     if (session.title) {
@@ -100,6 +108,7 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
         : title;
   };
 
+
   // 시간 포맷팅
   const formatTime = (dateString) => {
     const date = new Date(dateString);
@@ -110,7 +119,9 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
     });
   };
 
+
   const groupedSessions = groupSessionsByDate(chatSessions);
+
 
   return (
     <div 
@@ -136,6 +147,7 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
         </Button>
       </div>
 
+
       {/* 채팅 목록 */}
       <div className="p-0">
         {chatSessions.length === 0 ? (
@@ -156,16 +168,21 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                 
                 {/* 채팅 세션 목록 */}
                 <ListGroup variant="flush">
-                  {sessions.map((session) => (
+                  {sessions.map(session => (
                     <ListGroup.Item
-                      key={session.id}
-                      action
-                      onClick={() => handleSelectChat(session)}
-                      className={`d-flex align-items-start py-3 px-2 border-0 border-bottom ${
-                        session.id === currentChatId ? 'bg-info bg-opacity-10' : ''
-                      }`}
-                      style={{ cursor: 'pointer' }}
-                    >
+                      as="div"
+                       key={session.id}
+                       action
+                       onClick={() => handleSelectChat(session)}
+                       active={session.sessionId === currentChatId}
+                       style={{
+                         cursor: 'pointer',
+                         marginBottom: '4px',
+                         borderRadius: '8px',
+                         border: '1px solid #e2e8f0'
+                       }}
+                       className="chat-list-item list-group-item-action"
+                     >
                       <div className="d-flex w-100">
                         {/* 1열: 아이콘·제목·시간 */}
                         <div className="flex-grow-1 px-3" style={{ minWidth: 0 }}>
@@ -192,6 +209,7 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                           </div>
                         </div>
 
+
                         {/* 2열: 메시지 개수 배지 */}
                         <div className="d-flex align-items-center flex-shrink-0 me-2">
                           {session.messageCount > 0 && (
@@ -200,6 +218,7 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                             </Badge>
                           )}
                         </div>
+
 
                         {/* 3열: 삭제 버튼 */}
                         <Button
@@ -223,5 +242,6 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
     </div>
   );
 }
+
 
 export default ChatList;

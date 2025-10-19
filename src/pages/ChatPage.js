@@ -7,7 +7,7 @@ import ChatList from '../components/chat/ChatList';
 import ProfilePanel from '../components/layout/ProfilePanel';
 import JsonViewer from '../components/common/JsonViewer/JsonViewer';
 import TextFormatter from '../components/common/TextFormatter/TextFormatter';
-import { uploadAndAnalyzeFile, sendChatMessage } from '../services/ApiService';
+import { uploadAndAnalyzeFile } from '../services/ApiService';
 import { parseMalwareAnalysisResponse, formatAnalysisMessage } from '../utils/parsers/MalwareAnalysisParser';
 
 function ChatPage() {
@@ -31,7 +31,7 @@ function ChatPage() {
   const [parsedData, setParsedData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [chatId_VT, setChatId_VT] = useState(null);
+  const [setChatId_VT] = useState(null);
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -321,7 +321,7 @@ function ChatPage() {
             setSessionParsedData(internalParsed);
             setAnalysisResult(result);
 
-            const llmReport = parsed?.llmAnalysis?.report || parsed?.llmReport || internalParsed?.llmReport;
+            const llmReport = parsed?.analysisResult.reportfromLLM.report;
             if (llmReport && llmReport.trim()) {
               aiResponseText = llmReport;
             } else {
@@ -616,12 +616,9 @@ function ChatPage() {
   };
 
   const handleSelectChat = (selectedChatId, sessionData) => {
-    console.log('선택된 채팅 ID:', selectedChatId, sessionData);
+    console.log("선택한 세션:", selectedChatId, sessionData);
     navigate(`/chat/${selectedChatId}`, {
-      state: {
-        chatSession: sessionData,
-        loadFromStorage: true
-      }
+      state: { chatSession: sessionData, loadFromStorage: false }, // 서버에서 최신 메시지 이용
     });
     setShowChatList(false);
   };
