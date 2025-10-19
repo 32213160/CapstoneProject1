@@ -258,7 +258,8 @@ function ChatPage() {
       'vtMaliciousEngines': JSON.stringify(parsedData.vtMaliciousEngines, null, 2),
       'vtSuspiciousEngines': JSON.stringify(parsedData.vtSuspiciousEngines, null, 2)
     };
-    return variableMap[variableName];
+    // 값이 null/undefined이면 빈 문자열 말고 undefined 반환
+    return variableMap.hasOwnProperty(variableName) ? variableMap[variableName] ?? null : null;
   };
 
   // **수정된 chatId 변경 useEffect - MainPage에서 넘어온 데이터 처리 통합**
@@ -556,17 +557,15 @@ function ChatPage() {
 
       if (checkVariableExists(currentText, currentParsedData)) {
         const variableValue = getValueByVariableName(currentText, currentParsedData);
-        responseText = variableValue !== null ? `${currentText}: ${variableValue}` : `변수 '${currentText}'의 값을 찾을 수 없습니다.`;
-        console.log('변수 조회 결과:', responseText);
-      } else {
-        console.log('변수가 아닌 질문이므로 서버에 전송:', currentText);
-        if (chatId_VT) {
-          console.log('채팅 API 호출:', { id: chatId_VT, message: currentText });
-          const chatResponse = await sendChatMessage(chatId_VT, currentText);
-          responseText = chatResponse?.answer || chatResponse?.response || chatResponse?.message || '응답을 받지 못했습니다.';
+        if (variableValue != null && variableValue !== '') {
+          responseText = `${currentText}: ${variableValue}`;
         } else {
-          responseText = `채팅을 위해서는 먼저 APK 파일을 분석해야 합니다. 다음 변수들을 조회할 수 있습니다: vtId, vtScanId, vtMaliciousCount, fileName, fileSize, md5, sha256, llmReport 등`;
+          responseText = `${currentText}: 값이 존재하지 않습니다.`; // 안내 메시지 추가
         }
+        console.log('responseText:', responseText);
+      } else {
+        responseText = `${currentText}: 올바른 변수명이 아닙니다.`; // 없을 경우 안내
+        console.log('responseText:', responseText);
       }
 
       if (selectedFile) {
@@ -672,16 +671,17 @@ function ChatPage() {
       {/* 채팅 리스트 사이드 패널 */}
       {showChatList && (
         <div className="position-fixed top-0 start-0 h-100 bg-white shadow-lg chat-list-panel" 
-             style={{ 
-               width: '350px', 
-               zIndex: 1050,
-               transform: showChatList ? 'translateX(0)' : 'translateX(-100%)',
-               transition: 'transform 0.3s ease-in-out'
-             }}>
+          style={{ 
+            width: '350px', 
+            zIndex: 1050,
+            transform: showChatList ? 'translateX(0)' : 'translateX(-100%)',
+            transition: 'transform 0.3s ease-in-out'
+        }}>
           <ChatList 
             onSelectChat={handleSelectChat}
             onClose={handleCloseChatList}
             onNewChat={handleStartNewChat}
+            currentChatId={chatId}
           />
         </div>
       )}

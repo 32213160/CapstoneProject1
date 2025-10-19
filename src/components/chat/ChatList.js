@@ -4,7 +4,8 @@ import { ListGroup, Button, Badge } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FaTimes, FaFile, FaComment } from 'react-icons/fa';
 
-function ChatList({ onSelectChat, onClose }) {
+function ChatList({ onSelectChat, onClose, currentChatId }) {
+  
   const [chatSessions, setChatSessions] = useState([]);
 
   // 로컬 저장소에서 채팅 세션 불러오기
@@ -160,7 +161,9 @@ function ChatList({ onSelectChat, onClose }) {
                       key={session.id}
                       action
                       onClick={() => handleSelectChat(session)}
-                      className="d-flex align-items-start py-3 px-2 border-0 border-bottom"
+                      className={`d-flex align-items-start py-3 px-2 border-0 border-bottom ${
+                        session.id === currentChatId ? 'bg-info bg-opacity-10' : ''
+                      }`}
                       style={{ cursor: 'pointer' }}
                     >
                       <div className="d-flex w-100">

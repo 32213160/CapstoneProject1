@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainPage from './pages/MainPage';
 import ChatPage from './pages/ChatPage';
-import TestPage from './pages/TestPage';
 
 function App() {
   const [data, setData] = useState([]);
@@ -19,8 +18,6 @@ function App() {
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/chat/:chatId" element={<ChatPage />} />
-        <Route path="/test" element={<TestPage />} />
-        <Route path="/test/:chatId" element={<TestPage />} />
       </Routes>
     </Router>
   );
