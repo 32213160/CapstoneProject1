@@ -219,7 +219,7 @@ export default class ProfilePanel extends BaseComponent {
       width: '320px', 
       height: '100vh', 
       background: '#ffffff', 
-      zIndex: 1000, 
+      zIndex: 9999, 
       boxShadow: '-2px 0 12px rgba(0,0,0,0.15)', 
       display: 'flex', 
       flexDirection: 'column' 
@@ -265,7 +265,7 @@ export default class ProfilePanel extends BaseComponent {
       width: '100vw',
       height: '100vh',
       backgroundColor: 'rgba(0, 0, 0, 0.5)', // 반투명 배경
-      zIndex: 1100,
+      zIndex: 10000,
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center'
@@ -484,7 +484,9 @@ export default class ProfilePanel extends BaseComponent {
 
         {/* 레벨 선택 모달 */}
         {showLevelSelect && (
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 1200, display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={this.handleCloseLevelSelect}>
+          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        zIndex: 10001, display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={this.handleCloseLevelSelect}>
             <div style={{ width: '400px', background: '#ffffff', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }} onClick={(e) => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h4 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>레벨 선택</h4>
