@@ -1,10 +1,8 @@
 // src/components/layout/ProfilePanel/ProfilePanel.js
 import React from 'react';
 import BaseComponent from '../../core/BaseComponent';
-import { FaTimes, FaUser, FaCog, FaBell, FaPalette, FaGlobe, FaLock } from 'react-icons/fa';
-import LoginForm from '../auth/LoginForm';
-import SignupForm from '../auth/SignupForm';
-import LogoutButton from '../auth/LogoutButton';
+import { FaTimes, FaUser, FaCog, FaBell, FaPalette, FaGlobe, FaLock, FaEye, FaEyeSlash, FaInfoCircle, FaEnvelope, FaSignOutAlt, FaSpinner } from 'react-icons/fa';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 /**
  * 상속: BaseComponent를 상속받은 프로필 패널 컴포넌트
@@ -21,6 +19,22 @@ export default class ProfilePanel extends BaseComponent {
     showLevelSelect: false, // 레벨 선택 모달 표시 여부
     levelSetting: false, // 레벨 설정 중 표시
     loading: true, // 로딩 상태
+    
+    // LoginForm 관련 상태
+    loginFormData: { username: '', password: '' },
+    loginShowPassword: false,
+    loginError: '',
+    loginLoading: false,
+    
+    // SignupForm 관련 상태
+    signupFormData: { username: '', email: '', password: '', confirmPassword: '', name: '' },
+    signupShowPassword: false,
+    signupShowConfirmPassword: false,
+    signupErrors: {},
+    signupLoading: false,
+    
+    // LogoutButton 관련 상태
+    logoutLoading: false,
   };
 
   handleAuthChange = (authStatus) => {
@@ -42,8 +56,8 @@ export default class ProfilePanel extends BaseComponent {
   // 로그아웃 전용 핸들러 (서버 상태 확인 없이 로컬 상태만 업데이트)
   handleLogout = () => {
     this.setState({ 
-      isAuthenticated: false,
-      userInfo: null,
+      isAuthenticated: false, 
+      userInfo: null, 
       showLogin: false, 
       showSignup: false 
     });
@@ -56,39 +70,30 @@ export default class ProfilePanel extends BaseComponent {
     this.checkAuthStatus();
   }
 
-  // TestPage.js의 인증 상태 조회 API 활용
+  // 인증 상태 조회 API
   checkAuthStatus = async () => {
     const BASE_URL = ''; // TestPage.js와 동일
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/status`, {
-        method: 'GET',
-        credentials: 'include'
+      const response = await fetch(`${BASE_URL}/api/auth/status`, { 
+        method: 'GET', 
+        credentials: 'include' 
       });
       const data = await response.json();
       
       if (data.authenticated) {
         // 인증된 경우 사용자 정보 가져오기
-        this.getUserInfo();
-        this.setState({ 
-          isAuthenticated: true,
-          loading: false
-        });
+        await this.getUserInfo();
+        // 인증된 사용자의 세션 개수 가져오기
+        await this.getUserSessionCount();
+        this.setState({ isAuthenticated: true, loading: false });
       } else {
         // 미인증 상태
-        this.setState({ 
-          isAuthenticated: false, 
-          userInfo: null,
-          loading: false
-        });
+        this.setState({ isAuthenticated: false, userInfo: null, loading: false });
         this.loadLocalUserInfo();
       }
     } catch (error) {
       console.error('인증 상태 확인 실패:', error);
-      this.setState({ 
-        isAuthenticated: false, 
-        userInfo: null,
-        loading: false
-      });
+      this.setState({ isAuthenticated: false, userInfo: null, loading: false });
       this.loadLocalUserInfo();
     }
   };
@@ -97,20 +102,42 @@ export default class ProfilePanel extends BaseComponent {
   getUserInfo = async () => {
     const BASE_URL = ''; // TestPage.js와 동일
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/me`, {
-        method: 'GET',
-        credentials: 'include'
+      const response = await fetch(`${BASE_URL}/api/auth/me`, { 
+        method: 'GET', 
+        credentials: 'include' 
       });
       
       if (response.ok) {
         const data = await response.json();
-        this.setState({ 
-          userInfo: data.user,
-          isAuthenticated: true
-        });
+        this.setState({ userInfo: data.user, isAuthenticated: true });
       }
     } catch (error) {
       console.error('사용자 정보 가져오기 실패:', error);
+    }
+  };
+
+  // 세션 개수 조회
+  getUserSessionCount = async () => {
+    const BASE_URL = '';
+    try {
+      const response = await fetch(`${BASE_URL}/api/chats-of-user/my-sessions`, { 
+        method: 'GET', 
+        credentials: 'include' 
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // sessions 배열의 길이를 세션 개수로 사용
+        const sessionCount = data.chatSessions ? data.chatSessions.length : 0;
+        this.setState(prevState => ({ 
+          userInfo: { 
+            ...prevState.userInfo, 
+            sessionCount: sessionCount 
+          } 
+        }));
+      }
+    } catch (error) {
+      console.error('세션 개수 가져오기 실패:', error);
     }
   };
 
@@ -142,10 +169,7 @@ export default class ProfilePanel extends BaseComponent {
       localStorage.removeItem('chatSessions');
       localStorage.removeItem('chatSessionData');
       this.setState({ 
-        userInfo: { 
-          ...this.state.userInfo, 
-          sessionCount: 0 
-        } 
+        userInfo: { ...this.state.userInfo, sessionCount: 0 } 
       });
       alert('채팅 기록이 삭제되었습니다.');
     }
@@ -171,14 +195,14 @@ export default class ProfilePanel extends BaseComponent {
 
   // 레벨 설정 API 호출
   handleSetLevel = async (level) => {
-    const BASE_URL = ''; // TestPage.js와 동일
+    const BASE_URL = '';
     this.setState({ levelSetting: true });
-    try {
-      const response = await fetch(`${BASE_URL}/api/auth/setlevel?level=${level}`, {
-        method: 'POST',
-        credentials: 'include'
-      });
 
+    try {
+      const response = await fetch(`${BASE_URL}/api/auth/setlevel?level=${level}`, { 
+        method: 'POST', 
+        credentials: 'include' 
+      });
       const data = await response.json();
 
       if (response.ok) {
@@ -208,53 +232,746 @@ export default class ProfilePanel extends BaseComponent {
     return levelNames[level] || level;
   };
 
+  // ==================== LoginForm 통합 ====================
+  handleLoginChange = (e) => {
+    const { name, value } = e.target;
+    this.setState(prevState => ({
+      loginFormData: { ...prevState.loginFormData, [name]: value },
+      loginError: ''
+    }));
+  };
+
+  handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    const BASE_URL = ''; // TestPage.js와 동일
+    const { loginFormData } = this.state;
+
+    // 입력값 검증
+    if (!loginFormData.username.trim()) {
+      this.setState({ loginError: '아이디를 입력해주세요.' });
+      return;
+    }
+    if (!loginFormData.password) {
+      this.setState({ loginError: '비밀번호를 입력해주세요.' });
+      return;
+    }
+
+    this.setState({ loginError: '', loginLoading: true });
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: loginFormData.username,
+          password: loginFormData.password
+        }),
+        credentials: 'include'
+      });
+      const data = await response.json();
+
+      // 로그인 성공 시
+      if (response.ok && data.result === 'success') {
+        localStorage.setItem('sessionId', data.sessionId);
+        localStorage.setItem('userInfo', JSON.stringify(data.user));
+        
+        // 상태 업데이트 및 사용자 정보 로드
+        this.setState({
+          isAuthenticated: true,
+          showLogin: false,
+          loginFormData: { username: '', password: '' }
+        });
+        await this.getUserInfo();
+        await this.getUserSessionCount(); // 로그인 후 세션 개수 조회
+      } else {
+        this.setState({ loginError: data.message || '로그인에 실패했습니다.' });
+      }
+    } catch (err) {
+      console.error('로그인 에러:', err);
+      this.setState({ loginError: err.message || '로그인 중 오류가 발생했습니다.' });
+    } finally {
+      this.setState({ loginLoading: false });
+    }
+  };
+
+  // ==================== SignupForm 통합 ====================
+  handleSignupChange = (e) => {
+    const { name, value } = e.target;
+    this.setState(prevState => ({
+      signupFormData: { ...prevState.signupFormData, [name]: value },
+      signupErrors: { ...prevState.signupErrors, [name]: '' }
+    }));
+  };
+
+  // 테스트용 계정 정보 자동 입력
+  fillTestAccount = () => {
+    this.setState({
+      signupFormData: {
+        username: 'admin',
+        email: 'admin@test.com',
+        password: 'admin123',
+        confirmPassword: 'admin123',
+        name: '관리자'
+      },
+      signupErrors: {}
+    });
+  };
+
+  validateSignupForm = () => {
+    const { signupFormData } = this.state;
+    const newErrors = {};
+
+    if (!signupFormData.username.trim()) 
+      newErrors.username = '아이디를 입력해주세요.';
+    else if (signupFormData.username.length < 4) 
+      newErrors.username = '아이디는 4자 이상이어야 합니다.';
+
+    if (!signupFormData.email.trim()) 
+      newErrors.email = '이메일을 입력해주세요.';
+    else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(signupFormData.email)) 
+        newErrors.email = '유효한 이메일 주소가 아닙니다.';
+    }
+
+    if (!signupFormData.password) 
+      newErrors.password = '비밀번호를 입력해주세요.';
+    else if (signupFormData.password.length < 6) 
+      newErrors.password = '비밀번호는 6자 이상이어야 합니다.';
+
+    if (signupFormData.password !== signupFormData.confirmPassword) 
+      newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
+
+    if (!signupFormData.name.trim()) 
+      newErrors.name = '실명을 입력해주세요.';
+
+    return newErrors;
+  };
+
+  handleSignupSubmit = async (e) => {
+    e.preventDefault();
+    const BASE_URL = ''; // TestPage.js와 동일
+    const { signupFormData } = this.state;
+
+    const formErrors = this.validateSignupForm();
+    if (Object.keys(formErrors).length > 0) {
+      this.setState({ signupErrors: formErrors });
+      return;
+    }
+
+    this.setState({ signupLoading: true });
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: signupFormData.username,
+          password: signupFormData.password,
+          email: signupFormData.email,
+          name: signupFormData.name
+        }),
+        credentials: 'include'
+      });
+      const data = await response.json();
+
+      if (response.ok && data.result === 'success') {
+        alert(`회원가입이 완료되었습니다!\n아이디: ${signupFormData.username}\n이제 로그인할 수 있습니다.`);
+        this.setState({ 
+          showSignup: false, 
+          showLogin: true,
+          signupFormData: { username: '', email: '', password: '', confirmPassword: '', name: '' }
+        });
+      } else {
+        alert(data.error || '회원가입에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('회원가입 에러:', err);
+      alert(err.message || '회원가입 도중 오류가 발생했습니다.');
+    } finally {
+      this.setState({ signupLoading: false });
+    }
+  };
+
+  // ==================== LogoutButton 통합 ====================
+  handleLogoutButton = async () => {
+    const BASE_URL = ''; // TestPage.js와 동일
+    const { logoutLoading } = this.state;
+    
+    if (logoutLoading) return;
+
+    const confirmed = window.confirm('로그아웃 하시겠습니까?');
+    if (!confirmed) return;
+
+    this.setState({ logoutLoading: true });
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      await response.json();
+
+      // 로컬스토리지에 저장했던 인증 정보 삭제
+      localStorage.removeItem('sessionId');
+      localStorage.removeItem('userInfo');
+
+      // 상태 업데이트
+      this.setState({
+        isAuthenticated: false,
+        userInfo: null,
+        showLogin: false,
+        showSignup: false
+      });
+      
+      this.loadLocalUserInfo();
+    } catch (error) {
+      console.error('로그아웃 중 오류 발생:', error);
+      alert('로그아웃 중 오류가 발생했습니다.');
+    } finally {
+      this.setState({ logoutLoading: false });
+    }
+  };
+
+  // ==================== 렌더링 메서드 ====================
+  renderLoginForm = () => {
+    const { loginFormData, loginShowPassword, loginError, loginLoading } = this.state;
+
+    return (
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        background: '#ffffff',
+        zIndex: 10,
+        padding: '24px',
+        overflowY: 'auto'
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '24px'
+        }}>
+          <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>로그인</h3>
+          <button 
+            onClick={() => this.setState({ showLogin: false })}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '20px',
+              color: '#718096'
+            }}
+          >
+            <FaTimes />
+          </button>
+        </div>
+
+        <form onSubmit={this.handleLoginSubmit}>
+          {/* 아이디 입력 */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              color: '#2d3748'
+            }}>
+              <FaUser style={{ marginRight: '6px' }} />
+              아이디
+            </label>
+            <input
+              type="text"
+              name="username"
+              value={loginFormData.username}
+              onChange={this.handleLoginChange}
+              placeholder="아이디를 입력하세요"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #e2e8f0',
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          {/* 비밀번호 입력 */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              color: '#2d3748'
+            }}>
+              <FaLock style={{ marginRight: '6px' }} />
+              비밀번호
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={loginShowPassword ? 'text' : 'password'}
+                name="password"
+                value={loginFormData.password}
+                onChange={this.handleLoginChange}
+                placeholder="비밀번호를 입력하세요"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  paddingRight: '40px',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                  fontSize: '14px'
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => this.setState(prev => ({ loginShowPassword: !prev.loginShowPassword }))}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#718096'
+                }}
+              >
+                {loginShowPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+          </div>
+
+          {/* 에러 메시지 */}
+          {loginError && (
+            <div style={{
+              padding: '12px',
+              marginBottom: '16px',
+              background: '#fed7d7',
+              border: '1px solid #fc8181',
+              borderRadius: '6px',
+              color: '#c53030',
+              fontSize: '14px'
+            }}>
+              <FaInfoCircle style={{ marginRight: '6px' }} />
+              {loginError}
+            </div>
+          )}
+
+          {/* 로그인 버튼 */}
+          <button
+            type="submit"
+            disabled={loginLoading}
+            style={{
+              width: '100%',
+              padding: '12px',
+              background: loginLoading ? '#cbd5e0' : '#3182ce',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '16px',
+              fontWeight: 600,
+              cursor: loginLoading ? 'not-allowed' : 'pointer',
+              marginBottom: '12px'
+            }}
+          >
+            {loginLoading ? '로그인 중...' : '로그인'}
+          </button>
+
+          {/* 회원가입 링크 */}
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            <span style={{ fontSize: '14px', color: '#718096' }}>
+              계정이 없으신가요?{' '}
+            </span>
+            <button
+              type="button"
+              onClick={() => this.setState({ showLogin: false, showSignup: true })}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#3182ce',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                textDecoration: 'underline'
+              }}
+            >
+              회원가입
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  };
+
+  renderSignupForm = () => {
+    const { signupFormData, signupShowPassword, signupShowConfirmPassword, signupErrors, signupLoading } = this.state;
+
+    return (
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        background: '#ffffff',
+        zIndex: 10,
+        padding: '24px',
+        overflowY: 'auto'
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '24px'
+        }}>
+          <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>회원가입</h3>
+          <button 
+            onClick={() => this.setState({ showSignup: false })}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '20px',
+              color: '#718096'
+            }}
+          >
+            <FaTimes />
+          </button>
+        </div>
+
+        <form onSubmit={this.handleSignupSubmit}>
+          {/* 아이디 입력 */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              color: '#2d3748'
+            }}>
+              <FaUser style={{ marginRight: '6px' }} />
+              아이디
+            </label>
+            <input
+              type="text"
+              name="username"
+              value={signupFormData.username}
+              onChange={this.handleSignupChange}
+              placeholder="4자 이상의 아이디"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: `1px solid ${signupErrors.username ? '#fc8181' : '#e2e8f0'}`,
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
+            />
+            {signupErrors.username && (
+              <div style={{ marginTop: '4px', fontSize: '12px', color: '#c53030' }}>
+                {signupErrors.username}
+              </div>
+            )}
+          </div>
+
+          {/* 이메일 입력 */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              color: '#2d3748'
+            }}>
+              <FaEnvelope style={{ marginRight: '6px' }} />
+              이메일
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={signupFormData.email}
+              onChange={this.handleSignupChange}
+              placeholder="example@domain.com"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: `1px solid ${signupErrors.email ? '#fc8181' : '#e2e8f0'}`,
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
+            />
+            {signupErrors.email && (
+              <div style={{ marginTop: '4px', fontSize: '12px', color: '#c53030' }}>
+                {signupErrors.email}
+              </div>
+            )}
+          </div>
+
+          {/* 비밀번호 입력 */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              color: '#2d3748'
+            }}>
+              <FaLock style={{ marginRight: '6px' }} />
+              비밀번호
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={signupShowPassword ? 'text' : 'password'}
+                name="password"
+                value={signupFormData.password}
+                onChange={this.handleSignupChange}
+                placeholder="6자 이상의 비밀번호"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  paddingRight: '40px',
+                  border: `1px solid ${signupErrors.password ? '#fc8181' : '#e2e8f0'}`,
+                  borderRadius: '6px',
+                  fontSize: '14px'
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => this.setState(prev => ({ signupShowPassword: !prev.signupShowPassword }))}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#718096'
+                }}
+              >
+                {signupShowPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            {signupErrors.password && (
+              <div style={{ marginTop: '4px', fontSize: '12px', color: '#c53030' }}>
+                {signupErrors.password}
+              </div>
+            )}
+          </div>
+
+          {/* 비밀번호 확인 입력 */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              color: '#2d3748'
+            }}>
+              <FaLock style={{ marginRight: '6px' }} />
+              비밀번호 확인
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={signupShowConfirmPassword ? 'text' : 'password'}
+                name="confirmPassword"
+                value={signupFormData.confirmPassword}
+                onChange={this.handleSignupChange}
+                placeholder="비밀번호를 다시 입력하세요"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  paddingRight: '40px',
+                  border: `1px solid ${signupErrors.confirmPassword ? '#fc8181' : '#e2e8f0'}`,
+                  borderRadius: '6px',
+                  fontSize: '14px'
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => this.setState(prev => ({ signupShowConfirmPassword: !prev.signupShowConfirmPassword }))}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#718096'
+                }}
+              >
+                {signupShowConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            {signupErrors.confirmPassword && (
+              <div style={{ marginTop: '4px', fontSize: '12px', color: '#c53030' }}>
+                {signupErrors.confirmPassword}
+              </div>
+            )}
+          </div>
+
+          {/* 실명 입력 */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              color: '#2d3748'
+            }}>
+              <FaUser style={{ marginRight: '6px' }} />
+              실명
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={signupFormData.name}
+              onChange={this.handleSignupChange}
+              placeholder="실명을 입력하세요"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: `1px solid ${signupErrors.name ? '#fc8181' : '#e2e8f0'}`,
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
+            />
+            {signupErrors.name && (
+              <div style={{ marginTop: '4px', fontSize: '12px', color: '#c53030' }}>
+                {signupErrors.name}
+              </div>
+            )}
+          </div>
+
+          {/* 테스트 계정 자동 입력 버튼 */}
+          <button
+            type="button"
+            onClick={this.fillTestAccount}
+            style={{
+              width: '100%',
+              padding: '10px',
+              background: '#edf2f7',
+              color: '#2d3748',
+              border: '1px solid #cbd5e0',
+              borderRadius: '6px',
+              fontSize: '14px',
+              cursor: 'pointer',
+              marginBottom: '12px'
+            }}
+          >
+            <FaInfoCircle style={{ marginRight: '6px' }} />
+            테스트 계정 정보 자동 입력
+          </button>
+
+          {/* 회원가입 버튼 */}
+          <button
+            type="submit"
+            disabled={signupLoading}
+            style={{
+              width: '100%',
+              padding: '12px',
+              background: signupLoading ? '#cbd5e0' : '#38a169',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '16px',
+              fontWeight: 600,
+              cursor: signupLoading ? 'not-allowed' : 'pointer',
+              marginBottom: '12px'
+            }}
+          >
+            {signupLoading ? '가입 중...' : '회원가입'}
+          </button>
+
+          {/* 로그인 링크 */}
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            <span style={{ fontSize: '14px', color: '#718096' }}>
+              이미 계정이 있으신가요?{' '}
+            </span>
+            <button
+              type="button"
+              onClick={() => this.setState({ showSignup: false, showLogin: true })}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#3182ce',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                textDecoration: 'underline'
+              }}
+            >
+              로그인
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  };
+
   render() {
-    const { isAuthenticated, showLogin, showSignup, showSettings, showLevelSelect, levelSetting, loading, userInfo } = this.state;
+    const { 
+      isAuthenticated, 
+      showLogin, 
+      showSignup, 
+      showSettings, 
+      showLevelSelect, 
+      levelSetting, 
+      loading, 
+      userInfo,
+      logoutLoading
+    } = this.state;
+    
     const displayUserInfo = userInfo || { name: 'guest', role: 'guest', sessionCount: 0 };
 
-    const panelStyle = { 
-      position: 'fixed', 
-      top: 0, 
-      right: 0, 
-      width: '320px', 
-      height: '100vh', 
-      background: '#ffffff', 
-      zIndex: 9999, 
-      boxShadow: '-2px 0 12px rgba(0,0,0,0.15)', 
-      display: 'flex', 
-      flexDirection: 'column' 
+    const panelStyle = {
+      position: 'fixed',
+      top: 0,
+      right: 0,
+      width: '320px',
+      height: '100vh',
+      background: '#ffffff',
+      zIndex: 9999,
+      boxShadow: '-2px 0 12px rgba(0,0,0,0.15)',
+      display: 'flex',
+      flexDirection: 'column'
     };
 
-    const headerStyle = { 
-      padding: '16px', 
-      borderBottom: '1px solid #e2e8f0', 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center' 
+    const headerStyle = {
+      padding: '16px',
+      borderBottom: '1px solid #e2e8f0',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
     };
 
-    const contentStyle = { 
-      padding: '24px', 
-      flex: 1, 
-      display: 'flex', 
-      flexDirection: 'column' 
+    const contentStyle = {
+      padding: '24px',
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column'
     };
 
-    const sectionStyle = { 
-      marginBottom: '24px' 
+    const sectionStyle = {
+      marginBottom: '24px'
     };
 
-    const buttonStyle = { 
-      width: '100%', 
-      padding: '12px', 
-      marginBottom: '8px', 
-      borderRadius: '6px', 
-      border: '1px solid #e2e8f0', 
-      background: '#f7fafc', 
-      cursor: 'pointer', 
-      display: 'flex', 
-      alignItems: 'center', 
-      gap: '8px' 
+    const buttonStyle = {
+      width: '100%',
+      padding: '12px',
+      marginBottom: '8px',
+      borderRadius: '6px',
+      border: '1px solid #e2e8f0',
+      background: '#f7fafc',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px'
     };
 
     // 설정 창 오버레이 스타일
@@ -291,192 +1008,158 @@ export default class ProfilePanel extends BaseComponent {
 
     return (
       <>
-        <div style={panelStyle} className="profile-panel">
-          <div style={headerStyle} className="profile-header">
-            <h5 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>프로필</h5>
-            <FaTimes 
-              onClick={this.handleClose} 
-              style={{ cursor: 'pointer', fontSize: '20px', color: '#718096' }} 
-            />
+        <div style={panelStyle}>
+          {/* 헤더 */}
+          <div style={headerStyle}>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>프로필</h2>
+            <button 
+              onClick={this.handleClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '20px',
+                color: '#718096'
+              }}
+            >
+              <FaTimes />
+            </button>
           </div>
 
-          <div style={contentStyle} className="profile-content">
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '20px' }}>로딩 중...</div>
-            ) : (
-              <>
-                {/* 인증 상태에 따른 UI 분기 */}
-                {isAuthenticated ? (
-                  <>
-                    {/* 로그인 상태 - 회원 정보 표시 */}
-                    <div style={sectionStyle} className="user-info-section">
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '12px', 
-                        marginBottom: '16px' 
-                      }}>
-                        <FaUser style={{ fontSize: '48px', color: '#4299e1' }} />
-                        <div>
-                          <div style={{ fontSize: '18px', fontWeight: 600 }}>
-                            {displayUserInfo.name || displayUserInfo.username || 'User'}
-                          </div>
-                          <div style={{ fontSize: '14px', color: '#718096' }}>
-                            {displayUserInfo.username || displayUserInfo.role || 'Member'}
-                          </div>
-                          <div style={{ fontSize: '13px', color: '#4299e1', marginTop: '4px', fontWeight: '500' }}>
-                            레벨: {this.getLevelDisplayName(displayUserInfo.level || 'auto')}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 메뉴 항목들 */}
-                    <div style={sectionStyle} className="menu-section">
-                      <button style={buttonStyle} className="menu-button" onClick={this.handleOpenSettings}>
-                        <FaCog /> 설정
-                      </button>
-                      <button style={buttonStyle} className="menu-button" onClick={this.handleOpenLevelSelect}>
-                        <FaUser /> 레벨 선택
-                      </button>
-                      <button style={buttonStyle} className="menu-button" onClick={this.handleClearSessions}>
-                        <FaUser /> 채팅 기록 삭제
-                      </button>
-                    </div>
-
-                    {/* 로그아웃 버튼 */}
-                    <div style={{ marginTop: 'auto' }}>
-                      <LogoutButton onLogout={this.handleAuthChange} />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* 비로그인 상태 - 로그인/회원가입 버튼 */}
-                    {!showLogin && !showSignup && (
-                      <div style={sectionStyle} className="auth-buttons-section">
-                        <button 
-                          style={buttonStyle} 
-                          className="login-button"
-                          onClick={() => this.setState({ showLogin: true })}
-                        >
-                          <FaUser /> 로그인
-                        </button>
-                        <button 
-                          style={buttonStyle} 
-                          className="signup-button"
-                          onClick={() => this.setState({ showSignup: true })}
-                        >
-                          <FaUser /> 회원가입
-                        </button>
-                      </div>
-                    )}
-
-                    {/* 로그인 폼 */}
-                    {showLogin && (
-                      <LoginForm 
-                        onAuthenticated={this.handleAuthChange}
-                        onGoSignup={() => this.setState({ showLogin: false, showSignup: true })}
-                      />
-                    )}
-
-                    {/* 회원가입 폼 */}
-                    {showSignup && (
-                      <SignupForm 
-                        onSignupSuccess={this.handleAuthChange}
-                        onGoLogin={() => this.setState({ showSignup: false, showLogin: true })}
-                      />
-                    )}
-                  </>
+          {/* 콘텐츠 */}
+          <div style={contentStyle}>
+            {/* 사용자 정보 섹션 */}
+            <div style={sectionStyle}>
+              <div style={{
+                padding: '16px',
+                background: '#f7fafc',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                  <FaUser style={{ fontSize: '24px', color: '#4a5568' }} />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '16px' }}>{displayUserInfo.name}</div>
+                    <div style={{ fontSize: '12px', color: '#718096' }}>{displayUserInfo.role}</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: '14px', color: '#4a5568' }}>
+                  채팅 세션: {displayUserInfo.sessionCount}개
+                </div>
+                {isAuthenticated && userInfo?.level && (
+                  <div style={{ fontSize: '14px', color: '#4a5568', marginTop: '4px' }}>
+                    대화 수준: {this.getLevelDisplayName(userInfo.level)}
+                  </div>
                 )}
-              </>
-            )}
+              </div>
+            </div>
+
+            {/* 인증 버튼들 */}
+            <div style={sectionStyle}>
+              {!isAuthenticated ? (
+                <>
+                  <button 
+                    style={{...buttonStyle, background: '#3182ce', color: '#ffffff', border: 'none'}}
+                    onClick={() => this.setState({ showLogin: true })}
+                  >
+                    <FaUser /> 로그인
+                  </button>
+                  <button 
+                    style={{...buttonStyle, background: '#38a169', color: '#ffffff', border: 'none'}}
+                    onClick={() => this.setState({ showSignup: true })}
+                  >
+                    <FaUser /> 회원가입
+                  </button>
+                </>
+              ) : (
+                <button 
+                  style={{
+                    ...buttonStyle, 
+                    background: logoutLoading ? '#cbd5e0' : '#e53e3e', 
+                    color: '#ffffff', 
+                    border: 'none',
+                    cursor: logoutLoading ? 'not-allowed' : 'pointer'
+                  }}
+                  onClick={this.handleLogoutButton}
+                  disabled={logoutLoading}
+                >
+                  {logoutLoading ? <FaSpinner className="fa-spin" /> : <FaSignOutAlt />}
+                  {logoutLoading ? '로그아웃 중...' : '로그아웃'}
+                </button>
+              )}
+            </div>
+
+            {/* 기능 버튼들 */}
+            <div style={sectionStyle}>
+              <button style={buttonStyle} onClick={this.handleOpenSettings}>
+                <FaCog /> 설정
+              </button>
+              <button style={buttonStyle} onClick={this.handleClearSessions}>
+                <FaBell /> 채팅 기록 삭제
+              </button>
+              {isAuthenticated && (
+                <button style={buttonStyle} onClick={this.handleOpenLevelSelect}>
+                  <FaPalette /> 대화 난이도 설정
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* LoginForm 렌더링 */}
+          {showLogin && this.renderLoginForm()}
+
+          {/* SignupForm 렌더링 */}
+          {showSignup && this.renderSignupForm()}
         </div>
 
-        {/* 설정 창 오버레이 */}
+        {/* 설정 창 모달 */}
         {showSettings && (
-          <div style={overlayStyle} className="settings-overlay" onClick={this.handleCloseSettings}>
-            <div style={settingsModalStyle} className="settings-modal" onClick={(e) => e.stopPropagation()}>
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
+          <div style={overlayStyle} onClick={this.handleCloseSettings}>
+            <div style={settingsModalStyle} onClick={(e) => e.stopPropagation()}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 marginBottom: '20px'
               }}>
-                <h4 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>설정</h4>
-                <FaTimes 
-                  onClick={this.handleCloseSettings} 
-                  style={{ cursor: 'pointer', fontSize: '20px', color: '#718096' }} 
-                />
+                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>설정</h3>
+                <button 
+                  onClick={this.handleCloseSettings}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '20px',
+                    color: '#718096'
+                  }}
+                >
+                  <FaTimes />
+                </button>
               </div>
 
               {/* 설정 항목들 */}
-              <div>
-                {/* 테마 설정 */}
-                <div style={settingItemStyle} className="setting-item">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <FaPalette style={{ fontSize: '20px', color: '#4299e1' }} />
-                    <div>
-                      <div style={{ fontWeight: 600 }}>테마</div>
-                      <div style={{ fontSize: '12px', color: '#718096' }}>다크 모드 / 라이트 모드</div>
-                    </div>
-                  </div>
-                  <select className="form-select form-select-sm" style={{ width: '120px' }}>
-                    <option>라이트</option>
-                    <option>다크</option>
-                    <option>시스템</option>
-                  </select>
+              <div style={settingItemStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FaPalette />
+                  <span>테마</span>
                 </div>
-
-                {/* 알림 설정 */}
-                <div style={settingItemStyle} className="setting-item">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <FaBell style={{ fontSize: '20px', color: '#48bb78' }} />
-                    <div>
-                      <div style={{ fontWeight: 600 }}>알림</div>
-                      <div style={{ fontSize: '12px', color: '#718096' }}>푸시 알림 설정</div>
-                    </div>
-                  </div>
-                  <input type="checkbox" className="form-check-input" defaultChecked />
-                </div>
-
-                {/* 언어 설정 */}
-                <div style={settingItemStyle} className="setting-item">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <FaGlobe style={{ fontSize: '20px', color: '#ed8936' }} />
-                    <div>
-                      <div style={{ fontWeight: 600 }}>언어</div>
-                      <div style={{ fontSize: '12px', color: '#718096' }}>인터페이스 언어</div>
-                    </div>
-                  </div>
-                  <select className="form-select form-select-sm" style={{ width: '120px' }}>
-                    <option>한국어</option>
-                    <option>English</option>
-                    <option>日本語</option>
-                  </select>
-                </div>
-
-                {/* 개인정보 설정 */}
-                <div style={settingItemStyle} className="setting-item">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <FaLock style={{ fontSize: '20px', color: '#e53e3e' }} />
-                    <div>
-                      <div style={{ fontWeight: 600 }}>개인정보</div>
-                      <div style={{ fontSize: '12px', color: '#718096' }}>데이터 보안 및 개인정보 설정</div>
-                    </div>
-                  </div>
-                  <button className="btn btn-sm btn-outline-secondary">관리</button>
-                </div>
+                <span style={{ color: '#718096' }}>라이트</span>
               </div>
 
-              <div style={{ marginTop: '24px', textAlign: 'right' }}>
-                <button 
-                  className="btn btn-primary" 
-                  onClick={this.handleCloseSettings}
-                  style={{ padding: '8px 24px' }}
-                >
-                  확인
-                </button>
+              <div style={settingItemStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FaGlobe />
+                  <span>언어</span>
+                </div>
+                <span style={{ color: '#718096' }}>한국어</span>
+              </div>
+
+              <div style={settingItemStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FaLock />
+                  <span>개인정보 보호</span>
+                </div>
+                <span style={{ color: '#718096' }}>활성화</span>
               </div>
             </div>
           </div>
@@ -484,103 +1167,112 @@ export default class ProfilePanel extends BaseComponent {
 
         {/* 레벨 선택 모달 */}
         {showLevelSelect && (
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        zIndex: 10001, display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={this.handleCloseLevelSelect}>
-            <div style={{ width: '400px', background: '#ffffff', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h4 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>레벨 선택</h4>
-                <button onClick={this.handleCloseLevelSelect} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '20px' }}>
+          <div style={overlayStyle} onClick={this.handleCloseLevelSelect}>
+            <div style={{...settingsModalStyle, width: '400px'}} onClick={(e) => e.stopPropagation()}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '20px'
+              }}>
+                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>대화 난이도 선택</h3>
+                <button 
+                  onClick={this.handleCloseLevelSelect}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '20px',
+                    color: '#718096'
+                  }}
+                >
                   <FaTimes />
                 </button>
               </div>
 
-              <div style={{ marginBottom: '16px' }}>
-                <p style={{ fontSize: '14px', color: '#718096', margin: 0 }}>
-                  대화 난이도를 선택하세요. 선택한 레벨에 따라 AI의 응답 스타일이 조정됩니다.
-                </p>
-              </div>
+              <p style={{ marginBottom: '20px', color: '#718096', fontSize: '14px' }}>
+                대화 난이도를 선택하세요. 선택한 레벨에 따라 AI의 응답 스타일이 조정됩니다.
+              </p>
 
-              <div>
-                <button 
-                  style={{ width: '100%', padding: '16px', marginBottom: '12px', borderRadius: '8px', border: '2px solid #e2e8f0', background: '#ffffff', cursor: 'pointer', fontSize: '16px', fontWeight: '500', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}
-                  onClick={() => this.handleSetLevel('novice')}
-                  disabled={levelSetting}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#4299e1';
-                    e.currentTarget.style.backgroundColor = '#f0f9ff';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#e2e8f0';
-                    e.currentTarget.style.backgroundColor = '#ffffff';
-                  }}
-                >
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>초보자</span>
-                  <span style={{ fontSize: '13px', color: '#718096' }}>기초적이고 쉬운 설명</span>
-                </button>
+              {/* 레벨 버튼들 */}
+              <button
+                onClick={() => this.handleSetLevel('novice')}
+                disabled={levelSetting}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  marginBottom: '12px',
+                  background: levelSetting ? '#e2e8f0' : '#f7fafc',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  cursor: levelSetting ? 'not-allowed' : 'pointer',
+                  textAlign: 'left'
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>초보자</div>
+                <div style={{ fontSize: '14px', color: '#718096' }}>
+                  쉽고 자세한 설명으로 대화합니다.
+                </div>
+              </button>
 
-                <button 
-                  style={{ width: '100%', padding: '16px', marginBottom: '12px', borderRadius: '8px', border: '2px solid #e2e8f0', background: '#ffffff', cursor: 'pointer', fontSize: '16px', fontWeight: '500', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}
-                  onClick={() => this.handleSetLevel('intermediate')}
-                  disabled={levelSetting}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#4299e1';
-                    e.currentTarget.style.backgroundColor = '#f0f9ff';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#e2e8f0';
-                    e.currentTarget.style.backgroundColor = '#ffffff';
-                  }}
-                >
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>중급자</span>
-                  <span style={{ fontSize: '13px', color: '#718096' }}>균형잡힌 수준의 설명</span>
-                </button>
+              <button
+                onClick={() => this.handleSetLevel('intermediate')}
+                disabled={levelSetting}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  marginBottom: '12px',
+                  background: levelSetting ? '#e2e8f0' : '#f7fafc',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  cursor: levelSetting ? 'not-allowed' : 'pointer',
+                  textAlign: 'left'
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>중급자</div>
+                <div style={{ fontSize: '14px', color: '#718096' }}>
+                  적당한 수준의 설명으로 대화합니다.
+                </div>
+              </button>
 
-                <button 
-                  style={{ width: '100%', padding: '16px', marginBottom: '12px', borderRadius: '8px', border: '2px solid #e2e8f0', background: '#ffffff', cursor: 'pointer', fontSize: '16px', fontWeight: '500', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}
-                  onClick={() => this.handleSetLevel('expert')}
-                  disabled={levelSetting}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#4299e1';
-                    e.currentTarget.style.backgroundColor = '#f0f9ff';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#e2e8f0';
-                    e.currentTarget.style.backgroundColor = '#ffffff';
-                  }}
-                >
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>전문가</span>
-                  <span style={{ fontSize: '13px', color: '#718096' }}>전문적이고 상세한 설명</span>
-                </button>
+              <button
+                onClick={() => this.handleSetLevel('expert')}
+                disabled={levelSetting}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  marginBottom: '12px',
+                  background: levelSetting ? '#e2e8f0' : '#f7fafc',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  cursor: levelSetting ? 'not-allowed' : 'pointer',
+                  textAlign: 'left'
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>전문가</div>
+                <div style={{ fontSize: '14px', color: '#718096' }}>
+                  전문적인 용어와 간결한 설명을 사용합니다.
+                </div>
+              </button>
 
-                <button 
-                  style={{ width: '100%', padding: '16px', marginBottom: '12px', borderRadius: '8px', border: '2px solid #e2e8f0', background: '#ffffff', cursor: 'pointer', fontSize: '16px', fontWeight: '500', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}
-                  onClick={() => this.handleSetLevel('auto')}
-                  disabled={levelSetting}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#4299e1';
-                    e.currentTarget.style.backgroundColor = '#f0f9ff';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#e2e8f0';
-                    e.currentTarget.style.backgroundColor = '#ffffff';
-                  }}
-                >
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>자동 조정</span>
-                  <span style={{ fontSize: '13px', color: '#718096' }}>대화 내용에 따라 자동으로 조정</span>
-                </button>
-              </div>
-
-              <div style={{ marginTop: '20px', textAlign: 'right' }}>
-                <button 
-                  className="btn btn-outline-secondary" 
-                  onClick={this.handleCloseLevelSelect}
-                  style={{ padding: '8px 24px' }}
-                  disabled={levelSetting}
-                >
-                  {levelSetting ? '설정 중...' : '취소'}
-                </button>
-              </div>
+              <button
+                onClick={() => this.handleSetLevel('auto')}
+                disabled={levelSetting}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  background: levelSetting ? '#e2e8f0' : '#f7fafc',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  cursor: levelSetting ? 'not-allowed' : 'pointer',
+                  textAlign: 'left'
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>자동 조정</div>
+                <div style={{ fontSize: '14px', color: '#718096' }}>
+                  대화 내용에 따라 자동으로 난이도가 조정됩니다.
+                </div>
+              </button>
             </div>
           </div>
         )}

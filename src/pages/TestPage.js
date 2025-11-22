@@ -321,7 +321,7 @@ export default function TestPage() {
               <input
                 type="text"
                 className="form-control"
-                placeholder="사용자명"
+                placeholder="아이디"
                 value={loginUsername}
                 onChange={(e) => setLoginUsername(e.target.value)}
               />
