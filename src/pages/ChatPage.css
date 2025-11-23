@@ -1,0 +1,214 @@
+/* ChatGPT/Perplexity 스타일의 말풍선 디자인 */
+
+.chat-message-wrapper {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px;
+  padding: 0 20px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 사용자 메시지: 오른쪽 정렬 */
+.chat-message-wrapper--user {
+  align-items: flex-end;
+}
+
+/* AI 메시지: 왼쪽 정렬 */
+.chat-message-wrapper--ai {
+  align-items: flex-start;
+}
+
+.chat-message-bubble {
+  max-width: 75%;
+  padding: 12px 16px;
+  border-radius: 18px;
+  word-wrap: break-word;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+/* 라이트 모드 (기본 설정) */
+/* 사용자 메시지 말풍선: 파란 배경 + 흰 글씨 */
+.chat-message-bubble--user {
+  background: linear-gradient(135deg, #0084ff 0%, #0066cc 100%);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+/* AI 메시지 말풍선: 회색 배경 + 검은 글씨 */
+.chat-message-bubble--ai {
+  background: #f8f8f8;
+  color: #000000;
+  border-bottom-left-radius: 4px;
+}
+
+/* 타임스탬프 스타일 */
+.chat-message-timestamp {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+/* 메시지 텍스트 내부 여백 조정 */
+.chat-message-bubble .message-text {
+  line-height: 1.5;
+}
+
+/* TextFormatter 내부 요소 스타일 조정 */
+.chat-message-bubble--user .message-text {
+  color: #ffffff;
+}
+
+.chat-message-bubble--ai .message-text {
+  color: inherit;
+}
+
+/* 링크 색상 조정 (라이트 모드) */
+.chat-message-bubble--user a {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.chat-message-bubble--ai a {
+  color: #0084ff;
+  text-decoration: none;
+}
+
+.chat-message-bubble--ai a:hover {
+  text-decoration: underline;
+}
+
+/* 코드 블록 스타일 (라이트 모드) */
+.chat-message-bubble pre {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+.chat-message-bubble--user pre {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 인라인 코드 스타일 (라이트 모드) */
+.chat-message-bubble code {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.chat-message-bubble--user code {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 다크 모드는 사용자가 명시적으로 설정했을 때만 적용 */
+/*@media*/ (prefers-color-scheme: dark) {
+  /* 사용자 메시지: 다크 모드에서도 파란 배경 유지 */
+  .chat-message-bubble--user {
+    background: linear-gradient(135deg, #0066cc 0%, #004499 100%);
+    color: #ffffff;
+  }
+
+  /* AI 메시지: 다크 모드에서 어두운 회색 배경 + 흰 글씨 */
+  .chat-message-bubble--ai {
+    background: #2f2f2f;
+    color: #e0e0e0;
+  }
+
+  /* 타임스탬프 (다크 모드) */
+  .chat-message-timestamp {
+    color: #aaa;
+  }
+
+  /* 링크 색상 (다크 모드) */
+  .chat-message-bubble--ai a {
+    color: #4da6ff;
+  }
+
+  /* 코드 블록 (다크 모드) */
+  .chat-message-bubble--ai pre {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  /* 인라인 코드 (다크 모드) */
+  .chat-message-bubble--ai code {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* 로딩 애니메이션 스타일 */
+.message-loading {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.loading-dots span {
+  width: 8px;
+  height: 8px;
+  background: #999;
+  border-radius: 50%;
+  animation: loadingPulse 1.4s infinite ease-in-out both;
+}
+
+.loading-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes loadingPulse {
+  0%, 80%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* JSON Viewer 컨테이너 여백 */
+.json-viewer-container {
+  margin: 12px 0;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .chat-message-bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+  }
+
+  .chat-message-wrapper {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-message-bubble {
+    max-width: 90%;
+  }
+}
