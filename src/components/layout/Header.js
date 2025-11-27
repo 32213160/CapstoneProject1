@@ -7,18 +7,11 @@ import { FaBars, FaUserCircle, FaPlus } from 'react-icons/fa';
 function Header({ title = null, onMenuClick, onProfileClick, onLogoClick, onStartNewChat, className, style }) {
   return (
     <header
-      className={`d-flex justify-content-between align-items-center p-3 border-bottom bg-white sticky-top ${className || ''}`}
-      style={{
-        height: '80px',
-        background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 40%, rgba(255,255,255,0.5) 75%, rgba(255,255,255,1) 100%)',
-        backdropFilter: 'blur(5px)',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
-        ...style
-      }}
+      className={`d-flex justify-content-between align-items-center p-3 sticky-top ${className || ''}`}
     >
       {/* 왼쪽: 메뉴 버튼 */}
       <div
-        className="d-flex align-items-center justify-content-center"
+        className="d-flex p-3 align-items-center justify-content-center"
         style={{ minWidth: '40px', height: '100%' }}
       >
         <button
@@ -28,17 +21,6 @@ function Header({ title = null, onMenuClick, onProfileClick, onLogoClick, onStar
         >
           <FaBars />
         </button>
-      </div>
-
-      {/* 중앙: 제목 */}
-      <div className="flex-grow-1 text-center mx-2">
-        <h1
-          className="h5 mb-0 text-truncate"
-          onClick={onLogoClick}
-          style={{ cursor: 'pointer', lineHeight: '1.2' }}
-        >
-          {title || '파일 내 악성 코드 분석 서비스'}
-        </h1>
       </div>
 
       {/* 새 채팅 버튼 */}
@@ -60,7 +42,7 @@ function Header({ title = null, onMenuClick, onProfileClick, onLogoClick, onStar
 
       {/* 오른쪽: 프로필 버튼 */}
       <div
-        className="d-flex align-items-center justify-content-center"
+        className="d-flex p-3 align-items-center justify-content-center"
         style={{ minWidth: '40px', height: '100%' }}
       >
         <button
