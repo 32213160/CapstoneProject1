@@ -69,11 +69,6 @@ class ChatService {
     return loadChatSessionFromStorage(chatId);
   }
 
-  /* 채팅 세션 관리 */
-  static getChatSession(chatId) {
-    return loadChatSessionFromStorage(chatId);
-  }
-
   static saveChatSession(chatId, messageData, headerTitle, initialFile, analysisResult) {
     updateChatSession(chatId, messageData, headerTitle, initialFile, analysisResult);
   }

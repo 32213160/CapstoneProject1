@@ -1,5 +1,5 @@
 // src/core/BaseComponent.js
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 /**
  * 추상화: 모든 컴포넌트의 기본이 되는 베이스 클래스

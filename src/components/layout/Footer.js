@@ -13,11 +13,6 @@ function Footer({
 }) {
   const fileInputRef = useRef(null);
 
-  // 파일 첨부 버튼 클릭 시 숨겨진 파일 input 클릭
-  const handleFileButtonClick = () => {
-    fileInputRef.current.click();
-  };
-
   // 파일 선택 핸들러
   const handleFileChange = (e) => {
     const file = e.target.files[0];

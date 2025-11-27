@@ -32,13 +32,13 @@ function ChatPage() {
   const [parsedData, setParsedData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [chatId_VT, setChatId_VT] = useState(null); // 수정: const [setChatId_VT] → const [chatId_VT, setChatId_VT]
+  const [setChatId_VT] = useState(null); // 수정: const [setChatId_VT] → const [chatId_VT, setChatId_VT]
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   // 새로 추가된 상태: 로그인 상태 및 세션 목록
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [mySessions, setMySessions] = useState(null);
+  const [setIsAuthenticated] = useState(false);
+  const [setMySessions] = useState(null);
 
   const handleMenuClick = () => setShowChatList(true);
   const handleProfileClick = () => setShowProfile(true);
@@ -765,6 +765,7 @@ function ChatPage() {
     return () => {
       isMountedRef.current = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId, location.state]); // location.state도 의존성에 추가
 
   useEffect(() => {

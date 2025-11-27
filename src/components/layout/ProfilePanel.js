@@ -922,7 +922,6 @@ export default class ProfilePanel extends BaseComponent {
       showSettings, 
       showLevelSelect, 
       levelSetting, 
-      loading, 
       userInfo,
       logoutLoading
     } = this.state;
