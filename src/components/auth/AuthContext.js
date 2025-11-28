@@ -7,9 +7,9 @@ const AuthContext = createContext();
 
 // Provider 컴포넌트
 export const AuthProvider = ({ children }) => {
-  // Azure Static Web Apps에서는 proxy가 작동하지 않으므로 /api로 시작하는 절대 경로 사용
+  // 환경에 따라 BASE_URL 설정
   const BASE_URL = process.env.NODE_ENV === 'production'
-    ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+    ? 'http://74.227.130.20:8080' // 프로덕션: 백엔드 서버 직접 호출
     : ''; // 로컬: package.json의 proxy 사용
 
   const [authState, setAuthState] = useState({
@@ -22,15 +22,20 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = useCallback(async () => {
     try {
       console.log('[디버깅] AuthContext: 인증 상태 확인 시작');
+      console.log('[디버깅] AuthContext: BASE_URL:', BASE_URL);
+      
       const response = await fetch(`${BASE_URL}/api/auth/status`, {
         method: 'GET',
-        credentials: 'include' // JSESSIONID 쿠키 포함
+        credentials: 'include', // JSESSIONID 쿠키 포함
+        mode: 'cors' // CORS 모드 명시
       });
 
       console.log('[디버깅] AuthContext: 응답 상태 코드:', response.status);
 
       // 응답이 HTML인지 확인 (Azure Static Web Apps 오류 페이지 체크)
       const contentType = response.headers.get('content-type');
+      console.log('[디버깅] AuthContext: Content-Type:', contentType);
+      
       if (contentType && contentType.includes('text/html')) {
         console.error('[디버깅] AuthContext: HTML 응답 수신 - API 라우팅 실패');
         setAuthState({ isAuthenticated: false, username: null, loading: false });

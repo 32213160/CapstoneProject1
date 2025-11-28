@@ -72,13 +72,14 @@ export default class ProfilePanel extends BaseComponent {
 
   // 인증 상태 조회 API
   checkAuthStatus = async () => {
-    const BASE_URL = process.env.NODE_ENV === 'production' 
-      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+    const BASE_URL = process.env.NODE_ENV === 'production'
+      ? 'http://74.227.130.20:8080' // 프로덕션: 백엔드 서버 직접 호출
       : ''; // 로컬: package.json의 proxy 사용
     try {
       const response = await fetch(`${BASE_URL}/api/auth/status`, { 
         method: 'GET', 
-        credentials: 'include' 
+        credentials: 'include', 
+        mode: 'cors'
       });
 
       // JSON 파싱 전에 체크
@@ -116,13 +117,14 @@ export default class ProfilePanel extends BaseComponent {
 
   // 로그인된 사용자 정보 가져오기
   getUserInfo = async () => {
-    const BASE_URL = process.env.NODE_ENV === 'production' 
-      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+    const BASE_URL = process.env.NODE_ENV === 'production'
+      ? 'http://74.227.130.20:8080' // 프로덕션: 백엔드 서버 직접 호출
       : ''; // 로컬: package.json의 proxy 사용
     try {
       const response = await fetch(`${BASE_URL}/api/auth/me`, { 
         method: 'GET', 
-        credentials: 'include' 
+        credentials: 'include', 
+        mode: 'cors'
       });
 
       // JSON 파싱 전에 체크
@@ -149,13 +151,14 @@ export default class ProfilePanel extends BaseComponent {
 
   // 세션 개수 조회
   getUserSessionCount = async () => {
-    const BASE_URL = process.env.NODE_ENV === 'production' 
-      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+    const BASE_URL = process.env.NODE_ENV === 'production'
+      ? 'http://74.227.130.20:8080' // 프로덕션: 백엔드 서버 직접 호출
       : ''; // 로컬: package.json의 proxy 사용
     try {
       const response = await fetch(`${BASE_URL}/api/chats-of-user/my-sessions`, { 
         method: 'GET', 
-        credentials: 'include' 
+        credentials: 'include', 
+        mode: 'cors'
       });
 
       // JSON 파싱 전에 체크
@@ -241,15 +244,16 @@ export default class ProfilePanel extends BaseComponent {
 
   // 레벨 설정 API 호출
   handleSetLevel = async (level) => {
-    const BASE_URL = process.env.NODE_ENV === 'production' 
-      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+    const BASE_URL = process.env.NODE_ENV === 'production'
+      ? 'http://74.227.130.20:8080' // 프로덕션: 백엔드 서버 직접 호출
       : ''; // 로컬: package.json의 proxy 사용
     this.setState({ levelSetting: true });
 
     try {
       const response = await fetch(`${BASE_URL}/api/auth/setlevel?level=${level}`, { 
         method: 'POST', 
-        credentials: 'include' 
+        credentials: 'include', 
+        mode: 'cors'
       });
 
       // JSON 파싱 전에 체크
@@ -305,8 +309,8 @@ export default class ProfilePanel extends BaseComponent {
 
   handleLoginSubmit = async (e) => {
     e.preventDefault();
-    const BASE_URL = process.env.NODE_ENV === 'production' 
-      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+    const BASE_URL = process.env.NODE_ENV === 'production'
+      ? 'http://74.227.130.20:8080' // 프로덕션: 백엔드 서버 직접 호출
       : ''; // 로컬: package.json의 proxy 사용
     const { loginFormData } = this.state;
 
@@ -330,7 +334,8 @@ export default class ProfilePanel extends BaseComponent {
           username: loginFormData.username,
           password: loginFormData.password
         }),
-        credentials: 'include'
+        credentials: 'include', 
+        mode: 'cors'
       });
 
       // JSON 파싱 전에 체크
@@ -428,8 +433,8 @@ export default class ProfilePanel extends BaseComponent {
 
   handleSignupSubmit = async (e) => {
     e.preventDefault();
-    const BASE_URL = process.env.NODE_ENV === 'production' 
-      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+    const BASE_URL = process.env.NODE_ENV === 'production'
+      ? 'http://74.227.130.20:8080' // 프로덕션: 백엔드 서버 직접 호출
       : ''; // 로컬: package.json의 proxy 사용
     const { signupFormData } = this.state;
 
@@ -451,7 +456,8 @@ export default class ProfilePanel extends BaseComponent {
           email: signupFormData.email,
           name: signupFormData.name
         }),
-        credentials: 'include'
+        credentials: 'include', 
+        mode: 'cors'
       });
 
       // JSON 파싱 전에 체크
@@ -489,8 +495,8 @@ export default class ProfilePanel extends BaseComponent {
 
   // ==================== LogoutButton 통합 ====================
   handleLogoutButton = async () => {
-    const BASE_URL = process.env.NODE_ENV === 'production' 
-      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+    const BASE_URL = process.env.NODE_ENV === 'production'
+      ? 'http://74.227.130.20:8080' // 프로덕션: 백엔드 서버 직접 호출
       : ''; // 로컬: package.json의 proxy 사용
     const { logoutLoading } = this.state;
     
@@ -504,7 +510,8 @@ export default class ProfilePanel extends BaseComponent {
     try {
       const response = await fetch(`${BASE_URL}/api/auth/logout`, {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include', 
+        mode: 'cors'
       });
 
       // JSON 파싱 전에 체크
@@ -519,7 +526,7 @@ export default class ProfilePanel extends BaseComponent {
         this.loadLocalUserInfo();
         return;
       }
-      
+
       await response.json();
 
       // 로컬스토리지에 저장했던 인증 정보 삭제
