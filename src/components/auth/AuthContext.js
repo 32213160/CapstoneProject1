@@ -7,10 +7,8 @@ const AuthContext = createContext();
 
 // Provider 컴포넌트
 export const AuthProvider = ({ children }) => {
-  // 환경에 따라 BASE_URL 설정
-  const BASE_URL = process.env.NODE_ENV === 'production'
-    ? 'http://74.227.130.20:8080' // 프로덕션: 백엔드 서버 직접 호출
-    : ''; // 로컬: package.json의 proxy 사용
+  // Azure Static Web Apps의 리버스 프록시를 사용하므로 상대 경로 사용
+  const BASE_URL = ''; // 프로덕션/로컬 모두 상대 경로로 통일
 
   const [authState, setAuthState] = useState({
     isAuthenticated: false,
@@ -22,7 +20,7 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = useCallback(async () => {
     try {
       console.log('[디버깅] AuthContext: 인증 상태 확인 시작');
-      console.log('[디버깅] AuthContext: BASE_URL:', BASE_URL);
+      console.log('[디버깅] AuthContext: BASE_URL:', BASE_URL || '(상대 경로)');
       
       const response = await fetch(`${BASE_URL}/api/auth/status`, {
         method: 'GET',

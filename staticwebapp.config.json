@@ -2,7 +2,8 @@
   "routes": [
     {
       "route": "/api/*",
-      "rewrite": "http://74.227.130.20:8080/api/*"
+      "rewrite": "http://74.227.130.20:8080/api/*",
+      "allowedRoles": ["anonymous"]
     }
   ],
   "navigationFallback": {
