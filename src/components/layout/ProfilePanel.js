@@ -72,12 +72,28 @@ export default class ProfilePanel extends BaseComponent {
 
   // 인증 상태 조회 API
   checkAuthStatus = async () => {
-    const BASE_URL = ''; // TestPage.js와 동일
+    const BASE_URL = process.env.NODE_ENV === 'production' 
+      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+      : ''; // 로컬: package.json의 proxy 사용
     try {
       const response = await fetch(`${BASE_URL}/api/auth/status`, { 
         method: 'GET', 
         credentials: 'include' 
       });
+
+      // JSON 파싱 전에 체크
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        console.error('HTML 응답 수신 - API 라우팅 실패');
+        this.setState({ 
+          isAuthenticated: false, 
+          userInfo: null, 
+          loading: false 
+        });
+        this.loadLocalUserInfo();
+        return;
+      }
+
       const data = await response.json();
       
       if (data.authenticated) {
@@ -98,14 +114,29 @@ export default class ProfilePanel extends BaseComponent {
     }
   };
 
-  // 로그인된 사용자 정보 가져오기 (TestPage.js 참고)
+  // 로그인된 사용자 정보 가져오기
   getUserInfo = async () => {
-    const BASE_URL = ''; // TestPage.js와 동일
+    const BASE_URL = process.env.NODE_ENV === 'production' 
+      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+      : ''; // 로컬: package.json의 proxy 사용
     try {
       const response = await fetch(`${BASE_URL}/api/auth/me`, { 
         method: 'GET', 
         credentials: 'include' 
       });
+
+      // JSON 파싱 전에 체크
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        console.error('HTML 응답 수신 - API 라우팅 실패');
+        this.setState({ 
+          isAuthenticated: false, 
+          userInfo: null, 
+          loading: false 
+        });
+        this.loadLocalUserInfo();
+        return;
+      }
       
       if (response.ok) {
         const data = await response.json();
@@ -118,12 +149,27 @@ export default class ProfilePanel extends BaseComponent {
 
   // 세션 개수 조회
   getUserSessionCount = async () => {
-    const BASE_URL = '';
+    const BASE_URL = process.env.NODE_ENV === 'production' 
+      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+      : ''; // 로컬: package.json의 proxy 사용
     try {
       const response = await fetch(`${BASE_URL}/api/chats-of-user/my-sessions`, { 
         method: 'GET', 
         credentials: 'include' 
       });
+
+      // JSON 파싱 전에 체크
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        console.error('HTML 응답 수신 - API 라우팅 실패');
+        this.setState({ 
+          isAuthenticated: false, 
+          userInfo: null, 
+          loading: false 
+        });
+        this.loadLocalUserInfo();
+        return;
+      }
       
       if (response.ok) {
         const data = await response.json();
@@ -195,7 +241,9 @@ export default class ProfilePanel extends BaseComponent {
 
   // 레벨 설정 API 호출
   handleSetLevel = async (level) => {
-    const BASE_URL = '';
+    const BASE_URL = process.env.NODE_ENV === 'production' 
+      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+      : ''; // 로컬: package.json의 proxy 사용
     this.setState({ levelSetting: true });
 
     try {
@@ -203,6 +251,20 @@ export default class ProfilePanel extends BaseComponent {
         method: 'POST', 
         credentials: 'include' 
       });
+
+      // JSON 파싱 전에 체크
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        console.error('HTML 응답 수신 - API 라우팅 실패');
+        this.setState({ 
+          isAuthenticated: false, 
+          userInfo: null, 
+          loading: false 
+        });
+        this.loadLocalUserInfo();
+        return;
+      }
+
       const data = await response.json();
 
       if (response.ok) {
@@ -243,7 +305,9 @@ export default class ProfilePanel extends BaseComponent {
 
   handleLoginSubmit = async (e) => {
     e.preventDefault();
-    const BASE_URL = ''; // TestPage.js와 동일
+    const BASE_URL = process.env.NODE_ENV === 'production' 
+      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+      : ''; // 로컬: package.json의 proxy 사용
     const { loginFormData } = this.state;
 
     // 입력값 검증
@@ -268,6 +332,20 @@ export default class ProfilePanel extends BaseComponent {
         }),
         credentials: 'include'
       });
+
+      // JSON 파싱 전에 체크
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        console.error('HTML 응답 수신 - API 라우팅 실패');
+        this.setState({ 
+          isAuthenticated: false, 
+          userInfo: null, 
+          loading: false 
+        });
+        this.loadLocalUserInfo();
+        return;
+      }
+
       const data = await response.json();
 
       // 로그인 성공 시
@@ -350,7 +428,9 @@ export default class ProfilePanel extends BaseComponent {
 
   handleSignupSubmit = async (e) => {
     e.preventDefault();
-    const BASE_URL = ''; // TestPage.js와 동일
+    const BASE_URL = process.env.NODE_ENV === 'production' 
+      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+      : ''; // 로컬: package.json의 proxy 사용
     const { signupFormData } = this.state;
 
     const formErrors = this.validateSignupForm();
@@ -373,6 +453,20 @@ export default class ProfilePanel extends BaseComponent {
         }),
         credentials: 'include'
       });
+
+      // JSON 파싱 전에 체크
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        console.error('HTML 응답 수신 - API 라우팅 실패');
+        this.setState({ 
+          isAuthenticated: false, 
+          userInfo: null, 
+          loading: false 
+        });
+        this.loadLocalUserInfo();
+        return;
+      }
+
       const data = await response.json();
 
       if (response.ok && data.result === 'success') {
@@ -395,7 +489,9 @@ export default class ProfilePanel extends BaseComponent {
 
   // ==================== LogoutButton 통합 ====================
   handleLogoutButton = async () => {
-    const BASE_URL = ''; // TestPage.js와 동일
+    const BASE_URL = process.env.NODE_ENV === 'production' 
+      ? '' // 프로덕션: staticwebapp.config.json의 forwardingGateway 사용
+      : ''; // 로컬: package.json의 proxy 사용
     const { logoutLoading } = this.state;
     
     if (logoutLoading) return;
@@ -410,6 +506,20 @@ export default class ProfilePanel extends BaseComponent {
         method: 'POST',
         credentials: 'include'
       });
+
+      // JSON 파싱 전에 체크
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        console.error('HTML 응답 수신 - API 라우팅 실패');
+        this.setState({ 
+          isAuthenticated: false, 
+          userInfo: null, 
+          loading: false 
+        });
+        this.loadLocalUserInfo();
+        return;
+      }
+      
       await response.json();
 
       // 로컬스토리지에 저장했던 인증 정보 삭제
