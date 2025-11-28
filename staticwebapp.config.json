@@ -2,7 +2,7 @@
   "routes": [
     {
       "route": "/api/*",
-      "allowedRoles": ["anonymous"]
+      "rewrite": "http://74.227.130.20:8080/api/*"
     }
   ],
   "navigationFallback": {
@@ -22,13 +22,5 @@
   },
   "mimeTypes": {
     ".json": "application/json"
-  },
-  "platform": {
-    "apiRuntime": "node:18"
-  },
-  "forwardingGateway": {
-    "backend": {
-      "backendUri": "http://74.227.130.20:8080"
-    }
   }
 }
