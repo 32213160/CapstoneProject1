@@ -1,4 +1,5 @@
 // src/auth/AuthContext.js
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 // 컨텍스트 생성
@@ -6,8 +7,9 @@ const AuthContext = createContext();
 
 // Provider 컴포넌트
 export const AuthProvider = ({ children }) => {
-  // Azure Static Web Apps의 리버스 프록시를 사용하므로 상대 경로 사용
-  const BASE_URL = ''; // 프로덕션/로컬 모두 상대 경로로 통일
+  // 백엔드 서버 직접 호출
+  const BASE_URL = 'https://torytestsv.kro.kr'; // 명세서에 명시된 실제 서버 주소
+
   const [authState, setAuthState] = useState({
     isAuthenticated: false,
     username: null,
@@ -18,19 +20,19 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = useCallback(async () => {
     try {
       console.log('[디버깅] AuthContext: 인증 상태 확인 시작');
-      console.log('[디버깅] AuthContext: BASE_URL:', BASE_URL || '(상대 경로)');
+      console.log('[디버깅] AuthContext: BASE_URL:', BASE_URL);
 
       const response = await fetch(`${BASE_URL}/api/auth/status`, {
         method: 'GET',
         credentials: 'include', // JSESSIONID 쿠키 포함
-        mode: 'cors', // CORS 모드 명시
         headers: {
           'Accept': 'application/json'
         }
       });
+
       console.log('[디버깅] AuthContext: 응답 상태 코드:', response.status);
 
-      // 응답이 HTML인지 확인 (Azure Static Web Apps 오류 페이지 체크)
+      // 응답이 HTML인지 확인
       const contentType = response.headers.get('content-type');
       console.log('[디버깅] AuthContext: Content-Type:', contentType);
 
@@ -50,8 +52,8 @@ export const AuthProvider = ({ children }) => {
           username: data.username || null,
           loading: false
         });
-        console.log('[디버깅] AuthContext: 최종 인증 상태:', data.authenticated === true);
 
+        console.log('[디버깅] AuthContext: 최종 인증 상태:', data.authenticated === true);
         return data.authenticated === true;
       } else {
         console.warn('[디버깅] AuthContext: 예상치 못한 상태 코드:', response.status);
@@ -63,13 +65,13 @@ export const AuthProvider = ({ children }) => {
       setAuthState({ isAuthenticated: false, username: null, loading: false });
       return false;
     }
-  }, [BASE_URL]); // BASE_URL을 의존성에 추가
+  }, [BASE_URL]);
 
   // 앱 초기 렌더링 시 인증 상태 확인
   useEffect(() => {
     console.log('[디버깅] AuthContext: useEffect 실행 - 초기 인증 상태 확인');
     checkAuthStatus();
-  }, [checkAuthStatus]); // checkAuthStatus를 의존성에 추가 (useCallback으로 메모이제이션되어 안전)
+  }, [checkAuthStatus]);
 
   // 로그인 시 로컬 상태 업데이트
   const login = (username) => {
@@ -90,7 +92,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ ...authState, login, logoutLocal, refreshAuthStatus }}>
+    <AuthContext.Provider value={{
+      ...authState,
+      login,
+      logout: logoutLocal,
+      refreshAuthStatus,
+      checkAuthStatus
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -99,10 +107,8 @@ export const AuthProvider = ({ children }) => {
 // Hook으로 간편 사용
 export const useAuth = () => {
   const context = useContext(AuthContext);
-
   if (!context) {
     throw new Error('useAuth must be used within AuthProvider');
   }
-
   return context;
 };
