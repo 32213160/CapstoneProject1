@@ -1,7 +1,7 @@
 // src/components/layout/ProfilePanel/ProfilePanel.js
 import React from 'react';
 import BaseComponent from '../../core/BaseComponent';
-import { FaTimes, FaUser, FaCog, FaBell, FaPalette, FaGlobe, FaLock, FaEye, FaEyeSlash, FaInfoCircle, FaEnvelope, FaSignOutAlt, FaSpinner } from 'react-icons/fa';
+import { FaTimes, FaUser, FaCog, FaBell, FaPalette, FaGlobe, FaLock, FaEye, FaEyeSlash, FaInfoCircle, FaSignOutAlt, FaSpinner } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 /**
