@@ -34,6 +34,21 @@
       "route": "/api/chats-of-user/my-sessions",
       "rewrite": "https://torytestsv.kro.kr/api/chats-of-user/my-sessions",
       "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/api/chats-of-user/session/*",
+      "rewrite": "https://torytestsv.kro.kr/api/chats-of-user/session/{sessionId}",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/api/upload",
+      "rewrite": "https://torytestsv.kro.kr/api/upload",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/api/chat",
+      "rewrite": "https://torytestsv.kro.kr/api/chat",
+      "allowedRoles": ["anonymous"]
     }
   ],
   "navigationFallback": {
@@ -49,7 +64,8 @@
   "globalHeaders": {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization"
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Credentials": "true"
   },
   "mimeTypes": {
     ".json": "application/json"
