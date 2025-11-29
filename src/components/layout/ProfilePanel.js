@@ -57,7 +57,12 @@ export default class ProfilePanel extends BaseComponent {
 
   // 로그아웃 전용 핸들러 (서버 상태 확인 없이 로컬 상태만 업데이트)
   handleLogout = () => {
-    this.setState({ isAuthenticated: false, userInfo: null, showLogin: false, showSignup: false });
+    this.setState({
+      isAuthenticated: false,
+      userInfo: null,
+      showLogin: false,
+      showSignup: false
+    });
     // 로컬 저장소 정보도 정리
     this.loadLocalUserInfo();
   };
@@ -71,11 +76,15 @@ export default class ProfilePanel extends BaseComponent {
   checkAuthStatus = async () => {
     // Azure Static Web Apps의 리버스 프록시를 사용하므로 상대 경로 사용
     const BASE_URL = ''; // 프로덕션/로컬 모두 상대 경로로 통일
+
     try {
       const response = await fetch(`${BASE_URL}/api/auth/status`, {
         method: 'GET',
         credentials: 'include',
-        mode: 'cors' // CORS 모드 명시
+        mode: 'cors', // CORS 모드 명시
+        headers: {
+          'Accept': 'application/json'
+        }
       });
 
       // JSON 파싱 전에 체크
@@ -101,12 +110,20 @@ export default class ProfilePanel extends BaseComponent {
         this.setState({ isAuthenticated: true, loading: false });
       } else {
         // 미인증 상태
-        this.setState({ isAuthenticated: false, userInfo: null, loading: false });
+        this.setState({
+          isAuthenticated: false,
+          userInfo: null,
+          loading: false
+        });
         this.loadLocalUserInfo();
       }
     } catch (error) {
       console.error('인증 상태 확인 실패:', error);
-      this.setState({ isAuthenticated: false, userInfo: null, loading: false });
+      this.setState({
+        isAuthenticated: false,
+        userInfo: null,
+        loading: false
+      });
       this.loadLocalUserInfo();
     }
   };
@@ -115,11 +132,15 @@ export default class ProfilePanel extends BaseComponent {
   getUserInfo = async () => {
     // Azure Static Web Apps의 리버스 프록시를 사용하므로 상대 경로 사용
     const BASE_URL = ''; // 프로덕션/로컬 모두 상대 경로로 통일
+
     try {
       const response = await fetch(`${BASE_URL}/api/auth/me`, {
         method: 'GET',
         credentials: 'include',
-        mode: 'cors' // CORS 모드 명시
+        mode: 'cors', // CORS 모드 명시
+        headers: {
+          'Accept': 'application/json'
+        }
       });
 
       // JSON 파싱 전에 체크
@@ -148,11 +169,15 @@ export default class ProfilePanel extends BaseComponent {
   getUserSessionCount = async () => {
     // Azure Static Web Apps의 리버스 프록시를 사용하므로 상대 경로 사용
     const BASE_URL = ''; // 프로덕션/로컬 모두 상대 경로로 통일
+
     try {
       const response = await fetch(`${BASE_URL}/api/chats-of-user/my-sessions`, {
         method: 'GET',
         credentials: 'include',
-        mode: 'cors' // CORS 모드 명시
+        mode: 'cors', // CORS 모드 명시
+        headers: {
+          'Accept': 'application/json'
+        }
       });
 
       // JSON 파싱 전에 체크
@@ -212,7 +237,10 @@ export default class ProfilePanel extends BaseComponent {
       localStorage.removeItem('chatSessions');
       localStorage.removeItem('chatSessionData');
       this.setState({
-        userInfo: { ...this.state.userInfo, sessionCount: 0 }
+        userInfo: {
+          ...this.state.userInfo,
+          sessionCount: 0
+        }
       });
       alert('채팅 기록이 삭제되었습니다.');
     }
@@ -247,7 +275,10 @@ export default class ProfilePanel extends BaseComponent {
       const response = await fetch(`${BASE_URL}/api/auth/setlevel?level=${level}`, {
         method: 'POST',
         credentials: 'include',
-        mode: 'cors' // CORS 모드 명시
+        mode: 'cors', // CORS 모드 명시
+        headers: {
+          'Accept': 'application/json'
+        }
       });
 
       // JSON 파싱 전에 체크
@@ -289,6 +320,7 @@ export default class ProfilePanel extends BaseComponent {
   };
 
   // ==================== LoginForm 통합 ====================
+
   handleLoginChange = (e) => {
     const { name, value } = e.target;
     this.setState(prevState => ({
@@ -302,6 +334,7 @@ export default class ProfilePanel extends BaseComponent {
 
   handleLoginSubmit = async (e) => {
     e.preventDefault();
+
     // Azure Static Web Apps의 리버스 프록시를 사용하므로 상대 경로 사용
     const BASE_URL = ''; // 프로덕션/로컬 모두 상대 경로로 통일
     const { loginFormData } = this.state;
@@ -311,6 +344,7 @@ export default class ProfilePanel extends BaseComponent {
       this.setState({ loginError: '아이디를 입력해주세요.' });
       return;
     }
+
     if (!loginFormData.password) {
       this.setState({ loginError: '비밀번호를 입력해주세요.' });
       return;
@@ -321,7 +355,10 @@ export default class ProfilePanel extends BaseComponent {
     try {
       const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({
           username: loginFormData.username,
           password: loginFormData.password
@@ -334,7 +371,10 @@ export default class ProfilePanel extends BaseComponent {
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('text/html')) {
         console.error('HTML 응답 수신 - API 라우팅 실패');
-        this.setState({ loginError: '로그인 서버에 연결할 수 없습니다.', loginLoading: false });
+        this.setState({
+          loginError: '로그인 서버에 연결할 수 없습니다.',
+          loginLoading: false
+        });
         return;
       }
 
@@ -366,6 +406,7 @@ export default class ProfilePanel extends BaseComponent {
   };
 
   // ==================== SignupForm 통합 ====================
+
   handleSignupChange = (e) => {
     const { name, value } = e.target;
     this.setState(prevState => ({
@@ -427,6 +468,7 @@ export default class ProfilePanel extends BaseComponent {
 
   handleSignupSubmit = async (e) => {
     e.preventDefault();
+
     // Azure Static Web Apps의 리버스 프록시를 사용하므로 상대 경로 사용
     const BASE_URL = ''; // 프로덕션/로컬 모두 상대 경로로 통일
     const { signupFormData } = this.state;
@@ -442,7 +484,10 @@ export default class ProfilePanel extends BaseComponent {
     try {
       const response = await fetch(`${BASE_URL}/api/auth/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({
           username: signupFormData.username,
           password: signupFormData.password,
@@ -489,6 +534,7 @@ export default class ProfilePanel extends BaseComponent {
   };
 
   // ==================== LogoutButton 통합 ====================
+
   handleLogoutButton = async () => {
     // Azure Static Web Apps의 리버스 프록시를 사용하므로 상대 경로 사용
     const BASE_URL = ''; // 프로덕션/로컬 모두 상대 경로로 통일
@@ -505,7 +551,10 @@ export default class ProfilePanel extends BaseComponent {
       const response = await fetch(`${BASE_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
-        mode: 'cors' // CORS 모드 명시
+        mode: 'cors', // CORS 모드 명시
+        headers: {
+          'Accept': 'application/json'
+        }
       });
 
       // JSON 파싱 전에 체크
@@ -550,88 +599,72 @@ export default class ProfilePanel extends BaseComponent {
   };
 
   // ==================== 렌더링 메서드 ====================
+
   renderLoginForm = () => {
     const { loginFormData, loginShowPassword, loginError, loginLoading } = this.state;
 
     return (
-      <div className="modal-overlay" onClick={this.handleClose}>
-        <div className="modal-content" style={{ maxWidth: '400px' }} onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h3 className="modal-title">로그인</h3>
-            <button className="close-button" onClick={this.handleClose}>
-              <FaTimes />
-            </button>
+      <div className="login-form">
+        <h3 className="text-center mb-4">로그인</h3>
+        {loginError && (
+          <div className="alert alert-danger" role="alert">
+            {loginError}
           </div>
-          <div className="modal-body">
-            <form onSubmit={this.handleLoginSubmit}>
-              <div className="form-group">
-                <label htmlFor="username">아이디</label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  className="form-control"
-                  value={loginFormData.username}
-                  onChange={this.handleLoginChange}
-                  placeholder="아이디를 입력하세요"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="password">비밀번호</label>
-                <div className="password-input-wrapper">
-                  <input
-                    type={loginShowPassword ? 'text' : 'password'}
-                    id="password"
-                    name="password"
-                    className="form-control"
-                    value={loginFormData.password}
-                    onChange={this.handleLoginChange}
-                    placeholder="비밀번호를 입력하세요"
-                  />
-                  <button
-                    type="button"
-                    className="password-toggle-button"
-                    onClick={() => this.setState({ loginShowPassword: !loginShowPassword })}
-                  >
-                    {loginShowPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-              </div>
-
-              {loginError && (
-                <div className="alert alert-danger" role="alert">
-                  {loginError}
-                </div>
-              )}
-
+        )}
+        <form onSubmit={this.handleLoginSubmit}>
+          <div className="mb-3">
+            <label htmlFor="username" className="form-label">
+              아이디
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="username"
+              name="username"
+              value={loginFormData.username}
+              onChange={this.handleLoginChange}
+              disabled={loginLoading}
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="password" className="form-label">
+              비밀번호
+            </label>
+            <div className="input-group">
+              <input
+                type={loginShowPassword ? 'text' : 'password'}
+                className="form-control"
+                id="password"
+                name="password"
+                value={loginFormData.password}
+                onChange={this.handleLoginChange}
+                disabled={loginLoading}
+              />
               <button
-                type="submit"
-                className="btn btn-primary w-100"
+                className="btn btn-outline-secondary"
+                type="button"
+                onClick={() => this.setState(prev => ({ loginShowPassword: !prev.loginShowPassword }))}
                 disabled={loginLoading}
               >
-                {loginLoading ? (
-                  <>
-                    <FaSpinner className="spinner-icon" /> 로그인 중...
-                  </>
-                ) : (
-                  '로그인'
-                )}
+                {loginShowPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
-            </form>
-
-            <div className="text-center mt-3">
-              <p className="mb-0">
-                계정이 없으신가요?{' '}
-                <button
-                  className="link-button"
-                  onClick={() => this.setState({ showLogin: false, showSignup: true })}
-                >
-                  회원가입
-                </button>
-              </p>
             </div>
           </div>
+          <button type="submit" className="btn btn-primary w-100 mb-3" disabled={loginLoading}>
+            {loginLoading ? <><FaSpinner className="spinner-icon me-2" />로그인 중...</> : '로그인'}
+          </button>
+        </form>
+        <div className="text-center">
+          <p className="mb-0">
+            계정이 없으신가요?{' '}
+            <button
+              className="btn btn-link p-0"
+              onClick={() => this.setState({ showLogin: false, showSignup: true })}
+              disabled={loginLoading}
+            >
+              회원가입
+            </button>
+          </p>
         </div>
       </div>
     );
@@ -647,272 +680,201 @@ export default class ProfilePanel extends BaseComponent {
     } = this.state;
 
     return (
-      <div className="modal-overlay" onClick={this.handleClose}>
-        <div className="modal-content" style={{ maxWidth: '450px' }} onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h3 className="modal-title">회원가입</h3>
-            <button className="close-button" onClick={this.handleClose}>
-              <FaTimes />
-            </button>
+      <div className="signup-form">
+        <h3 className="text-center mb-4">회원가입</h3>
+        <form onSubmit={this.handleSignupSubmit}>
+          <div className="mb-3">
+            <label htmlFor="signup-username" className="form-label">
+              아이디 <span className="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              className={`form-control ${signupErrors.username ? 'is-invalid' : ''}`}
+              id="signup-username"
+              name="username"
+              value={signupFormData.username}
+              onChange={this.handleSignupChange}
+              disabled={signupLoading}
+            />
+            {signupErrors.username && <div className="invalid-feedback">{signupErrors.username}</div>}
           </div>
-          <div className="modal-body">
-            <form onSubmit={this.handleSignupSubmit}>
-              <div className="form-group">
-                <label htmlFor="signup-username">아이디 *</label>
-                <input
-                  type="text"
-                  id="signup-username"
-                  name="username"
-                  className={`form-control ${signupErrors.username ? 'is-invalid' : ''}`}
-                  value={signupFormData.username}
-                  onChange={this.handleSignupChange}
-                  placeholder="4자 이상의 아이디"
-                />
-                {signupErrors.username && (
-                  <div className="invalid-feedback">{signupErrors.username}</div>
-                )}
-              </div>
 
-              <div className="form-group">
-                <label htmlFor="signup-email">이메일 *</label>
-                <input
-                  type="email"
-                  id="signup-email"
-                  name="email"
-                  className={`form-control ${signupErrors.email ? 'is-invalid' : ''}`}
-                  value={signupFormData.email}
-                  onChange={this.handleSignupChange}
-                  placeholder="example@email.com"
-                />
-                {signupErrors.email && (
-                  <div className="invalid-feedback">{signupErrors.email}</div>
-                )}
-              </div>
+          <div className="mb-3">
+            <label htmlFor="signup-email" className="form-label">
+              이메일 <span className="text-danger">*</span>
+            </label>
+            <input
+              type="email"
+              className={`form-control ${signupErrors.email ? 'is-invalid' : ''}`}
+              id="signup-email"
+              name="email"
+              value={signupFormData.email}
+              onChange={this.handleSignupChange}
+              disabled={signupLoading}
+            />
+            {signupErrors.email && <div className="invalid-feedback">{signupErrors.email}</div>}
+          </div>
 
-              <div className="form-group">
-                <label htmlFor="signup-password">비밀번호 *</label>
-                <div className="password-input-wrapper">
-                  <input
-                    type={signupShowPassword ? 'text' : 'password'}
-                    id="signup-password"
-                    name="password"
-                    className={`form-control ${signupErrors.password ? 'is-invalid' : ''}`}
-                    value={signupFormData.password}
-                    onChange={this.handleSignupChange}
-                    placeholder="6자 이상의 비밀번호"
-                  />
-                  <button
-                    type="button"
-                    className="password-toggle-button"
-                    onClick={() => this.setState({ signupShowPassword: !signupShowPassword })}
-                  >
-                    {signupShowPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-                {signupErrors.password && (
-                  <div className="invalid-feedback d-block">{signupErrors.password}</div>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="signup-confirmPassword">비밀번호 확인 *</label>
-                <div className="password-input-wrapper">
-                  <input
-                    type={signupShowConfirmPassword ? 'text' : 'password'}
-                    id="signup-confirmPassword"
-                    name="confirmPassword"
-                    className={`form-control ${signupErrors.confirmPassword ? 'is-invalid' : ''}`}
-                    value={signupFormData.confirmPassword}
-                    onChange={this.handleSignupChange}
-                    placeholder="비밀번호를 다시 입력하세요"
-                  />
-                  <button
-                    type="button"
-                    className="password-toggle-button"
-                    onClick={() => this.setState({ signupShowConfirmPassword: !signupShowConfirmPassword })}
-                  >
-                    {signupShowConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-                {signupErrors.confirmPassword && (
-                  <div className="invalid-feedback d-block">{signupErrors.confirmPassword}</div>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="signup-name">실명 *</label>
-                <input
-                  type="text"
-                  id="signup-name"
-                  name="name"
-                  className={`form-control ${signupErrors.name ? 'is-invalid' : ''}`}
-                  value={signupFormData.name}
-                  onChange={this.handleSignupChange}
-                  placeholder="실명을 입력하세요"
-                />
-                {signupErrors.name && (
-                  <div className="invalid-feedback">{signupErrors.name}</div>
-                )}
-              </div>
-
+          <div className="mb-3">
+            <label htmlFor="signup-password" className="form-label">
+              비밀번호 <span className="text-danger">*</span>
+            </label>
+            <div className="input-group">
+              <input
+                type={signupShowPassword ? 'text' : 'password'}
+                className={`form-control ${signupErrors.password ? 'is-invalid' : ''}`}
+                id="signup-password"
+                name="password"
+                value={signupFormData.password}
+                onChange={this.handleSignupChange}
+                disabled={signupLoading}
+              />
               <button
-                type="submit"
-                className="btn btn-primary w-100"
+                className="btn btn-outline-secondary"
+                type="button"
+                onClick={() => this.setState(prev => ({ signupShowPassword: !prev.signupShowPassword }))}
                 disabled={signupLoading}
               >
-                {signupLoading ? (
-                  <>
-                    <FaSpinner className="spinner-icon" /> 가입 중...
-                  </>
-                ) : (
-                  '회원가입'
-                )}
+                {signupShowPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
+              {signupErrors.password && <div className="invalid-feedback">{signupErrors.password}</div>}
+            </div>
+          </div>
 
+          <div className="mb-3">
+            <label htmlFor="signup-confirmPassword" className="form-label">
+              비밀번호 확인 <span className="text-danger">*</span>
+            </label>
+            <div className="input-group">
+              <input
+                type={signupShowConfirmPassword ? 'text' : 'password'}
+                className={`form-control ${signupErrors.confirmPassword ? 'is-invalid' : ''}`}
+                id="signup-confirmPassword"
+                name="confirmPassword"
+                value={signupFormData.confirmPassword}
+                onChange={this.handleSignupChange}
+                disabled={signupLoading}
+              />
               <button
+                className="btn btn-outline-secondary"
                 type="button"
-                className="btn btn-secondary w-100 mt-2"
-                onClick={this.fillTestAccount}
+                onClick={() => this.setState(prev => ({ signupShowConfirmPassword: !prev.signupShowConfirmPassword }))}
+                disabled={signupLoading}
               >
-                테스트 계정 자동 입력
+                {signupShowConfirmPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
-            </form>
-
-            <div className="text-center mt-3">
-              <p className="mb-0">
-                이미 계정이 있으신가요?{' '}
-                <button
-                  className="link-button"
-                  onClick={() => this.setState({ showSignup: false, showLogin: true })}
-                >
-                  로그인
-                </button>
-              </p>
+              {signupErrors.confirmPassword && (
+                <div className="invalid-feedback">{signupErrors.confirmPassword}</div>
+              )}
             </div>
           </div>
-        </div>
-      </div>
-    );
-  };
 
-  renderSettingsModal = () => {
-    return (
-      <div className="modal-overlay" onClick={this.handleCloseSettings}>
-        <div className="modal-content" style={{ maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h3 className="modal-title">
-              <FaCog style={{ marginRight: '8px' }} />
-              설정
-            </h3>
-            <button className="close-button" onClick={this.handleCloseSettings}>
-              <FaTimes />
+          <div className="mb-3">
+            <label htmlFor="signup-name" className="form-label">
+              실명 <span className="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              className={`form-control ${signupErrors.name ? 'is-invalid' : ''}`}
+              id="signup-name"
+              name="name"
+              value={signupFormData.name}
+              onChange={this.handleSignupChange}
+              disabled={signupLoading}
+            />
+            {signupErrors.name && <div className="invalid-feedback">{signupErrors.name}</div>}
+          </div>
+
+          <button type="submit" className="btn btn-success w-100 mb-3" disabled={signupLoading}>
+            {signupLoading ? <><FaSpinner className="spinner-icon me-2" />가입 중...</> : '회원가입'}
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-secondary w-100 mb-3"
+            onClick={this.fillTestAccount}
+            disabled={signupLoading}
+          >
+            <FaInfoCircle className="me-2" />
+            테스트 계정 자동 입력
+          </button>
+        </form>
+
+        <div className="text-center">
+          <p className="mb-0">
+            이미 계정이 있으신가요?{' '}
+            <button
+              className="btn btn-link p-0"
+              onClick={() => this.setState({ showSignup: false, showLogin: true })}
+              disabled={signupLoading}
+            >
+              로그인
             </button>
-          </div>
-          <div className="modal-body">
-            <div className="settings-list">
-              <div className="settings-item" onClick={this.handleOpenLevelSelect}>
-                <FaInfoCircle className="settings-icon" />
-                <div className="settings-text">
-                  <div className="settings-title">대화 난이도 설정</div>
-                  <div className="settings-description">AI 응답의 난이도를 조정합니다</div>
-                </div>
-              </div>
-
-              <div className="settings-item disabled">
-                <FaBell className="settings-icon" />
-                <div className="settings-text">
-                  <div className="settings-title">알림 설정</div>
-                  <div className="settings-description">알림 수신 방식을 변경합니다 (준비 중)</div>
-                </div>
-              </div>
-
-              <div className="settings-item disabled">
-                <FaPalette className="settings-icon" />
-                <div className="settings-text">
-                  <div className="settings-title">테마 설정</div>
-                  <div className="settings-description">화면 테마를 변경합니다 (준비 중)</div>
-                </div>
-              </div>
-
-              <div className="settings-item disabled">
-                <FaGlobe className="settings-icon" />
-                <div className="settings-text">
-                  <div className="settings-title">언어 설정</div>
-                  <div className="settings-description">사용 언어를 변경합니다 (준비 중)</div>
-                </div>
-              </div>
-
-              <div className="settings-item disabled">
-                <FaLock className="settings-icon" />
-                <div className="settings-text">
-                  <div className="settings-title">개인정보 보호</div>
-                  <div className="settings-description">개인정보 설정을 관리합니다 (준비 중)</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          </p>
         </div>
       </div>
     );
   };
 
   renderLevelSelectModal = () => {
-    const { userInfo, levelSetting } = this.state;
-    const currentLevel = userInfo?.level || 'auto';
+    const { showLevelSelect, levelSetting, userInfo } = this.state;
+
+    if (!showLevelSelect) return null;
 
     return (
       <div className="modal-overlay" onClick={this.handleCloseLevelSelect}>
-        <div className="modal-content" style={{ maxWidth: '450px' }} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-content level-select-modal" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <h3 className="modal-title">
-              <FaInfoCircle style={{ marginRight: '8px' }} />
-              대화 난이도 선택
-            </h3>
-            <button className="close-button" onClick={this.handleCloseLevelSelect}>
+            <h4>난이도 선택</h4>
+            <button className="close-btn" onClick={this.handleCloseLevelSelect} disabled={levelSetting}>
               <FaTimes />
             </button>
           </div>
           <div className="modal-body">
-            <p className="text-muted mb-3">
+            <p className="text-muted mb-4">
               대화 난이도를 선택하세요. 선택한 레벨에 따라 AI의 응답 스타일이 조정됩니다.
             </p>
 
             {/* 레벨 버튼들 */}
             <div className="level-buttons">
               <button
-                className={`level-button ${currentLevel === 'novice' ? 'active' : ''}`}
+                className={`level-btn ${userInfo?.level === 'novice' ? 'active' : ''}`}
                 onClick={() => this.handleSetLevel('novice')}
                 disabled={levelSetting}
               >
-                <div className="level-title">초보자</div>
-                <div className="level-description">쉽고 자세한 설명</div>
+                <div className="level-icon">🌱</div>
+                <div className="level-name">초보자</div>
+                <div className="level-desc">쉽고 자세한 설명</div>
               </button>
 
               <button
-                className={`level-button ${currentLevel === 'intermediate' ? 'active' : ''}`}
+                className={`level-btn ${userInfo?.level === 'intermediate' ? 'active' : ''}`}
                 onClick={() => this.handleSetLevel('intermediate')}
                 disabled={levelSetting}
               >
-                <div className="level-title">중급자</div>
-                <div className="level-description">일반적인 수준의 설명</div>
+                <div className="level-icon">📚</div>
+                <div className="level-name">중급자</div>
+                <div className="level-desc">적절한 깊이의 설명</div>
               </button>
 
               <button
-                className={`level-button ${currentLevel === 'expert' ? 'active' : ''}`}
+                className={`level-btn ${userInfo?.level === 'expert' ? 'active' : ''}`}
                 onClick={() => this.handleSetLevel('expert')}
                 disabled={levelSetting}
               >
-                <div className="level-title">전문가</div>
-                <div className="level-description">전문적이고 간결한 설명</div>
+                <div className="level-icon">🎓</div>
+                <div className="level-name">전문가</div>
+                <div className="level-desc">전문적이고 상세한 설명</div>
               </button>
 
               <button
-                className={`level-button ${currentLevel === 'auto' ? 'active' : ''}`}
+                className={`level-btn ${userInfo?.level === 'auto' ? 'active' : ''}`}
                 onClick={() => this.handleSetLevel('auto')}
                 disabled={levelSetting}
               >
-                <div className="level-title">자동 조정</div>
-                <div className="level-description">대화에 따라 자동으로 조정</div>
+                <div className="level-icon">🤖</div>
+                <div className="level-name">자동 조정</div>
+                <div className="level-desc">상황에 맞게 자동 조정</div>
               </button>
             </div>
 
@@ -928,143 +890,195 @@ export default class ProfilePanel extends BaseComponent {
   };
 
   render() {
-    const { show } = this.props;
-    const { isAuthenticated, userInfo, loading, showLogin, showSignup, showSettings, showLevelSelect, logoutLoading } = this.state;
-
-    if (!show) return null;
-
-    // 로그인 폼 표시
-    if (showLogin) {
-      return this.renderLoginForm();
-    }
-
-    // 회원가입 폼 표시
-    if (showSignup) {
-      return this.renderSignupForm();
-    }
-
-    // 설정 모달 표시
-    if (showSettings) {
-      return this.renderSettingsModal();
-    }
-
-    // 레벨 선택 모달 표시
-    if (showLevelSelect) {
-      return this.renderLevelSelectModal();
-    }
+    const {
+      isAuthenticated,
+      userInfo,
+      showLogin,
+      showSignup,
+      showSettings,
+      loading,
+      logoutLoading
+    } = this.state;
 
     return (
-      <div className="modal-overlay" onClick={this.handleClose}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h3 className="modal-title">프로필</h3>
-            <button className="close-button" onClick={this.handleClose}>
-              <FaTimes />
-            </button>
-          </div>
-          <div className="modal-body">
-            {loading ? (
-              <div className="text-center py-4">
-                <FaSpinner className="spinner-icon" />
-                <p>로딩 중...</p>
-              </div>
-            ) : isAuthenticated && userInfo ? (
-              // 로그인된 사용자 정보 표시
-              <div>
-                <div className="profile-info">
-                  <div className="profile-avatar">
-                    <FaUser size={48} />
-                  </div>
-                  <div className="profile-details">
-                    <h4 className="profile-name">{userInfo.name || userInfo.username}</h4>
-                    <p className="profile-email">
-                      <FaEnvelope style={{ marginRight: '6px' }} />
-                      {userInfo.email || 'email@example.com'}
-                    </p>
-                    <div className="profile-stats">
-                      <div className="stat-item">
-                        <span className="stat-label">역할:</span>
-                        <span className="stat-value">{userInfo.role || 'user'}</span>
-                      </div>
-                      <div className="stat-item">
-                        <span className="stat-label">난이도:</span>
-                        <span className="stat-value">{this.getLevelDisplayName(userInfo.level) || '자동 조정'}</span>
-                      </div>
-                      <div className="stat-item">
-                        <span className="stat-label">세션 수:</span>
-                        <span className="stat-value">{userInfo.sessionCount || 0}개</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+      <>
+        <div className="profile-panel-overlay" onClick={this.handleClose}>
+          <div className="profile-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="profile-header">
+              <h3>프로필</h3>
+              <button className="close-btn" onClick={this.handleClose}>
+                <FaTimes />
+              </button>
+            </div>
 
-                <div className="profile-actions">
-                  <button className="btn btn-outline-primary w-100 mb-2" onClick={this.handleOpenSettings}>
-                    <FaCog style={{ marginRight: '6px' }} />
-                    설정
-                  </button>
-                  <button className="btn btn-outline-danger w-100 mb-2" onClick={this.handleClearSessions}>
-                    채팅 기록 삭제
-                  </button>
-                  <button
-                    className="btn btn-danger w-100"
-                    onClick={this.handleLogoutButton}
-                    disabled={logoutLoading}
-                  >
-                    {logoutLoading ? (
-                      <>
-                        <FaSpinner className="spinner-icon" /> 로그아웃 중...
-                      </>
-                    ) : (
-                      <>
-                        <FaSignOutAlt style={{ marginRight: '6px' }} />
-                        로그아웃
-                      </>
-                    )}
-                  </button>
+            <div className="profile-content">
+              {loading ? (
+                <div className="text-center py-5">
+                  <FaSpinner className="spinner-icon" /> 로딩 중...
                 </div>
-              </div>
-            ) : (
-              // 비로그인 상태 표시
-              <div>
-                <div className="profile-info">
-                  <div className="profile-avatar">
-                    <FaUser size={48} />
-                  </div>
-                  <div className="profile-details">
-                    <h4 className="profile-name">Guest</h4>
-                    <p className="profile-email">로그인하지 않은 상태입니다</p>
-                    <div className="profile-stats">
+              ) : !isAuthenticated ? (
+                showLogin ? (
+                  this.renderLoginForm()
+                ) : showSignup ? (
+                  this.renderSignupForm()
+                ) : (
+                  <div className="guest-info">
+                    <div className="user-avatar">
+                      <FaUser size={48} />
+                    </div>
+                    <h4>게스트 모드</h4>
+                    <p className="text-muted">로그인하지 않은 상태입니다</p>
+                    <div className="user-stats">
                       <div className="stat-item">
-                        <span className="stat-label">세션 수:</span>
+                        <span className="stat-label">채팅 세션</span>
                         <span className="stat-value">{userInfo?.sessionCount || 0}개</span>
                       </div>
                     </div>
+                    <div className="action-buttons">
+                      <button
+                        className="btn btn-primary w-100 mb-2"
+                        onClick={() => this.setState({ showLogin: true })}
+                      >
+                        로그인
+                      </button>
+                      <button
+                        className="btn btn-outline-primary w-100"
+                        onClick={() => this.setState({ showSignup: true })}
+                      >
+                        회원가입
+                      </button>
+                    </div>
+                  </div>
+                )
+              ) : (
+                <div className="user-info">
+                  <div className="user-avatar">
+                    <FaUser size={48} />
+                  </div>
+                  <h4>{userInfo?.name || '사용자'}</h4>
+                  <p className="text-muted">@{userInfo?.username}</p>
+
+                  <div className="user-stats">
+                    <div className="stat-item">
+                      <span className="stat-label">채팅 세션</span>
+                      <span className="stat-value">{userInfo?.sessionCount || 0}개</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">등급</span>
+                      <span className="stat-value">{userInfo?.role || 'USER'}</span>
+                    </div>
+                  </div>
+
+                  <div className="action-buttons">
+                    <button className="btn btn-outline-primary w-100 mb-2" onClick={this.handleOpenSettings}>
+                      <FaCog className="me-2" />
+                      설정
+                    </button>
+                    <button className="btn btn-outline-danger w-100 mb-2" onClick={this.handleClearSessions}>
+                      채팅 기록 삭제
+                    </button>
+                    <button
+                      className="btn btn-danger w-100"
+                      onClick={this.handleLogoutButton}
+                      disabled={logoutLoading}
+                    >
+                      {logoutLoading ? (
+                        <>
+                          <FaSpinner className="spinner-icon me-2" />
+                          로그아웃 중...
+                        </>
+                      ) : (
+                        <>
+                          <FaSignOutAlt className="me-2" />
+                          로그아웃
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {showSettings && (
+          <div className="modal-overlay" onClick={this.handleCloseSettings}>
+            <div className="modal-content settings-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h4>설정</h4>
+                <button className="close-btn" onClick={this.handleCloseSettings}>
+                  <FaTimes />
+                </button>
+              </div>
+              <div className="modal-body">
+                <div className="settings-section">
+                  <h5>
+                    <FaUser className="me-2" />
+                    사용자 정보
+                  </h5>
+                  <div className="info-item">
+                    <span className="label">이름:</span>
+                    <span className="value">{userInfo?.name}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="label">아이디:</span>
+                    <span className="value">{userInfo?.username}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="label">이메일:</span>
+                    <span className="value">{userInfo?.email}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="label">등급:</span>
+                    <span className="value">{userInfo?.role}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="label">레벨:</span>
+                    <span className="value">{this.getLevelDisplayName(userInfo?.level)}</span>
+                    <button className="btn btn-sm btn-outline-primary" onClick={this.handleOpenLevelSelect}>
+                      변경
+                    </button>
                   </div>
                 </div>
 
-                <div className="profile-actions">
-                  <button
-                    className="btn btn-primary w-100 mb-2"
-                    onClick={() => this.setState({ showLogin: true })}
-                  >
-                    로그인
-                  </button>
-                  <button
-                    className="btn btn-outline-primary w-100 mb-2"
-                    onClick={() => this.setState({ showSignup: true })}
-                  >
-                    회원가입
-                  </button>
-                  <button className="btn btn-outline-danger w-100" onClick={this.handleClearSessions}>
-                    채팅 기록 삭제
-                  </button>
+                <div className="settings-section">
+                  <h5>
+                    <FaPalette className="me-2" />
+                    테마
+                  </h5>
+                  <p className="text-muted">곧 지원 예정</p>
+                </div>
+
+                <div className="settings-section">
+                  <h5>
+                    <FaGlobe className="me-2" />
+                    언어
+                  </h5>
+                  <p className="text-muted">곧 지원 예정</p>
+                </div>
+
+                <div className="settings-section">
+                  <h5>
+                    <FaBell className="me-2" />
+                    알림
+                  </h5>
+                  <p className="text-muted">곧 지원 예정</p>
+                </div>
+
+                <div className="settings-section">
+                  <h5>
+                    <FaLock className="me-2" />
+                    개인정보
+                  </h5>
+                  <p className="text-muted">곧 지원 예정</p>
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        </div>
-      </div>
+        )}
+
+        {this.renderLevelSelectModal()}
+      </>
     );
   }
 }

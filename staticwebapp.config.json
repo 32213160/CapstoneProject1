@@ -1,8 +1,38 @@
 {
   "routes": [
     {
-      "route": "/api/*",
-      "rewrite": "https://torytestsv.kro.kr/api/*",
+      "route": "/api/auth/status",
+      "rewrite": "https://torytestsv.kro.kr/api/auth/status",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/api/auth/me",
+      "rewrite": "https://torytestsv.kro.kr/api/auth/me",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/api/auth/login",
+      "rewrite": "https://torytestsv.kro.kr/api/auth/login",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/api/auth/register",
+      "rewrite": "https://torytestsv.kro.kr/api/auth/register",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/api/auth/logout",
+      "rewrite": "https://torytestsv.kro.kr/api/auth/logout",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/api/auth/setlevel",
+      "rewrite": "https://torytestsv.kro.kr/api/auth/setlevel",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/api/chats-of-user/my-sessions",
+      "rewrite": "https://torytestsv.kro.kr/api/chats-of-user/my-sessions",
       "allowedRoles": ["anonymous"]
     }
   ],

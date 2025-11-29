@@ -1,5 +1,4 @@
 // src/auth/AuthContext.js
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 // 컨텍스트 생성
@@ -9,7 +8,6 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   // Azure Static Web Apps의 리버스 프록시를 사용하므로 상대 경로 사용
   const BASE_URL = ''; // 프로덕션/로컬 모두 상대 경로로 통일
-
   const [authState, setAuthState] = useState({
     isAuthenticated: false,
     username: null,
@@ -21,19 +19,21 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('[디버깅] AuthContext: 인증 상태 확인 시작');
       console.log('[디버깅] AuthContext: BASE_URL:', BASE_URL || '(상대 경로)');
-      
+
       const response = await fetch(`${BASE_URL}/api/auth/status`, {
         method: 'GET',
         credentials: 'include', // JSESSIONID 쿠키 포함
-        mode: 'cors' // CORS 모드 명시
+        mode: 'cors', // CORS 모드 명시
+        headers: {
+          'Accept': 'application/json'
+        }
       });
-
       console.log('[디버깅] AuthContext: 응답 상태 코드:', response.status);
 
       // 응답이 HTML인지 확인 (Azure Static Web Apps 오류 페이지 체크)
       const contentType = response.headers.get('content-type');
       console.log('[디버깅] AuthContext: Content-Type:', contentType);
-      
+
       if (contentType && contentType.includes('text/html')) {
         console.error('[디버깅] AuthContext: HTML 응답 수신 - API 라우팅 실패');
         setAuthState({ isAuthenticated: false, username: null, loading: false });
@@ -50,8 +50,8 @@ export const AuthProvider = ({ children }) => {
           username: data.username || null,
           loading: false
         });
-
         console.log('[디버깅] AuthContext: 최종 인증 상태:', data.authenticated === true);
+
         return data.authenticated === true;
       } else {
         console.warn('[디버깅] AuthContext: 예상치 못한 상태 코드:', response.status);
@@ -90,15 +90,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        ...authState,
-        checkAuthStatus,
-        login,
-        logoutLocal,
-        refreshAuthStatus
-      }}
-    >
+    <AuthContext.Provider value={{ ...authState, login, logoutLocal, refreshAuthStatus }}>
       {children}
     </AuthContext.Provider>
   );
@@ -107,8 +99,10 @@ export const AuthProvider = ({ children }) => {
 // Hook으로 간편 사용
 export const useAuth = () => {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error('useAuth must be used within AuthProvider');
   }
+
   return context;
 };
