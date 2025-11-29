@@ -8,7 +8,7 @@ const AuthContext = createContext();
 // Provider 컴포넌트
 export const AuthProvider = ({ children }) => {
   // 백엔드 서버 직접 호출
-  const BASE_URL = 'https://torytestsv.kro.kr'; // 명세서에 명시된 실제 서버 주소
+  const BASE_URL = ''; // 명세서에 명시된 실제 서버 주소
 
   const [authState, setAuthState] = useState({
     isAuthenticated: false,
