@@ -2,9 +2,11 @@
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import TextFormatter from '../components/common/TextFormatter/TextFormatter';
+import { useAuth } from '../components/auth/AuthContext';
 
 export default function TestPage() {
-  const BASE_URL = '';
+  const BASE_URL = 'https://torytestsv.kro.kr';
+  const { refreshAuthStatus } = useAuth();  // AuthContext hook 사용
 
   // State for File Upload & Analysis
   const [file, setFile] = useState(null);
@@ -192,7 +194,9 @@ export default function TestPage() {
       const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: loginUsername, password: loginPassword }),
+        body: JSON.stringify({
+          username: loginUsername,
+          password: loginPassword }),
         credentials: 'include'
       });
       const data = await response.json();
@@ -202,6 +206,10 @@ export default function TestPage() {
         return;
       }
       setAuthResult(data);
+      
+      // 로그인 성공 시 AuthContext 새로고침
+      await refreshAuthStatus();
+      console.log('[디버깅] TestPage: 로그인 성공 후 AuthContext 업데이트 완료');
     } catch (err) {
       setError('서버와 통신 중 오류가 발생했습니다: ' + err.message);
     }
@@ -283,17 +291,35 @@ export default function TestPage() {
 
   // === 9. Get Auth Status (GET) ===
   const handleGetAuthStatus = async () => {
+    console.log('[디버깅] TestPage: 인증 상태 확인 버튼 클릭');
+    console.log('[디버깅] TestPage: BASE_URL:', BASE_URL);
+
     setError(null);
     setAuthStatus(null);
 
     try {
+      console.log('[디버깅] TestPage: /api/auth/status 요청 시작');
+
       const response = await fetch(`${BASE_URL}/api/auth/status`, {
         method: 'GET',
         credentials: 'include'
       });
+    
+      console.log('[디버깅] TestPage: 응답 상태 코드:', response.status);
+      console.log('[디버깅] TestPage: 응답 헤더:', Object.fromEntries(response.headers.entries()));
+
       const data = await response.json();
+      console.log('[디버깅] TestPage: 응답 데이터:', data);
+
       setAuthStatus(data);
+    
+      if (data.authenticated) {
+        console.log('[디버깅] TestPage: ✅ 인증됨 - 사용자:', data.username);
+      } else {
+        console.log('[디버깅] TestPage: ❌ 인증 안됨');
+      }
     } catch (err) {
+      console.error('[디버깅] TestPage: 에러 발생:', err);
       setError('서버와 통신 중 오류가 발생했습니다: ' + err.message);
     }
   };

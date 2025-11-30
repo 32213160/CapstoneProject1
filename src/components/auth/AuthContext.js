@@ -7,8 +7,10 @@ const AuthContext = createContext();
 
 // Provider 컴포넌트
 export const AuthProvider = ({ children }) => {
-  // 백엔드 서버 직접 호출
-  const BASE_URL = ''; // 명세서에 명시된 실제 서버 주소
+  // TestPage.js와 동일하게 설정
+  const BASE_URL = process.env.NODE_ENV === 'development'
+    ? 'https://torytestsv.kro.kr'  // 로컬 개발: 백엔드 직접 호출
+    : 'https://torytestsv.kro.kr';  // 배포: 백엔드 직접 호출
 
   const [authState, setAuthState] = useState({
     isAuthenticated: false,
@@ -21,6 +23,7 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('[디버깅] AuthContext: 인증 상태 확인 시작');
       console.log('[디버깅] AuthContext: BASE_URL:', BASE_URL);
+      console.log('[디버깅] AuthContext: NODE_ENV:', process.env.NODE_ENV);
 
       const response = await fetch(`${BASE_URL}/api/auth/status`, {
         method: 'GET',
@@ -62,16 +65,24 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('[디버깅] AuthContext: 인증 상태 확인 실패:', error);
+      
+      // CORS 에러 감지 및 안내
+      if (error.message && error.message.includes('Failed to fetch')) {
+        console.error('[중요] CORS 에러 가능성: 백엔드 팀에 다음 CORS 설정을 요청하세요');
+        console.error('허용 도메인:', window.location.origin);
+        console.error('필요 설정: allowCredentials: true, allowedOrigins: ' + window.location.origin);
+      }
+      
       setAuthState({ isAuthenticated: false, username: null, loading: false });
       return false;
     }
-  }, [BASE_URL]);
+  }, [BASE_URL]); // BASE_URL을 의존성에 추가
 
   // 앱 초기 렌더링 시 인증 상태 확인
   useEffect(() => {
     console.log('[디버깅] AuthContext: useEffect 실행 - 초기 인증 상태 확인');
     checkAuthStatus();
-  }, [checkAuthStatus]);
+  }, [checkAuthStatus]); // checkAuthStatus를 의존성에 추가 (useCallback으로 메모이제이션되어 안전)
 
   // 로그인 시 로컬 상태 업데이트
   const login = (username) => {
