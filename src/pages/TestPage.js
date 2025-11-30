@@ -187,8 +187,13 @@ export default function TestPage() {
       setError('사용자명과 비밀번호를 입력해 주세요.');
       return;
     }
+
     setError(null);
     setAuthResult(null);
+
+    console.log('[디버깅] TestPage Login: 로그인 시도');
+    console.log('[디버깅] TestPage Login: URL:', `${BASE_URL}/api/auth/login`);
+    console.log('[디버깅] TestPage Login: 요청 body:', { username: loginUsername, password: '***' });
 
     try {
       const response = await fetch(`${BASE_URL}/api/auth/login`, {
@@ -196,21 +201,32 @@ export default function TestPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: loginUsername,
-          password: loginPassword }),
+          password: loginPassword
+        }),
         credentials: 'include'
       });
+
+      console.log('[디버깅] TestPage Login: 응답 상태:', response.status);
+      console.log('[디버깅] TestPage Login: 응답 헤더 전체:', Object.fromEntries(response.headers.entries()));
+      
+      // 🔥 중요: Set-Cookie 헤더 확인
+      const setCookie = response.headers.get('set-cookie');
+      console.log('[디버깅] TestPage Login: Set-Cookie 헤더:', setCookie || '❌ 없음');
+
       const data = await response.json();
+      console.log('[디버깅] TestPage Login: 응답 데이터:', data);
 
       if (!response.ok) {
         setError(data.message || '로그인 실패');
         return;
       }
+
       setAuthResult(data);
-      
-      // 로그인 성공 시 AuthContext 새로고침
       await refreshAuthStatus();
       console.log('[디버깅] TestPage: 로그인 성공 후 AuthContext 업데이트 완료');
+
     } catch (err) {
+      console.error('[디버깅] TestPage Login: 에러:', err);
       setError('서버와 통신 중 오류가 발생했습니다: ' + err.message);
     }
   };
