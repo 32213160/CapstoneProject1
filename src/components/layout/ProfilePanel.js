@@ -1407,4 +1407,113 @@ export default class ProfilePanel extends BaseComponent {
 
           .level-buttons {
             display: grid;
-            grid-template-columns
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+          }
+
+          .level-button {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+          }
+
+          .level-button:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+          }
+
+          .level-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+
+          .level-button-content h4 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+          }
+
+          .level-button-content p {
+            margin: 0;
+            font-size: 12px;
+            color: #666;
+          }
+
+          /* 반응형 */
+          @media (max-width: 768px) {
+            .level-buttons {
+              grid-template-columns: 1fr;
+            }
+          }
+
+          /* Bootstrap 스타일 오버라이드 */
+          .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s;
+          }
+
+          .btn-primary {
+            background-color: #667eea;
+            border-color: #667eea;
+          }
+
+          .btn-primary:hover {
+            background-color: #5568d3;
+            border-color: #5568d3;
+          }
+
+          .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+          }
+
+          .btn-outline-primary {
+            color: #667eea;
+            border-color: #667eea;
+          }
+
+          .btn-outline-primary:hover {
+            background-color: #667eea;
+            border-color: #667eea;
+            color: white;
+          }
+
+          .w-100 {
+            width: 100%;
+          }
+
+          .mb-3 {
+            margin-bottom: 1rem;
+          }
+
+          .mt-3 {
+            margin-top: 1rem;
+          }
+
+          .me-2 {
+            margin-right: 0.5rem;
+          }
+
+          .ms-2 {
+            margin-left: 0.5rem;
+          }
+
+          .text-center {
+            text-align: center;
+          }
+
+          .d-block {
+            display: block;
+          }
+        `}</style>
+      </div>
+    );
+  }
+}
