@@ -2,9 +2,11 @@
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import TextFormatter from '../components/common/TextFormatter/TextFormatter';
+import { useAuth } from '../components/auth/AuthContext';
 
 export default function TestPage() {
-  const BASE_URL = '';
+  const BASE_URL = 'https://torytestsv.kro.kr';
+  const { refreshAuthStatus } = useAuth();
 
   // State for File Upload & Analysis
   const [file, setFile] = useState(null);
@@ -34,6 +36,15 @@ export default function TestPage() {
   // State for Level Selection
   const [showLevelSelectModal, setShowLevelSelectModal] = useState(false);
   const [levelSetting, setLevelSetting] = useState(false);
+
+  
+  // [쿠키 및 세션] 공통 fetch 옵션 utility
+  // 모든 fetch 요청에서 credentials: "include" 옵션을 유지, 직접 set-cookie/쿠키 조작은 FE에서 불가(브라우저가 담당)
+  // 로그인 성공 시 서버에서 Set-Cookie (세션 쿠키 부여) → FE는 credentials: "include" 옵션만 꼼꼼히 추가해야 함
+  const fetchWithCredentials = async (url, options = {}) => {
+    const finalOptions = { ...options, credentials: 'include' };
+    return fetch(url, finalOptions);
+  };
 
   // === 10. Set User Level (POST) ===
   const handleSetLevel = async (level) => {
@@ -71,7 +82,7 @@ export default function TestPage() {
     return levelNames[level] || level;
   };
 
-  // === 1. File Upload & Analysis API ===
+  // === 1. File Upload Analysis API ===
   const handleFileUpload = async () => {
     if (!file) {
       setError('파일을 선택해 주세요.');
@@ -79,26 +90,22 @@ export default function TestPage() {
     }
     setError(null);
     setUploadResult(null);
-
     const formData = new FormData();
     formData.append('file', file);
-
     try {
-      const response = await fetch(`${BASE_URL}/api/upload`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      });
+      const response = await fetchWithCredentials(
+        `${BASE_URL}/api/upload`,
+        { method: 'POST', body: formData }
+      );
       const data = await response.json();
-
       if (!response.ok) {
-        setError(data.message || '업로드 중 오류가 발생했습니다.');
+        setError(data.message || '파일 업로드 실패');
         return;
       }
       setUploadResult(data);
       setSessionId(data.sessionId);
     } catch (err) {
-      setError('서버와 통신 중 오류가 발생했습니다: ' + err.message);
+      setError('파일 업로드 중 오류 발생: ' + err.message);
     }
   };
 
@@ -110,26 +117,22 @@ export default function TestPage() {
     }
     setError(null);
     setChatResult(null);
-
     const formData = new FormData();
     formData.append('sessionId', sessionId);
     formData.append('message', message);
-
     try {
-      const response = await fetch(`${BASE_URL}/api/chat`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      });
+      const response = await fetchWithCredentials(
+        `${BASE_URL}/api/chat`,
+        { method: 'POST', body: formData }
+      );
       const data = await response.json();
-
       if (!response.ok) {
-        setError(data.message || '채팅 처리 중 오류가 발생했습니다.');
+        setError(data.message || '채팅 전송 실패');
         return;
       }
       setChatResult(data);
     } catch (err) {
-      setError('서버와 통신 중 오류가 발생했습니다: ' + err.message);
+      setError('채팅 전송 중 오류 발생: ' + err.message);
     }
   };
 
@@ -138,19 +141,18 @@ export default function TestPage() {
     setError(null);
     setMySessions(null);
     try {
-      const response = await fetch(`${BASE_URL}/api/chats-of-user/my-sessions`, {
-        method: 'GET',
-        credentials: 'include'
-      });
+      const response = await fetchWithCredentials(
+        `${BASE_URL}/api/chats-of-user/my-sessions`,
+        { method: 'GET' }
+      );
       const data = await response.json();
-
       if (!response.ok) {
-        setError(data.error || '세션 목록을 가져오는 중 오류가 발생했습니다.');
+        setError(data.error || '세션 목록 조회 실패');
         return;
       }
       setMySessions(data);
     } catch (err) {
-      setError('서버와 통신 중 오류가 발생했습니다: ' + err.message);
+      setError('세션 목록 조회 중 오류 발생: ' + err.message);
     }
   };
 
@@ -163,19 +165,18 @@ export default function TestPage() {
     setError(null);
     setSessionMessages(null);
     try {
-      const response = await fetch(`${BASE_URL}/api/chats-of-user/session/${sessionIdToView}`, {
-        method: 'GET',
-        credentials: 'include'
-      });
+      const response = await fetchWithCredentials(
+        `${BASE_URL}/api/chats-of-user/session/${sessionIdToView}`,
+        { method: 'GET' }
+      );
       const data = await response.json();
-
       if (!response.ok) {
-        setError(data.error || '세션 메시지를 가져오는 중 오류가 발생했습니다.');
+        setError(data.error || '메시지 조회 실패');
         return;
       }
       setSessionMessages(data);
     } catch (err) {
-      setError('서버와 통신 중 오류가 발생했습니다: ' + err.message);
+      setError('메시지 조회 중 오류 발생: ' + err.message);
     }
   };
 
@@ -188,21 +189,37 @@ export default function TestPage() {
     setError(null);
     setAuthResult(null);
 
+    // 주석: 로그인 요청에도 credentials: "include" 의무적으로 포함
+    // 주석: Set-Cookie는 FE에서 임의로 조작 불가(브라우저가 서버 응답의 Set-Cookie 자동 반영)
+    console.log('[디버깅] TestPage Login: 로그인 시도');
+    console.log('[디버깅] TestPage Login: URL:', `${BASE_URL}/api/auth/login`);
+    console.log('[디버깅] TestPage Login: 요청 body:', { username: loginUsername, password: '***' });
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: loginUsername, password: loginPassword }),
-        credentials: 'include'
-      });
+      const response = await fetchWithCredentials(
+        `${BASE_URL}/api/auth/login`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: loginUsername, password: loginPassword })
+        }
+      );
+      console.log('[디버깅] TestPage Login: 응답 상태:', response.status);
+      console.log('[디버깅] TestPage Login: 응답 헤더 전체:', Object.fromEntries(response.headers.entries()));
       const data = await response.json();
-
+      console.log('[디버깅] TestPage Login: 응답 데이터:', data);
       if (!response.ok) {
         setError(data.message || '로그인 실패');
         return;
       }
       setAuthResult(data);
+      // 인증 상태 즉시 갱신
+      setTimeout(async () => {
+        await refreshAuthStatus();
+        await handleGetAuthStatus();
+        console.log('[디버깅] TestPage: 로그인 성공 후 AuthContext 업데이트 완료');
+      }, 500);
     } catch (err) {
+      console.error('[디버깅] TestPage Login: 에러:', err);
       setError('서버와 통신 중 오류가 발생했습니다: ' + err.message);
     }
   };
@@ -215,23 +232,23 @@ export default function TestPage() {
     }
     setError(null);
     setAuthResult(null);
-
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(registerData),
-        credentials: 'include'
-      });
+      const response = await fetchWithCredentials(
+        `${BASE_URL}/api/auth/register`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(registerData)
+        }
+      );
       const data = await response.json();
-
       if (!response.ok) {
         setError(data.error || '회원가입 실패');
         return;
       }
       setAuthResult(data);
     } catch (err) {
-      setError('서버와 통신 중 오류가 발생했습니다: ' + err.message);
+      setError('회원가입 중 오류 발생: ' + err.message);
     }
   };
 
@@ -239,14 +256,12 @@ export default function TestPage() {
   const handleLogout = async () => {
     setError(null);
     setAuthResult(null);
-
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include'
-      });
+      const response = await fetchWithCredentials(
+        `${BASE_URL}/api/auth/logout`,
+        { method: 'POST' }
+      );
       const data = await response.json();
-
       if (!response.ok) {
         setError(data.message || '로그아웃 실패');
         return;
@@ -255,7 +270,7 @@ export default function TestPage() {
       setUserInfo(null);
       setAuthStatus(null);
     } catch (err) {
-      setError('서버와 통신 중 오류가 발생했습니다: ' + err.message);
+      setError('로그아웃 중 오류 발생: ' + err.message);
     }
   };
 
@@ -263,37 +278,50 @@ export default function TestPage() {
   const handleGetUserInfo = async () => {
     setError(null);
     setUserInfo(null);
-
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/me`, {
-        method: 'GET',
-        credentials: 'include'
-      });
+      const response = await fetchWithCredentials(
+        `${BASE_URL}/api/auth/me`,
+        { method: 'GET' }
+      );
       const data = await response.json();
-
       if (!response.ok) {
-        setError(data.error || '사용자 정보를 가져오는 중 오류가 발생했습니다.');
+        setError(data.error || '사용자 정보 조회 실패');
         return;
       }
       setUserInfo(data);
     } catch (err) {
-      setError('서버와 통신 중 오류가 발생했습니다: ' + err.message);
+      setError('사용자 정보 조회 중 오류 발생: ' + err.message);
     }
   };
 
   // === 9. Get Auth Status (GET) ===
   const handleGetAuthStatus = async () => {
+    console.log('[디버깅] TestPage: 인증 상태 확인 버튼 클릭');
+    console.log('[디버깅] TestPage: BASE_URL:', BASE_URL);
     setError(null);
     setAuthStatus(null);
-
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/status`, {
-        method: 'GET',
-        credentials: 'include'
-      });
+      console.log('[디버깅] TestPage: /api/auth/status 요청 시작');
+      // credentials: "include"만 정확히 부착
+      const response = await fetchWithCredentials(
+        `${BASE_URL}/api/auth/status`,
+        { method: 'GET' }
+      );
+      console.log('[디버깅] TestPage: 응답 상태 코드:', response.status);
+      console.log('[디버깅] TestPage: 응답 헤더:', Object.fromEntries(response.headers.entries()));
+      console.log('[디버깅] TestPage: ⚠️ Request Headers의 Cookie는 브라우저 개발자 도구 Network 탭에서 확인하세요');
       const data = await response.json();
+      console.log('[디버깅] TestPage: 응답 데이터:', data);
       setAuthStatus(data);
+      if (data.authenticated) {
+        console.log('[디버깅] TestPage: ✅ 인증됨 - 사용자:', data.username);
+      } else {
+        console.log('[디버깅] TestPage: ❌ 인증 안됨');
+        console.log('[디버깅] TestPage: 💡 쿠키가 설정되지 않았거나 만료되었을 수 있습니다.');
+        console.log('[디버깅] TestPage: 💡 백엔드 서버의 Set-Cookie 헤더에 "SameSite=None; Secure" 속성이 필요합니다.');
+      }
     } catch (err) {
+      console.error('[디버깅] TestPage: 에러 발생:', err);
       setError('서버와 통신 중 오류가 발생했습니다: ' + err.message);
     }
   };
