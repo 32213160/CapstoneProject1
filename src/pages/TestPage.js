@@ -5,7 +5,7 @@ import TextFormatter from '../components/common/TextFormatter/TextFormatter';
 import { useAuth } from '../components/auth/AuthContext';
 
 export default function TestPage() {
-  const BASE_URL = 'https://torytestsv.kro.kr';
+  const BASE_URL = '';
   const { refreshAuthStatus } = useAuth();
 
   // State for File Upload & Analysis

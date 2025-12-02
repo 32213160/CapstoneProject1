@@ -72,45 +72,60 @@ export default class ProfilePanel extends BaseComponent {
 
   // 인증 상태 조회 API
   checkAuthStatus = async () => {
+    // TestPage.js와 동일한 방식으로 BASE_URL 설정
     const BASE_URL = '';
+    
+    console.log('[디버깅] ProfilePanel: 인증 상태 확인 시작');
+    console.log('[디버깅] ProfilePanel: BASE_URL:', BASE_URL);
+    
     try {
+      console.log('[디버깅] ProfilePanel: /api/auth/status 요청 시작');
+      
       const response = await fetch(`${BASE_URL}/api/auth/status`, { 
         method: 'GET', 
         credentials: 'include' 
       });
 
+      console.log('[디버깅] ProfilePanel: 응답 상태 코드:', response.status);
+      console.log('[디버깅] ProfilePanel: 응답 헤더:', Object.fromEntries(response.headers.entries()));
+
       // 응답이 JSON 형식인지 확인
       const contentType = response.headers.get('content-type');
+      console.log('[디버깅] ProfilePanel: Content-Type:', contentType);
+      
       if (!contentType || !contentType.includes('application/json')) {
-        console.error('서버 응답이 JSON 형식이 아닙니다:', contentType);
+        console.error('[디버깅] ProfilePanel: 서버 응답이 JSON 형식이 아닙니다:', contentType);
         this.setState({ isAuthenticated: false, userInfo: null, loading: false });
         this.loadLocalUserInfo();
         return;
       }
 
       const data = await response.json();
+      console.log('[디버깅] ProfilePanel: 서버 응답 데이터:', data);
       
       if (data.authenticated) {
+        console.log('[디버깅] ProfilePanel: ✅ 인증됨 - 사용자:', data.username);
         // 인증된 경우 사용자 정보 가져오기
         await this.getUserInfo();
         // 인증된 사용자의 세션 개수 가져오기
         await this.getUserSessionCount();
         this.setState({ isAuthenticated: true, loading: false });
       } else {
+        console.log('[디버깅] ProfilePanel: ❌ 인증 안됨');
         // 미인증 상태
         this.setState({ isAuthenticated: false, userInfo: null, loading: false });
         this.loadLocalUserInfo();
       }
     } catch (error) {
-      console.error('인증 상태 확인 실패:', error);
+      console.error('[디버깅] ProfilePanel: 인증 상태 확인 실패:', error);
       this.setState({ isAuthenticated: false, userInfo: null, loading: false });
       this.loadLocalUserInfo();
     }
   };
 
-  // 로그인된 사용자 정보 가져오기 (TestPage.js 참고)
+  // 로그인된 사용자 정보 가져오기
   getUserInfo = async () => {
-    const BASE_URL = ''; // TestPage.js와 동일
+    const BASE_URL = '';
     try {
       const response = await fetch(`${BASE_URL}/api/auth/me`, { 
         method: 'GET', 
