@@ -24,7 +24,6 @@ class ChatService {
       const data = await response.json();
       console.log('[디버깅] ChatService: 서버 응답 데이터:', data);
       
-      // 서버 응답 형식: { chatSessions: [...] }
       // 각 세션 형식을 ChatList에서 사용할 수 있도록 변환
       const sessions = (data.chatSessions || []).map(session => ({
         id: session.sessionId,
@@ -54,7 +53,7 @@ class ChatService {
         method: 'GET',
         credentials: 'include'
       });
-      data = await response.json();
+      const data = await response.json();
       console.log('[디버깅] ChatService: 로그인 상태 확인 결과:', data);
       return data.authenticated === true;
     } catch (error) {
