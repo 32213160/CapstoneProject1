@@ -67,13 +67,13 @@ class ChatService {
     }
   }
 
-  /* ✅ 새로 추가: 특정 세션의 모든 메시지 가져오기 */
+  /* 특정 세션의 모든 메시지 가져오기 */
   static async fetchChatMessages(sessionId) {
     const BASE_URL = 'https://torytestsv.kro.kr';
     try {
       console.log('[디버깅] ChatService: 메시지 가져오기 시작 -', sessionId);
       
-      const response = await fetch(`${BASE_URL}/api/chat/messages/${sessionId}`, {
+      const response = await fetch(`${BASE_URL}/api/chats-of-user/session/${sessionId}`, {
         method: 'GET',
         credentials: 'include',
         headers: {
