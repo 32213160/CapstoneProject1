@@ -4,30 +4,33 @@ import { sendChatMessage } from './ApiService';
 import { loadChatSessionFromStorage, updateChatSession } from '../utils/helpers/ChatHelpers';
 
 /* 채팅 관련 비즈니스 로직을 처리하는 서비스 */
+
 class ChatService {
+
   /* 로그인한 사용자의 채팅 세션 목록 불러오기 */
   static async fetchUserChatSessions() {
     const BASE_URL = 'https://torytestsv.kro.kr';
     try {
       console.log('[디버깅] ChatService: 세션 목록 가져오기 시작');
+      
       const response = await fetch(`${BASE_URL}/api/chats-of-user/my-sessions`, {
         method: 'GET',
         credentials: 'include',
       });
 
       if (!response.ok) {
-        const text = await response.text(); // 서버 오류 응답 체크용
+        const text = await response.text();
         console.error('[디버깅] ChatService: 서버 응답 오류:', text);
         throw new Error(`채팅 세션 목록을 불러올 수 없습니다. (상태 코드: ${response.status})`);
       }
 
       const data = await response.json();
       console.log('[디버깅] ChatService: 서버 응답 데이터:', data);
-      
+
       // 각 세션 형식을 ChatList에서 사용할 수 있도록 변환
       const sessions = (data.chatSessions || []).map(session => ({
         id: session.sessionId,
-        chatId: session.sessionId, // sessionId를 chatId로 사용
+        chatId: session.sessionId,
         sessionId: session.sessionId,
         title: session.fileName ? `${session.fileName} 파일의 악성 코드 분석` : '채팅 세션',
         fileName: session.fileName,
@@ -35,7 +38,7 @@ class ChatService {
         createdAt: session.createdAt || new Date().toISOString(),
         messageCount: session.messageCount || 0,
       }));
-      
+
       console.log('[디버깅] ChatService: 변환된 세션 목록:', sessions);
       return sessions;
     } catch (error) {
@@ -49,16 +52,48 @@ class ChatService {
     const BASE_URL = 'https://torytestsv.kro.kr';
     try {
       console.log('[디버깅] ChatService: 로그인 상태 확인 시작');
+      
       const response = await fetch(`${BASE_URL}/api/auth/status`, {
         method: 'GET',
         credentials: 'include'
       });
+
       const data = await response.json();
       console.log('[디버깅] ChatService: 로그인 상태 확인 결과:', data);
+      
       return data.authenticated === true;
     } catch (error) {
       console.error('[디버깅] ChatService: 로그인 상태 확인 오류:', error);
       return false;
+    }
+  }
+
+  /* ✅ 새로 추가: 특정 세션의 모든 메시지 가져오기 */
+  static async fetchChatMessages(sessionId) {
+    const BASE_URL = 'https://torytestsv.kro.kr';
+    try {
+      console.log('[디버깅] ChatService: 메시지 가져오기 시작 -', sessionId);
+      
+      const response = await fetch(`${BASE_URL}/api/chat/messages/${sessionId}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`서버 에러: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('[디버깅] ChatService: 서버에서 메시지 불러옴:', data);
+      
+      // 서버 응답 형식에 맞게 변환
+      return data.messages || [];
+    } catch (error) {
+      console.error('[디버깅] ChatService fetchChatMessages 오류:', error);
+      return [];
     }
   }
 
@@ -74,11 +109,12 @@ class ChatService {
   static async sendMessage(chatId, message) {
     try {
       console.log('ChatService: 메시지 전송 시작', { chatId, message });
+      
       const response = await sendChatMessage(chatId, message);
 
       // 응답 처리
       const responseText = response?.answer || response?.response || response?.message;
-
+      
       if (!responseText) {
         throw new Error('서버로부터 응답을 받지 못했습니다.');
       }

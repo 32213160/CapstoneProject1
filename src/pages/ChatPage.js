@@ -5,6 +5,7 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import ChatList from '../components/chat/ChatList';
 import ProfilePanel from '../components/layout/ProfilePanel';
+import { fetchChatMessages } from '../services/ChatService';
 import JsonViewer from '../components/common/JsonViewer/JsonViewer';
 import TextFormatter from '../components/common/TextFormatter/TextFormatter';
 import { uploadAndAnalyzeFile } from '../services/ApiService';
@@ -155,64 +156,89 @@ function ChatPage() {
 
   const restoreChatSession = useCallback((sessionData) => {
     if (!sessionData) return;
-    console.log('채팅 세션 복원 중:', sessionData);
-
-    if (sessionData.messages && sessionData.messages.length > 0) {
-      setMessages(sessionData.messages);
+    
+    console.log('📝 채팅 세션 복원 중:', sessionData);
+    
+    // ✅ 1. 제목 설정
+    if (sessionData.title) {
+      console.log('📌 복원된 제목:', sessionData.title);
+      setHeaderTitle(sessionData.title);
+    } else if (sessionData.fileName) {
+      const generatedTitle = `${sessionData.fileName} 분석`;
+      console.log('📌 생성된 제목:', generatedTitle);
+      setHeaderTitle(generatedTitle);
     }
-
+    
+    // ✅ 2. localStorage의 메시지 먼저 로드
+    if (sessionData.messages && sessionData.messages.length > 0) {
+      console.log('📨 localStorage에서 메시지 로드:', sessionData.messages.length);
+      setMessages(sessionData.messages);
+    } else {
+      // ✅ 3. localStorage에 없으면 서버에서 가져오기
+      console.log('🔄 서버에서 메시지 가져오는 중...');
+      fetchChatMessages(sessionData.chatId).then((messages) => {
+        if (messages && messages.length > 0) {
+          console.log('📥 서버에서 받은 메시지:', messages.length);
+          
+          // ✅ 메시지 형식 변환 (서버 응답 → 앱 형식)
+          const formattedMessages = messages.map(msg => ({
+            text: msg.content || msg.text,
+            isUser: msg.role === 'user',
+            timestamp: msg.timestamp || new Date().toISOString(),
+            file: msg.file || null
+          }));
+          
+          setMessages(formattedMessages);
+          
+          // ✅ localStorage에도 저장
+          sessionData.messages = formattedMessages;
+          localStorage.setItem('chatSessions', 
+            JSON.stringify([
+              ...JSON.parse(localStorage.getItem('chatSessions')).filter(
+                s => s.chatId !== sessionData.chatId
+              ),
+              sessionData
+            ])
+          );
+        } else {
+          console.log('⚠️ 메시지 없음');
+          setMessages([]);
+        }
+      });
+    }
+    
+    // ✅ 4. 분석 결과 복원
     if (sessionData.analysisResult) {
       setAnalysisResult(sessionData.analysisResult);
       const parsed = parseAnalysisResponse(sessionData.analysisResult);
       setParsedData(parsed);
       setSessionParsedData(parsed);
     }
-
-    if (sessionData.title) {
-      console.log('복원된 제목:', sessionData.title);
-      setHeaderTitle(sessionData.title);
-    } else if (sessionData.fileName) {
-      const generatedTitle = `${sessionData.fileName} 파일의 악성 코드 분석`;
-      console.log('생성된 제목:', generatedTitle);
-      setHeaderTitle(generatedTitle);
-    }
+    
     setLoading(false);
   }, [parseAnalysisResponse]);
 
   const updateChatSession = (newMessage, isUser = false) => {
     try {
-      const sessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
+      const sessions = JSON.parse(localStorage.getItem('chatSessions')) || [];
       const sessionIndex = sessions.findIndex(session => session.chatId === chatId);
-
+      
       if (sessionIndex >= 0) {
+        // ✅ messages 배열 생성 (없으면)
+        if (!sessions[sessionIndex].messages) {
+          sessions[sessionIndex].messages = [];
+        }
+        
+        // ✅ 새 메시지 추가
         sessions[sessionIndex].messages.push(newMessage);
         sessions[sessionIndex].messageCount = sessions[sessionIndex].messages.length;
         sessions[sessionIndex].lastUpdated = new Date().toISOString();
-
-        if (headerTitle) {
-          sessions[sessionIndex].title = headerTitle;
-        }
+        
         localStorage.setItem('chatSessions', JSON.stringify(sessions));
-        console.log('채팅 세션 업데이트됨:', chatId);
-      } else {
-        const newSession = {
-          id: chatId,
-          chatId: chatId,
-          title: headerTitle || `${initialFile?.name || 'Unknown'} 파일의 악성 코드 분석`,
-          fileName: initialFile?.name || null,
-          fileSize: initialFile?.size || 0,
-          analysisResult: analysisResult,
-          messages: [newMessage],
-          messageCount: 1,
-          lastUpdated: new Date().toISOString(),
-          createdAt: new Date().toISOString()
-        };
-        sessions.unshift(newSession);
-        localStorage.setItem('chatSessions', JSON.stringify(sessions));
-        console.log('새 채팅 세션 생성됨:', chatId);
+        console.log('✅ 메시지 저장됨:', chatId, sessions[sessionIndex].messages.length);
       }
     } catch (error) {
-      console.error('채팅 세션 업데이트 실패:', error);
+      console.error('❌ updateChatSession 에러:', error);
     }
   };
 
@@ -628,25 +654,36 @@ function ChatPage() {
     if (message.isLoading) {
       return (
         <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <span>처리 중...</span>
+          <div className="loading-spinner">
+            <div><span></span></div>
+          </div>
         </div>
       );
     }
 
-    // JSON 데이터 처리
-    if (message.text && (message.text.includes('{') || message.text.includes('['))) {
+    // ✅ analysisResult 사용
+    if (analysisResult && message.text.includes('vtChatId')) {
       try {
         const jsonData = JSON.parse(message.text);
         return <JsonViewer data={jsonData} />;
       } catch (e) {
-        // JSON 파싱 실패시 TextFormatter로 처리
         return <TextFormatter text={message.text} />;
       }
     }
 
-    // 일반 텍스트는 TextFormatter로 처리
-    return <TextFormatter text={message.text} />;
+    if (message.text) {
+      if (message.text.includes('{') || message.text.includes('[')) {
+        try {
+          const jsonData = JSON.parse(message.text);
+          return <JsonViewer data={jsonData} />;
+        } catch (e) {
+          return <TextFormatter text={message.text} />;
+        }
+      }
+      return <TextFormatter text={message.text} />;
+    }
+
+    return <div />;
   };
   
   return (
