@@ -75,10 +75,7 @@ class ChatService {
       
       const response = await fetch(`${BASE_URL}/api/chats-of-user/session/${sessionId}`, {
         method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {
