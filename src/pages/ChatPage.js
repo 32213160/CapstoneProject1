@@ -634,11 +634,59 @@ function ChatPage() {
     }
   };
 
-  const handleSelectChat = (selectedChatId, sessionData) => {
+  const handleSelectChat = async (selectedChatId, sessionData) => {
     console.log("선택한 세션:", selectedChatId, sessionData);
+    
+    // ✅ 1. 화면 즉시 초기화 (기존 메시지 지우기)
+    setMessages([]);
+    setLoading(true);
+    setHeaderTitle('파일 내 악성 코드 분석 서비스');
+    setText('');
+    setAnalysisResult(null);
+    setParsedData(null);
+    
+    // ✅ 2. 제목 설정
+    if (sessionData?.title) {
+      setHeaderTitle(sessionData.title);
+    } else if (sessionData?.fileName) {
+      setHeaderTitle(`${sessionData.fileName} 파일의 악성 코드 분석`);
+    }
+    
+    // ✅ 3. 서버에서 즉시 메시지 로드
+    try {
+      console.log('🔄 서버에서 메시지 가져오는 중...', selectedChatId);
+      const messages = await fetchChatMessages(selectedChatId);
+      
+      if (messages && messages.length > 0) {
+        console.log('📥 서버에서 받은 메시지:', messages.length);
+        
+        // ✅ 메시지 형식 변환
+        const formattedMessages = messages.map(msg => ({
+          text: msg.content || msg.text,
+          isUser: msg.role === 'user',
+          timestamp: msg.timestamp || new Date().toISOString(),
+          file: msg.file || null
+        }));
+        
+        // ✅ 화면에 즉시 표시
+        setMessages(formattedMessages);
+        console.log('✅ 메시지 화면에 표시:', formattedMessages.length);
+      } else {
+        console.log('⚠️ 메시지 없음');
+        setMessages([]);
+      }
+    } catch (error) {
+      console.error('❌ 메시지 로드 실패:', error);
+      setMessages([]);
+    } finally {
+      setLoading(false);
+    }
+    
+    // ✅ 4. URL 변경 (navigate)
     navigate(`/chat/${selectedChatId}`, {
-      state: { chatSession: sessionData, loadFromStorage: false }, // 서버에서 최신 메시지 이용
+      state: { chatSession: sessionData, loadFromStorage: true },  // ← true (이미 로드함)
     });
+    
     setShowChatList(false);
   };
 
