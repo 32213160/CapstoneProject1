@@ -698,8 +698,7 @@ function ChatPage() {
         style={{
           height: '10vh',
           background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 40%, rgba(255,255,255,0.5) 75%, rgba(255,255,255,1) 100%)',
-          backdropFilter: 'blur(5px)',
-          borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
+          backdropFilter: 'blur(5px)'
         }}
       />
       
@@ -763,7 +762,7 @@ function ChatPage() {
                     <div className={`message-bubble d-inline-block px-3 py-2 ${
                       message.isUser 
                         ? 'bg-primary text-white' 
-                        : 'bg-light text-dark border'
+                        : 'bg-light text-dark'
                     }`} style={{ 
                       maxWidth: '90%',
                       borderRadius: message.isUser ? '20px 20px 5px 20px' : '20px 20px 20px 5px',
