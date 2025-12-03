@@ -192,12 +192,12 @@ function ChatPage() {
           
           // ✅ localStorage에도 저장
           sessionData.messages = formattedMessages;
-          localStorage.setItem('chatSessions', 
-            JSON.stringify([
-              ...JSON.parse(localStorage.getItem('chatSessions')).filter(
-                s => s.chatId !== sessionData.chatId
-              ),
-              sessionData
+          const existingSessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');  // ← 추가!
+          localStorage.setItem('chatSessions', JSON.stringify([
+            ...existingSessions.filter(  // ← 변경!
+              s => s.chatId !== sessionData.chatId
+            ),
+            sessionData
             ])
           );
         } else {
