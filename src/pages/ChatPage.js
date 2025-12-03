@@ -155,68 +155,60 @@ function ChatPage() {
   }, [setChatId_VT]);
 
   const restoreChatSession = useCallback((sessionData) => {
-    if (!sessionData) return;
-    
     console.log('📝 채팅 세션 복원 중:', sessionData);
-    
+
     // ✅ 1. 제목 설정
-    if (sessionData.title) {
+    if (sessionData?.title) {
       console.log('📌 복원된 제목:', sessionData.title);
       setHeaderTitle(sessionData.title);
-    } else if (sessionData.fileName) {
-      const generatedTitle = `${sessionData.fileName} 분석`;
+    } else if (sessionData?.fileName) {
+      const generatedTitle = `${sessionData.fileName} 파일의 악성 코드 분석`;
       console.log('📌 생성된 제목:', generatedTitle);
       setHeaderTitle(generatedTitle);
+    } else {
+      setHeaderTitle('파일 내 악성 코드 분석 서비스');
     }
-    
+
     // ✅ 2. localStorage의 메시지 먼저 로드
-    if (sessionData.messages && sessionData.messages.length > 0) {
+    if (sessionData?.messages && sessionData.messages.length > 0) {
       console.log('📨 localStorage에서 메시지 로드:', sessionData.messages.length);
       setMessages(sessionData.messages);
     } else {
       // ✅ 3. localStorage에 없으면 서버에서 가져오기
       console.log('🔄 서버에서 메시지 가져오는 중...');
-      fetchChatMessages(sessionData.chatId).then((messages) => {
+      fetchChatMessages(chatId).then((messages) => {
         if (messages && messages.length > 0) {
           console.log('📥 서버에서 받은 메시지:', messages.length);
-          
-          // ✅ 메시지 형식 변환 (서버 응답 → 앱 형식)
           const formattedMessages = messages.map(msg => ({
             text: msg.content || msg.text,
             isUser: msg.role === 'user',
             timestamp: msg.timestamp || new Date().toISOString(),
             file: msg.file || null
           }));
-          
           setMessages(formattedMessages);
-          
-          // ✅ localStorage에도 저장
           sessionData.messages = formattedMessages;
-          const existingSessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');  // ← 추가!
+          const existingSessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
           localStorage.setItem('chatSessions', JSON.stringify([
-            ...existingSessions.filter(  // ← 변경!
-              s => s.chatId !== sessionData.chatId
-            ),
+            ...existingSessions.filter(s => s.chatId !== chatId),
             sessionData
-            ])
-          );
+          ]));
         } else {
           console.log('⚠️ 메시지 없음');
           setMessages([]);
         }
       });
     }
-    
+
     // ✅ 4. 분석 결과 복원
-    if (sessionData.analysisResult) {
+    if (sessionData?.analysisResult) {
       setAnalysisResult(sessionData.analysisResult);
       const parsed = parseAnalysisResponse(sessionData.analysisResult);
       setParsedData(parsed);
       setSessionParsedData(parsed);
     }
-    
+
     setLoading(false);
-  }, [parseAnalysisResponse]);
+  }, [parseAnalysisResponse, chatId]);
 
   const updateChatSession = (newMessage, isUser = false) => {
     try {
