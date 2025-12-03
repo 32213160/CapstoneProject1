@@ -75,8 +75,11 @@ export default class ProfilePanel extends BaseComponent {
     const BASE_URL = '';
     
     console.log('[디버깅] ProfilePanel: 인증 상태 확인 시작');
+    console.log('[디버깅] ProfilePanel: BASE_URL:', BASE_URL);
     
     try {
+      console.log('[디버깅] ProfilePanel: /api/auth/status 요청 시작');
+      
       const response = await fetch(`${BASE_URL}/api/auth/status`, {
         method: 'GET',
         credentials: 'include'
@@ -84,9 +87,10 @@ export default class ProfilePanel extends BaseComponent {
 
       console.log('[디버깅] ProfilePanel: 응답 상태 코드:', response.status);
 
-      // ✅ 1단계: response.ok 검증 (가장 중요!)
+      // ✅ 1단계: response.ok 먼저 확인 (가장 중요!)
+      // 이 부분이 기존 코드에 없었음!
       if (!response.ok) {
-        console.error('[디버깅] ProfilePanel: HTTP 에러 -', response.status);
+        console.error('[디버깅] ProfilePanel: HTTP 에러 - 상태 코드:', response.status);
         this.setState({
           isAuthenticated: false,
           userInfo: null,
@@ -98,8 +102,10 @@ export default class ProfilePanel extends BaseComponent {
 
       // ✅ 2단계: Content-Type 검증
       const contentType = response.headers.get('content-type');
-      if (!contentType?.includes('application/json')) {
-        console.error('[디버깅] ProfilePanel: JSON 아님 -', contentType);
+      console.log('[디버깅] ProfilePanel: Content-Type:', contentType);
+
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('[디버깅] ProfilePanel: ⚠️ 응답이 JSON이 아님 -', contentType);
         this.setState({
           isAuthenticated: false,
           userInfo: null,
@@ -109,7 +115,7 @@ export default class ProfilePanel extends BaseComponent {
         return;
       }
 
-      // ✅ 3단계: JSON 파싱 (에러 처리)
+      // ✅ 3단계: JSON 파싱 에러 처리 (이 부분도 추가!)
       let data;
       try {
         data = await response.json();
@@ -124,11 +130,11 @@ export default class ProfilePanel extends BaseComponent {
         return;
       }
 
-      console.log('[디버깅] ProfilePanel: 응답 데이터:', data);
+      console.log('[디버깅] ProfilePanel: 서버 응답 데이터:', data);
 
       // ✅ 4단계: 정상 처리
       if (data.authenticated) {
-        console.log('[디버깅] ProfilePanel: ✅ 인증됨');
+        console.log('[디버깅] ProfilePanel: ✅ 인증됨 - 사용자:', data.username);
         await this.getUserInfo();
         await this.getUserSessionCount();
         this.setState({
@@ -136,7 +142,7 @@ export default class ProfilePanel extends BaseComponent {
           loading: false
         });
       } else {
-        console.log('[디버깅] ProfilePanel: ❌ 미인증');
+        console.log('[디버깅] ProfilePanel: ❌ 인증 안됨');
         this.setState({
           isAuthenticated: false,
           userInfo: null,
@@ -146,7 +152,7 @@ export default class ProfilePanel extends BaseComponent {
       }
 
     } catch (error) {
-      console.error('[디버깅] ProfilePanel: 요청 실패:', error);
+      console.error('[디버깅] ProfilePanel: 인증 상태 확인 실패:', error);
       this.setState({
         isAuthenticated: false,
         userInfo: null,
