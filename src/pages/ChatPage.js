@@ -45,7 +45,7 @@ function ChatPage() {
   const handleCloseChatList = () => setShowChatList(false);
   const handleCloseProfile = () => setShowProfile(false);
 
-  const BASE_URL = '';
+  const BASE_URL = 'https://torytestsv.kro.kr';
 
   // === 9. Get Auth Status (GET) - TestPage.js에서 가져옴 ===
   const handleGetAuthStatus = async () => {
