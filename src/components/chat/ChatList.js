@@ -128,7 +128,7 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
       className="position-fixed top-0 start-0 h-100 bg-light shadow-lg"
       style={{ 
         width: '350px', 
-        zIndex: 1000, 
+        zIndex: 1040, 
         overflowY: 'auto',
         transform: 'translateX(0)',
         transition: 'transform 0.3s ease'
