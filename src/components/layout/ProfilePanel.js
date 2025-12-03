@@ -2,7 +2,7 @@
 
 import React from 'react';
 import BaseComponent from '../../core/BaseComponent';
-import { FaUser, FaCog, FaBell, FaPalette, FaLock, FaEye, FaEyeSlash, FaInfoCircle, FaEnvelope, FaSignOutAlt, FaSpinner } from 'react-icons/fa';
+import { FaTimes, FaUser, FaCog, FaBell, FaPalette, FaGlobe, FaLock, FaEye, FaEyeSlash, FaInfoCircle, FaEnvelope, FaSignOutAlt, FaSpinner } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 /**
@@ -800,7 +800,7 @@ export default class ProfilePanel extends BaseComponent {
     const currentLevel = userInfo?.level || 'auto';
 
     return (
-      <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+      <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 2060 }}>
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header">
@@ -821,7 +821,6 @@ export default class ProfilePanel extends BaseComponent {
                 대화 난이도를 선택하세요. 선택한 레벨에 따라 AI의 응답 스타일이 조정됩니다.
               </p>
 
-              {/* 레벨 버튼들 */}
               <div className="d-grid gap-2">
                 <button
                   className={`btn ${currentLevel === 'novice' ? 'btn-primary' : 'btn-outline-primary'}`}
@@ -884,7 +883,7 @@ export default class ProfilePanel extends BaseComponent {
     if (!showSettings) return null;
 
     return (
-      <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+      <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 2060 }}>
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header">
@@ -944,20 +943,30 @@ export default class ProfilePanel extends BaseComponent {
 
     return (
       <>
-        <div className="offcanvas offcanvas-end show" style={{ visibility: 'visible', width: '400px' }}>
-          <div className="offcanvas-header border-bottom">
-            <h5 className="offcanvas-title">
-              <FaUser className="me-2" />
-              프로필
-            </h5>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={this.handleClose}
-            ></button>
-          </div>
+        <div 
+          className="position-fixed top-0 end-0 h-100 bg-white shadow-lg profile-panel"
+          style={{
+            zIndex: 2050,
+            width: '400px',
+            transform: isOpen ? 'translateX(0px)' : 'translateX(100%)',
+            transition: 'transform 0.3s ease-in-out',
+            overflowY: 'auto'
+          }}
+        >
+          <div className="p-4">
+            <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+              <h5 className="m-0">
+                <FaUser className="me-2" />
+                프로필
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={this.handleClose}
+                aria-label="Close"
+              ></button>
+            </div>
 
-          <div className="offcanvas-body">
             {loading ? (
               <div className="text-center p-5">
                 <FaSpinner className="spinner-border spinner-border-lg" />
@@ -965,10 +974,8 @@ export default class ProfilePanel extends BaseComponent {
               </div>
             ) : (
               <>
-                {/* 인증 상태에 따른 UI */}
                 {isAuthenticated && userInfo ? (
                   <>
-                    {/* 로그인된 사용자 정보 표시 */}
                     <div className="card mb-3 shadow-sm">
                       <div className="card-body">
                         <h5 className="card-title mb-3">
@@ -1011,7 +1018,6 @@ export default class ProfilePanel extends BaseComponent {
                       </div>
                     </div>
 
-                    {/* 설정 버튼 */}
                     <button
                       className="btn btn-outline-secondary w-100 mb-2"
                       onClick={this.handleOpenSettings}
@@ -1020,7 +1026,6 @@ export default class ProfilePanel extends BaseComponent {
                       설정
                     </button>
 
-                    {/* 로그아웃 버튼 */}
                     <button
                       className="btn btn-outline-danger w-100"
                       onClick={this.handleLogoutButton}
@@ -1041,14 +1046,12 @@ export default class ProfilePanel extends BaseComponent {
                   </>
                 ) : (
                   <>
-                    {/* 로그인/회원가입 폼 */}
                     {showLogin ? (
                       this.renderLoginForm()
                     ) : showSignup ? (
                       this.renderSignupForm()
                     ) : (
                       <>
-                        {/* 게스트 사용자 정보 표시 */}
                         <div className="card mb-3 shadow-sm">
                           <div className="card-body">
                             <h5 className="card-title mb-3">
@@ -1068,7 +1071,6 @@ export default class ProfilePanel extends BaseComponent {
                           </div>
                         </div>
 
-                        {/* 로그인/회원가입 버튼 */}
                         <button
                           className="btn btn-primary w-100 mb-2"
                           onClick={() => this.setState({ showLogin: true })}
@@ -1083,7 +1085,6 @@ export default class ProfilePanel extends BaseComponent {
                           회원가입
                         </button>
 
-                        {/* 로컬 세션 관리 */}
                         <button
                           className="btn btn-outline-danger w-100"
                           onClick={this.handleClearSessions}
@@ -1100,17 +1101,20 @@ export default class ProfilePanel extends BaseComponent {
           </div>
         </div>
 
-        {/* 모달들 */}
-        {this.renderSettingsModal()}
-        {this.renderLevelSelectModal()}
-
-        {/* 오버레이 배경 */}
         {isOpen && (
           <div
-            className="offcanvas-backdrop fade show"
+            className="position-fixed top-0 start-0 w-100 h-100"
+            style={{
+              zIndex: 2040,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'blur(4px)'
+            }}
             onClick={this.handleClose}
           ></div>
         )}
+
+        {this.renderSettingsModal()}
+        {this.renderLevelSelectModal()}
       </>
     );
   }
