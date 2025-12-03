@@ -942,273 +942,172 @@ export default class ProfilePanel extends BaseComponent {
 
     return (
       <>
-        <div style={panelStyle}>
-          {/* 헤더 */}
-          <div style={headerStyle}>
-            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>프로필</h2>
-            <button 
+        <div className="offcanvas offcanvas-end show" style={{ visibility: 'visible', width: '400px' }}>
+          <div className="offcanvas-header border-bottom">
+            <h5 className="offcanvas-title">
+              <FaUser className="me-2" />
+              프로필
+            </h5>
+            <button
+              type="button"
+              className="btn-close"
               onClick={this.handleClose}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '20px',
-                color: '#718096'
-              }}
-            >
-              <FaTimes />
-            </button>
+            ></button>
           </div>
 
-          {/* 콘텐츠 */}
-          <div style={contentStyle}>
-            {/* 사용자 정보 섹션 */}
-            <div style={sectionStyle}>
-              <div style={{
-                padding: '16px',
-                background: '#f7fafc',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                  <FaUser style={{ fontSize: '24px', color: '#4a5568' }} />
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: '16px' }}>{displayUserInfo.name}</div>
-                    <div style={{ fontSize: '12px', color: '#718096' }}>{displayUserInfo.role}</div>
-                  </div>
-                </div>
-                <div style={{ fontSize: '14px', color: '#4a5568' }}>
-                  채팅 세션: {displayUserInfo.sessionCount}개
-                </div>
-                {isAuthenticated && userInfo?.level && (
-                  <div style={{ fontSize: '14px', color: '#4a5568', marginTop: '4px' }}>
-                    대화 수준: {this.getLevelDisplayName(userInfo.level)}
-                  </div>
-                )}
+          <div className="offcanvas-body">
+            {loading ? (
+              <div className="text-center p-5">
+                <FaSpinner className="spinner-border spinner-border-lg" />
+                <p className="mt-3 text-muted">로딩 중...</p>
               </div>
-            </div>
+            ) : (
+              <>
+                {/* 인증 상태에 따른 UI */}
+                {isAuthenticated && userInfo ? (
+                  <>
+                    {/* 로그인된 사용자 정보 표시 */}
+                    <div className="card mb-3 shadow-sm">
+                      <div className="card-body">
+                        <h5 className="card-title mb-3">
+                          <FaUser className="me-2" />
+                          {userInfo.name || userInfo.username}
+                        </h5>
 
-            {/* 인증 버튼들 */}
-            <div style={sectionStyle}>
-              {!isAuthenticated ? (
-                <>
-                  <button 
-                    style={{...buttonStyle, background: '#3182ce', color: '#ffffff', border: 'none'}}
-                    onClick={() => this.setState({ showLogin: true })}
-                  >
-                    <FaUser /> 로그인
-                  </button>
-                  <button 
-                    style={{...buttonStyle, background: '#38a169', color: '#ffffff', border: 'none'}}
-                    onClick={() => this.setState({ showSignup: true })}
-                  >
-                    <FaUser /> 회원가입
-                  </button>
-                </>
-              ) : (
-                <button 
-                  style={{
-                    ...buttonStyle, 
-                    background: logoutLoading ? '#cbd5e0' : '#e53e3e', 
-                    color: '#ffffff', 
-                    border: 'none',
-                    cursor: logoutLoading ? 'not-allowed' : 'pointer'
-                  }}
-                  onClick={this.handleLogoutButton}
-                  disabled={logoutLoading}
-                >
-                  {logoutLoading ? <FaSpinner className="fa-spin" /> : <FaSignOutAlt />}
-                  {logoutLoading ? '로그아웃 중...' : '로그아웃'}
-                </button>
-              )}
-            </div>
+                        <div className="mb-2">
+                          <small className="text-muted">아이디:</small>
+                          <div>{userInfo.username}</div>
+                        </div>
 
-            {/* 기능 버튼들 */}
-            <div style={sectionStyle}>
-              <button style={buttonStyle} onClick={this.handleOpenSettings}>
-                <FaCog /> 설정
-              </button>
-              <button style={buttonStyle} onClick={this.handleClearSessions}>
-                <FaBell /> 채팅 기록 삭제
-              </button>
-              {isAuthenticated && (
-                <button style={buttonStyle} onClick={this.handleOpenLevelSelect}>
-                  <FaPalette /> 대화 난이도 설정
-                </button>
-              )}
-            </div>
+                        <div className="mb-2">
+                          <small className="text-muted">이메일:</small>
+                          <div>{userInfo.email || '없음'}</div>
+                        </div>
+
+                        <div className="mb-2">
+                          <small className="text-muted">권한:</small>
+                          <div>
+                            <span className="badge bg-info">
+                              {userInfo.role || 'user'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mb-2">
+                          <small className="text-muted">채팅 세션:</small>
+                          <div>{userInfo.sessionCount || 0}개</div>
+                        </div>
+
+                        <div className="mb-2">
+                          <small className="text-muted">대화 난이도:</small>
+                          <div>
+                            <span className="badge bg-primary">
+                              {this.getLevelDisplayName(userInfo.level || 'auto')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 설정 버튼 */}
+                    <button
+                      className="btn btn-outline-secondary w-100 mb-2"
+                      onClick={this.handleOpenSettings}
+                    >
+                      <FaCog className="me-2" />
+                      설정
+                    </button>
+
+                    {/* 로그아웃 버튼 */}
+                    <button
+                      className="btn btn-outline-danger w-100"
+                      onClick={this.handleLogoutButton}
+                      disabled={logoutLoading}
+                    >
+                      {logoutLoading ? (
+                        <>
+                          <FaSpinner className="spinner-border spinner-border-sm me-2" />
+                          로그아웃 중...
+                        </>
+                      ) : (
+                        <>
+                          <FaSignOutAlt className="me-2" />
+                          로그아웃
+                        </>
+                      )}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* 로그인/회원가입 폼 */}
+                    {showLogin ? (
+                      this.renderLoginForm()
+                    ) : showSignup ? (
+                      this.renderSignupForm()
+                    ) : (
+                      <>
+                        {/* 게스트 사용자 정보 표시 */}
+                        <div className="card mb-3 shadow-sm">
+                          <div className="card-body">
+                            <h5 className="card-title mb-3">
+                              <FaUser className="me-2" />
+                              게스트 사용자
+                            </h5>
+
+                            <div className="mb-2">
+                              <small className="text-muted">로컬 채팅 세션:</small>
+                              <div>{userInfo?.sessionCount || 0}개</div>
+                            </div>
+
+                            <div className="alert alert-info mt-3" role="alert">
+                              <FaInfoCircle className="me-2" />
+                              로그인하시면 더 많은 기능을 이용할 수 있습니다.
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 로그인/회원가입 버튼 */}
+                        <button
+                          className="btn btn-primary w-100 mb-2"
+                          onClick={() => this.setState({ showLogin: true })}
+                        >
+                          로그인
+                        </button>
+
+                        <button
+                          className="btn btn-outline-primary w-100 mb-3"
+                          onClick={() => this.setState({ showSignup: true })}
+                        >
+                          회원가입
+                        </button>
+
+                        {/* 로컬 세션 관리 */}
+                        <button
+                          className="btn btn-outline-danger w-100"
+                          onClick={this.handleClearSessions}
+                        >
+                          <FaBell className="me-2" />
+                          채팅 기록 삭제
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
+              </>
+            )}
           </div>
-
-          {/* LoginForm 렌더링 */}
-          {showLogin && this.renderLoginForm()}
-
-          {/* SignupForm 렌더링 */}
-          {showSignup && this.renderSignupForm()}
         </div>
 
-        {/* 설정 창 모달 */}
-        {showSettings && (
-          <div style={overlayStyle} onClick={this.handleCloseSettings}>
-            <div style={settingsModalStyle} onClick={(e) => e.stopPropagation()}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '20px'
-              }}>
-                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>설정</h3>
-                <button 
-                  onClick={this.handleCloseSettings}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: '20px',
-                    color: '#718096'
-                  }}
-                >
-                  <FaTimes />
-                </button>
-              </div>
+        {/* 모달들 */}
+        {this.renderSettingsModal()}
+        {this.renderLevelSelectModal()}
 
-              {/* 설정 항목들 */}
-              <div style={settingItemStyle}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FaPalette />
-                  <span>테마</span>
-                </div>
-                <span style={{ color: '#718096' }}>라이트</span>
-              </div>
-
-              <div style={settingItemStyle}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FaGlobe />
-                  <span>언어</span>
-                </div>
-                <span style={{ color: '#718096' }}>한국어</span>
-              </div>
-
-              <div style={settingItemStyle}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FaLock />
-                  <span>개인정보 보호</span>
-                </div>
-                <span style={{ color: '#718096' }}>활성화</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 레벨 선택 모달 */}
-        {showLevelSelect && (
-          <div style={overlayStyle} onClick={this.handleCloseLevelSelect}>
-            <div style={{...settingsModalStyle, width: '400px'}} onClick={(e) => e.stopPropagation()}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '20px'
-              }}>
-                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>대화 난이도 선택</h3>
-                <button 
-                  onClick={this.handleCloseLevelSelect}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: '20px',
-                    color: '#718096'
-                  }}
-                >
-                  <FaTimes />
-                </button>
-              </div>
-
-              <p style={{ marginBottom: '20px', color: '#718096', fontSize: '14px' }}>
-                대화 난이도를 선택하세요. 선택한 레벨에 따라 AI의 응답 스타일이 조정됩니다.
-              </p>
-
-              {/* 레벨 버튼들 */}
-              <button
-                onClick={() => this.handleSetLevel('novice')}
-                disabled={levelSetting}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  marginBottom: '12px',
-                  background: levelSetting ? '#e2e8f0' : '#f7fafc',
-                  border: '2px solid #e2e8f0',
-                  borderRadius: '8px',
-                  cursor: levelSetting ? 'not-allowed' : 'pointer',
-                  textAlign: 'left'
-                }}
-              >
-                <div style={{ fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>초보자</div>
-                <div style={{ fontSize: '14px', color: '#718096' }}>
-                  쉽고 자세한 설명으로 대화합니다.
-                </div>
-              </button>
-
-              <button
-                onClick={() => this.handleSetLevel('intermediate')}
-                disabled={levelSetting}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  marginBottom: '12px',
-                  background: levelSetting ? '#e2e8f0' : '#f7fafc',
-                  border: '2px solid #e2e8f0',
-                  borderRadius: '8px',
-                  cursor: levelSetting ? 'not-allowed' : 'pointer',
-                  textAlign: 'left'
-                }}
-              >
-                <div style={{ fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>중급자</div>
-                <div style={{ fontSize: '14px', color: '#718096' }}>
-                  적당한 수준의 설명으로 대화합니다.
-                </div>
-              </button>
-
-              <button
-                onClick={() => this.handleSetLevel('expert')}
-                disabled={levelSetting}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  marginBottom: '12px',
-                  background: levelSetting ? '#e2e8f0' : '#f7fafc',
-                  border: '2px solid #e2e8f0',
-                  borderRadius: '8px',
-                  cursor: levelSetting ? 'not-allowed' : 'pointer',
-                  textAlign: 'left'
-                }}
-              >
-                <div style={{ fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>전문가</div>
-                <div style={{ fontSize: '14px', color: '#718096' }}>
-                  전문적인 용어와 간결한 설명을 사용합니다.
-                </div>
-              </button>
-
-              <button
-                onClick={() => this.handleSetLevel('auto')}
-                disabled={levelSetting}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  background: levelSetting ? '#e2e8f0' : '#f7fafc',
-                  border: '2px solid #e2e8f0',
-                  borderRadius: '8px',
-                  cursor: levelSetting ? 'not-allowed' : 'pointer',
-                  textAlign: 'left'
-                }}
-              >
-                <div style={{ fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>자동 조정</div>
-                <div style={{ fontSize: '14px', color: '#718096' }}>
-                  대화 내용에 따라 자동으로 난이도가 조정됩니다.
-                </div>
-              </button>
-            </div>
-          </div>
+        {/* 오버레이 배경 */}
+        {isOpen && (
+          <div
+            className="offcanvas-backdrop fade show"
+            onClick={this.handleClose}
+          ></div>
         )}
       </>
     );
