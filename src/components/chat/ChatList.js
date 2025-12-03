@@ -135,7 +135,7 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
       }}
     >
       {/* 헤더 */}
-      <div className="d-flex justify-content-between align-items-center p-3 bg-primary text-white">
+      <div className="d-flex justify-content-between align-items-center p-4 bg-primary text-white">
         <h5 className="mb-0 fw-bold">채팅 기록</h5>
         <Button 
           variant="link" 
@@ -181,11 +181,11 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                          borderRadius: '8px',
                          border: '1px solid #e2e8f0'
                        }}
-                       className="chat-list-item list-group-item-action"
+                       className="chat-list-item list-group-item-action p-3"
                      >
                       <div className="d-flex w-100">
                         {/* 1열: 아이콘·제목·시간 */}
-                        <div className="flex-grow-1 px-3" style={{ minWidth: 0 }}>
+                        <div className="flex-grow-1 px-2" style={{ minWidth: 0 }}>
                           <div className="d-flex align-items-center mb-1">
                             {session.fileName ? 
                               <FaFile className="text-primary me-2 flex-shrink-0" size={14} /> : 
@@ -204,7 +204,7 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                               {generateTitle(session)}
                             </h6>
                           </div>
-                          <div className="mb-1">
+                          <div className="mb-0">
                             <small className="text-muted">{formatTime(session.lastUpdated)}</small>
                           </div>
                         </div>
