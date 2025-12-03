@@ -634,11 +634,85 @@ function ChatPage() {
     }
   };
 
-  const handleSelectChat = (selectedChatId, sessionData) => {
+  const handleSelectChat = async (selectedChatId, sessionData) => {
     console.log("선택한 세션:", selectedChatId, sessionData);
+    
+    // ✅ 1. 화면 즉시 초기화
+    setMessages([]);
+    setLoading(false);  // ← 로딩 표시 안함 (로컬 데이터 사용)
+    setHeaderTitle('파일 내 악성 코드 분석 서비스');
+    setText('');
+    setAnalysisResult(null);
+    setParsedData(null);
+    
+    // ✅ 2. 제목 설정
+    if (sessionData?.title) {
+      setHeaderTitle(sessionData.title);
+    } else if (sessionData?.fileName) {
+      setHeaderTitle(`${sessionData.fileName} 파일의 악성 코드 분석`);
+    }
+    
+    // ✅ 3. 메시지 로드 (3단계 전략)
+    console.log('📨 메시지 로드 로직 시작...');
+    
+    // 1순위: sessionData에 메시지가 있으면 즉시 사용
+    if (sessionData?.messages && sessionData.messages.length > 0) {
+      console.log('📨 sessionData에서 메시지 사용:', sessionData.messages.length);
+      setMessages(sessionData.messages);
+      navigate(`/chat/${selectedChatId}`, {
+        state: { chatSession: sessionData, loadFromStorage: true },
+      });
+      setShowChatList(false);
+      return;  // ← 서버 호출 안함!
+    }
+    
+    // 2순위: localStorage에서 메시지 확인
+    const storedSession = loadChatSessionFromStorage(selectedChatId);
+    if (storedSession?.messages && storedSession.messages.length > 0) {
+      console.log('📨 localStorage에서 메시지 사용:', storedSession.messages.length);
+      setMessages(storedSession.messages);
+      navigate(`/chat/${selectedChatId}`, {
+        state: { chatSession: storedSession, loadFromStorage: true },
+      });
+      setShowChatList(false);
+      return;  // ← 서버 호출 안함!
+    }
+    
+    // 3순위: localStorage도 없으면 서버에서 로드 (마지막 수단)
+    console.log('🔄 localStorage 없음 - 서버에서 메시지 가져오기...');
+    setLoading(true);
+    try {
+      const messages = await fetchChatMessages(selectedChatId);
+      
+      if (messages && messages.length > 0) {
+        console.log('📥 서버에서 받은 메시지:', messages.length);
+        
+        const formattedMessages = messages.map(msg => ({
+          text: msg.content || msg.text,
+          isUser: msg.role === 'user',
+          timestamp: msg.timestamp || new Date().toISOString(),
+          file: msg.file || null
+        }));
+        
+        setMessages(formattedMessages);
+        console.log('✅ 메시지 화면에 표시:', formattedMessages.length);
+      } else {
+        console.log('⚠️ 서버에서 메시지 없음');
+        setMessages([]);
+      }
+    } catch (error) {
+      console.error('❌ 메시지 로드 실패:', error);
+      console.error('💡 session이 만료되었거나 쿠키가 없을 수 있습니다.');
+      setMessages([]);  // 빈 상태로 표시 (화면 안 깨짐)
+    } finally {
+      setLoading(false);
+    }
+    
+    // ✅ 4. URL 변경 (navigate)
     navigate(`/chat/${selectedChatId}`, {
-      state: { chatSession: sessionData, loadFromStorage: false }, // 서버에서 최신 메시지 이용
+      state: { chatSession: sessionData, loadFromStorage: true },
     });
+    
     setShowChatList(false);
   };
 
