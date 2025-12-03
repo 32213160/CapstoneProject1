@@ -988,72 +988,95 @@ function ChatPage() {
 
   return (
     <div className="chat-page">
-      <Header
-        title={headerTitle || '파일 내 악성 코드 분석 서비스'}
+      <Header 
+        title={headerTitle}
         onMenuClick={handleMenuClick}
         onProfileClick={handleProfileClick}
+        onLogoClick={() => navigate('/')}
+        onStartNewChat={handleStartNewChat}
       />
-
-      <div className="chat-page__main">
-        {messages.length === 0 ? (
-          <div className="chat-page__empty-state">
-            <div className="empty-state__content">
-              <div className="empty-state__icon">💬</div>
-              <h2 className="empty-state__title">채팅을 시작해보세요.</h2>
-              <p className="empty-state__description">
-                파일을 분석하거나 질문을 입력하여 대화를 시작할 수 있습니다.
-              </p>
+      
+      <div className="chat-container">
+        {/* 채팅 메시지 영역 */}
+        <div className="messages-container">
+          {messages.length === 0 && !loading && (
+            <div className="empty-state">
+              <p>파일을 분석하거나 질문을 입력하여 대화를 시작할 수 있습니다.</p>
             </div>
-          </div>
-        ) : (
-          <div className="chat-page__messages" style={{marginTop: '20px', marginBottom: '100px'}}>
-            {messages.map((message, index) => (
-              <div
-                key={message.messageId || `msg-${index}`} 
-                className={`chat-message-wrapper ${message.isUser ? 'chat-message-wrapper--user' : 'chat-message-wrapper--ai'}`}
-              >
-                <div className={`chat-message-bubble ${message.isUser ? 'chat-message-bubble--user' : 'chat-message-bubble--ai'}`}>
-                  {renderMessageContent(message)}
-                </div>
-                {message.timestamp && (
-                  <div className="chat-message-timestamp">
-                    {new Date(message.timestamp).toLocaleTimeString('ko-KR', {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </div>
-                )}
+          )}
+          
+          {messages.map((message, index) => (
+            <div key={index} className={`message ${message.isUser ? 'user' : 'ai'}`}>
+              {renderMessageContent(message)}
+            </div>
+          ))}
+          
+          {loading && (
+            <div className="message ai">
+              <div className="loading-indicator">
+                <span>분석 중</span>
+                <span className="dots">...</span>
               </div>
-            ))}
-            <div ref={messagesEndRef} />
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
+        
+        {/* 입력 영역 */}
+        <div className="input-container">
+          <div className="input-wrapper">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={(e) => handleFileSelect(e.target.files[0])}
+              style={{ display: 'none' }}
+            />
+            
+            <button
+              className="file-button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={loading}
+            >
+              📎
+            </button>
+            
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="메시지를 입력하세요..."
+              disabled={loading}
+              rows={1}
+            />
+            
+            <button
+              className="send-button"
+              onClick={handleSendClick}
+              disabled={loading || (!text.trim() && !selectedFile)}
+            >
+              전송
+            </button>
           </div>
-        )}
+        </div>
       </div>
-
-      <Footer
-        text={text}
-        setText={setText}
-        onSendClick={handleSendClick}
-        onKeyPress={handleKeyPress}
-        onFileSelect={handleFileSelect}
-        selectedFile={selectedFile}
-        loading={loading}
-        fileInputRef={fileInputRef}
-      />
-
+      
+      {/* ChatList 컴포넌트 */}
       {showChatList && (
         <ChatList
+          isOpen={showChatList}
           onClose={handleCloseChatList}
           onSelectChat={handleSelectChat}
-          onStartNewChat={handleStartNewChat}
         />
       )}
-
-      {showProfile && (
-        <ProfilePanel
-          onClose={handleCloseProfile}
-        />
-      )}
+      
+      {/* ProfilePanel 컴포넌트 - isOpen prop 추가 */}
+      <ProfilePanel
+        isOpen={showProfile}
+        onClose={handleCloseProfile}
+      />
+      
+      <Footer />
     </div>
   );
 }
