@@ -4,7 +4,6 @@ import { sendChatMessage } from './ApiService';
 import { loadChatSessionFromStorage, updateChatSession } from '../utils/helpers/ChatHelpers';
 
 /* 채팅 관련 비즈니스 로직을 처리하는 서비스 */
-
 class ChatService {
 
   /* 로그인한 사용자의 채팅 세션 목록 불러오기 */
@@ -160,3 +159,4 @@ class ChatService {
 }
 
 export default ChatService;
+export const fetchChatMessages = ChatService.fetchChatMessages;
