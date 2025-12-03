@@ -1,5 +1,5 @@
 // src/pages/ChatPage.js
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
@@ -66,75 +66,7 @@ function ChatPage() {
     }
   };
 
-  const restoreChatSession = (sessionData) => {
-    if (!sessionData) return;
-    console.log('채팅 세션 복원 중:', sessionData);
-
-    if (sessionData.messages && sessionData.messages.length > 0) {
-      setMessages(sessionData.messages);
-    }
-
-    if (sessionData.analysisResult) {
-      setAnalysisResult(sessionData.analysisResult);
-      const parsed = parseAnalysisResponse(sessionData.analysisResult);
-      setParsedData(parsed);
-      setSessionParsedData(parsed);
-    }
-
-    if (sessionData.title) {
-      console.log('복원된 제목:', sessionData.title);
-      setHeaderTitle(sessionData.title);
-    } else if (sessionData.fileName) {
-      const generatedTitle = `${sessionData.fileName} 파일의 악성 코드 분석`;
-      console.log('생성된 제목:', generatedTitle);
-      setHeaderTitle(generatedTitle);
-    }
-    setLoading(false);
-  };
-
-  const updateChatSession = (newMessage, isUser = false) => {
-    try {
-      const sessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
-      const sessionIndex = sessions.findIndex(session => session.chatId === chatId);
-
-      if (sessionIndex >= 0) {
-        sessions[sessionIndex].messages.push(newMessage);
-        sessions[sessionIndex].messageCount = sessions[sessionIndex].messages.length;
-        sessions[sessionIndex].lastUpdated = new Date().toISOString();
-
-        if (headerTitle) {
-          sessions[sessionIndex].title = headerTitle;
-        }
-        localStorage.setItem('chatSessions', JSON.stringify(sessions));
-        console.log('채팅 세션 업데이트됨:', chatId);
-      } else {
-        const newSession = {
-          id: chatId,
-          chatId: chatId,
-          title: headerTitle || `${initialFile?.name || 'Unknown'} 파일의 악성 코드 분석`,
-          fileName: initialFile?.name || null,
-          fileSize: initialFile?.size || 0,
-          analysisResult: analysisResult,
-          messages: [newMessage],
-          messageCount: 1,
-          lastUpdated: new Date().toISOString(),
-          createdAt: new Date().toISOString()
-        };
-        sessions.unshift(newSession);
-        localStorage.setItem('chatSessions', JSON.stringify(sessions));
-        console.log('새 채팅 세션 생성됨:', chatId);
-      }
-    } catch (error) {
-      console.error('채팅 세션 업데이트 실패:', error);
-    }
-  };
-
-  const [sessionParsedData, setSessionParsedData] = useState(() => {
-    const saved = localStorage.getItem('chatSessionData');
-    return saved ? JSON.parse(saved) : null;
-  });
-
-  const parseAnalysisResponse = (response) => {
+  const parseAnalysisResponse = useCallback((response) => {
     try {
       console.log('=== 확장된 파싱 시작 ===');
       console.log('원본 응답:', response);
@@ -219,7 +151,75 @@ function ChatPage() {
       console.error('파싱 오류:', error);
       return null;
     }
+  }, [setChatId_VT]);
+
+  const restoreChatSession = useCallback((sessionData) => {
+    if (!sessionData) return;
+    console.log('채팅 세션 복원 중:', sessionData);
+
+    if (sessionData.messages && sessionData.messages.length > 0) {
+      setMessages(sessionData.messages);
+    }
+
+    if (sessionData.analysisResult) {
+      setAnalysisResult(sessionData.analysisResult);
+      const parsed = parseAnalysisResponse(sessionData.analysisResult);
+      setParsedData(parsed);
+      setSessionParsedData(parsed);
+    }
+
+    if (sessionData.title) {
+      console.log('복원된 제목:', sessionData.title);
+      setHeaderTitle(sessionData.title);
+    } else if (sessionData.fileName) {
+      const generatedTitle = `${sessionData.fileName} 파일의 악성 코드 분석`;
+      console.log('생성된 제목:', generatedTitle);
+      setHeaderTitle(generatedTitle);
+    }
+    setLoading(false);
+  }, [parseAnalysisResponse]);
+
+  const updateChatSession = (newMessage, isUser = false) => {
+    try {
+      const sessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
+      const sessionIndex = sessions.findIndex(session => session.chatId === chatId);
+
+      if (sessionIndex >= 0) {
+        sessions[sessionIndex].messages.push(newMessage);
+        sessions[sessionIndex].messageCount = sessions[sessionIndex].messages.length;
+        sessions[sessionIndex].lastUpdated = new Date().toISOString();
+
+        if (headerTitle) {
+          sessions[sessionIndex].title = headerTitle;
+        }
+        localStorage.setItem('chatSessions', JSON.stringify(sessions));
+        console.log('채팅 세션 업데이트됨:', chatId);
+      } else {
+        const newSession = {
+          id: chatId,
+          chatId: chatId,
+          title: headerTitle || `${initialFile?.name || 'Unknown'} 파일의 악성 코드 분석`,
+          fileName: initialFile?.name || null,
+          fileSize: initialFile?.size || 0,
+          analysisResult: analysisResult,
+          messages: [newMessage],
+          messageCount: 1,
+          lastUpdated: new Date().toISOString(),
+          createdAt: new Date().toISOString()
+        };
+        sessions.unshift(newSession);
+        localStorage.setItem('chatSessions', JSON.stringify(sessions));
+        console.log('새 채팅 세션 생성됨:', chatId);
+      }
+    } catch (error) {
+      console.error('채팅 세션 업데이트 실패:', error);
+    }
   };
+
+  const [sessionParsedData, setSessionParsedData] = useState(() => {
+    const saved = localStorage.getItem('chatSessionData');
+    return saved ? JSON.parse(saved) : null;
+  });
 
   const checkVariableExists = (variableName, parsedData) => {
     if (!parsedData) return false;
@@ -505,7 +505,8 @@ function ChatPage() {
     return () => {
       isMountedRef.current = false;
     };
-  }, [chatId, location.state]); // location.state도 의존성에 추가
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatId]);
 
   useEffect(() => {
     isMountedRef.current = true;
