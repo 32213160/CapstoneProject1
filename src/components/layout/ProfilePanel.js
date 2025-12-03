@@ -72,7 +72,7 @@ export default class ProfilePanel extends BaseComponent {
 
   // 인증 상태 조회 API
   checkAuthStatus = async () => {
-    const BASE_URL = '';
+    const BASE_URL = 'https://torytestsv.kro.kr';
     
     console.log('[디버깅] ProfilePanel: 인증 상태 확인 시작');
     console.log('[디버깅] ProfilePanel: BASE_URL:', BASE_URL);
@@ -164,7 +164,7 @@ export default class ProfilePanel extends BaseComponent {
 
   // 로그인된 사용자 정보 가져오기
   getUserInfo = async () => {
-    const BASE_URL = '';
+    const BASE_URL = 'https://torytestsv.kro.kr';
     
     try {
       const response = await fetch(`${BASE_URL}/api/auth/me`, {
@@ -201,7 +201,7 @@ export default class ProfilePanel extends BaseComponent {
 
   // 세션 개수 조회
   getUserSessionCount = async () => {
-    const BASE_URL = '';
+    const BASE_URL = 'https://torytestsv.kro.kr';
     
     try {
       const response = await fetch(`${BASE_URL}/api/chats-of-user/my-sessions`, {
@@ -295,7 +295,7 @@ export default class ProfilePanel extends BaseComponent {
 
   // 레벨 설정 API 호출
   handleSetLevel = async (level) => {
-    const BASE_URL = '';
+    const BASE_URL = 'https://torytestsv.kro.kr';
     
     this.setState({ levelSetting: true });
 
@@ -366,7 +366,7 @@ export default class ProfilePanel extends BaseComponent {
 
   handleLoginSubmit = async (e) => {
     e.preventDefault();
-    const BASE_URL = '';
+    const BASE_URL = 'https://torytestsv.kro.kr';
     const { loginFormData } = this.state;
 
     // 입력값 검증
@@ -505,7 +505,7 @@ export default class ProfilePanel extends BaseComponent {
 
   handleSignupSubmit = async (e) => {
     e.preventDefault();
-    const BASE_URL = '';
+    const BASE_URL = 'https://torytestsv.kro.kr';
     const { signupFormData } = this.state;
 
     const formErrors = this.validateSignupForm();
@@ -580,7 +580,7 @@ export default class ProfilePanel extends BaseComponent {
 
   // ==================== LogoutButton 통합 ====================
   handleLogoutButton = async () => {
-    const BASE_URL = '';
+    const BASE_URL = 'https://torytestsv.kro.kr';
     const { logoutLoading } = this.state;
 
     if (logoutLoading) return;
