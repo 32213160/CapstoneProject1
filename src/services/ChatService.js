@@ -3,18 +3,16 @@
 import { sendChatMessage } from './ApiService';
 import { loadChatSessionFromStorage, updateChatSession } from '../utils/helpers/ChatHelpers';
 
-/**
- * 채팅 관련 비즈니스 로직을 처리하는 서비스 (수정된 버전)
- */
+/* 채팅 관련 비즈니스 로직을 처리하는 서비스 */
 class ChatService {
   /* 로그인한 사용자의 채팅 세션 목록 불러오기 */
   static async fetchUserChatSessions() {
-    const BASE_URL = '';
+    const BASE_URL = 'https://torytestsv.kro.kr';
     try {
       console.log('[디버깅] ChatService: 세션 목록 가져오기 시작');
       const response = await fetch(`${BASE_URL}/api/chats-of-user/my-sessions`, {
         method: 'GET',
-        credentials: 'include', // 세션 쿠키 포함
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -49,14 +47,14 @@ class ChatService {
 
   /* 로그인 상태 확인 */
   static async checkAuthStatus() {
-    const BASE_URL = '';
+    const BASE_URL = 'https://torytestsv.kro.kr';
     try {
       console.log('[디버깅] ChatService: 로그인 상태 확인 시작');
       const response = await fetch(`${BASE_URL}/api/auth/status`, {
         method: 'GET',
         credentials: 'include'
       });
-      const data = await response.json();
+      data = await response.json();
       console.log('[디버깅] ChatService: 로그인 상태 확인 결과:', data);
       return data.authenticated === true;
     } catch (error) {
