@@ -72,53 +72,86 @@ export default class ProfilePanel extends BaseComponent {
 
   // 인증 상태 조회 API
   checkAuthStatus = async () => {
-    // TestPage.js와 동일한 방식으로 BASE_URL 설정
     const BASE_URL = '';
     
     console.log('[디버깅] ProfilePanel: 인증 상태 확인 시작');
-    console.log('[디버깅] ProfilePanel: BASE_URL:', BASE_URL);
     
     try {
-      console.log('[디버깅] ProfilePanel: /api/auth/status 요청 시작');
-      
-      const response = await fetch(`${BASE_URL}/api/auth/status`, { 
-        method: 'GET', 
-        credentials: 'include' 
+      const response = await fetch(`${BASE_URL}/api/auth/status`, {
+        method: 'GET',
+        credentials: 'include'
       });
 
       console.log('[디버깅] ProfilePanel: 응답 상태 코드:', response.status);
-      console.log('[디버깅] ProfilePanel: 응답 헤더:', Object.fromEntries(response.headers.entries()));
 
-      // 응답이 JSON 형식인지 확인
-      const contentType = response.headers.get('content-type');
-      console.log('[디버깅] ProfilePanel: Content-Type:', contentType);
-      
-      if (!contentType || !contentType.includes('application/json')) {
-        console.error('[디버깅] ProfilePanel: 서버 응답이 JSON 형식이 아닙니다:', contentType);
-        this.setState({ isAuthenticated: false, userInfo: null, loading: false });
+      // ✅ 1단계: response.ok 검증 (가장 중요!)
+      if (!response.ok) {
+        console.error('[디버깅] ProfilePanel: HTTP 에러 -', response.status);
+        this.setState({
+          isAuthenticated: false,
+          userInfo: null,
+          loading: false
+        });
         this.loadLocalUserInfo();
         return;
       }
 
-      const data = await response.json();
-      console.log('[디버깅] ProfilePanel: 서버 응답 데이터:', data);
-      
+      // ✅ 2단계: Content-Type 검증
+      const contentType = response.headers.get('content-type');
+      if (!contentType?.includes('application/json')) {
+        console.error('[디버깅] ProfilePanel: JSON 아님 -', contentType);
+        this.setState({
+          isAuthenticated: false,
+          userInfo: null,
+          loading: false
+        });
+        this.loadLocalUserInfo();
+        return;
+      }
+
+      // ✅ 3단계: JSON 파싱 (에러 처리)
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('[디버깅] ProfilePanel: JSON 파싱 에러:', parseError);
+        this.setState({
+          isAuthenticated: false,
+          userInfo: null,
+          loading: false
+        });
+        this.loadLocalUserInfo();
+        return;
+      }
+
+      console.log('[디버깅] ProfilePanel: 응답 데이터:', data);
+
+      // ✅ 4단계: 정상 처리
       if (data.authenticated) {
-        console.log('[디버깅] ProfilePanel: ✅ 인증됨 - 사용자:', data.username);
-        // 인증된 경우 사용자 정보 가져오기
+        console.log('[디버깅] ProfilePanel: ✅ 인증됨');
         await this.getUserInfo();
-        // 인증된 사용자의 세션 개수 가져오기
         await this.getUserSessionCount();
-        this.setState({ isAuthenticated: true, loading: false });
+        this.setState({
+          isAuthenticated: true,
+          loading: false
+        });
       } else {
-        console.log('[디버깅] ProfilePanel: ❌ 인증 안됨');
-        // 미인증 상태
-        this.setState({ isAuthenticated: false, userInfo: null, loading: false });
+        console.log('[디버깅] ProfilePanel: ❌ 미인증');
+        this.setState({
+          isAuthenticated: false,
+          userInfo: null,
+          loading: false
+        });
         this.loadLocalUserInfo();
       }
+
     } catch (error) {
-      console.error('[디버깅] ProfilePanel: 인증 상태 확인 실패:', error);
-      this.setState({ isAuthenticated: false, userInfo: null, loading: false });
+      console.error('[디버깅] ProfilePanel: 요청 실패:', error);
+      this.setState({
+        isAuthenticated: false,
+        userInfo: null,
+        loading: false
+      });
       this.loadLocalUserInfo();
     }
   };
@@ -126,43 +159,79 @@ export default class ProfilePanel extends BaseComponent {
   // 로그인된 사용자 정보 가져오기
   getUserInfo = async () => {
     const BASE_URL = '';
+    
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/me`, { 
-        method: 'GET', 
-        credentials: 'include' 
+      const response = await fetch(`${BASE_URL}/api/auth/me`, {
+        method: 'GET',
+        credentials: 'include'
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        this.setState({ userInfo: data.user, isAuthenticated: true });
+
+      // ✅ 1단계: response.ok 검증
+      if (!response.ok) {
+        console.error('[디버깅] ProfilePanel: getUserInfo 요청 실패 - 상태 코드:', response.status);
+        return;
       }
+
+      // ✅ 2단계: JSON 파싱 에러 처리
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('[디버깅] ProfilePanel: getUserInfo JSON 파싱 에러:', parseError);
+        return;
+      }
+
+      console.log('[디버깅] ProfilePanel: 사용자 정보 로드 성공:', data.user);
+      
+      this.setState({
+        userInfo: data.user,
+        isAuthenticated: true
+      });
+
     } catch (error) {
-      console.error('사용자 정보 가져오기 실패:', error);
+      console.error('[디버깅] ProfilePanel: 사용자 정보 가져오기 실패:', error);
     }
   };
 
   // 세션 개수 조회
   getUserSessionCount = async () => {
     const BASE_URL = '';
+    
     try {
-      const response = await fetch(`${BASE_URL}/api/chats-of-user/my-sessions`, { 
-        method: 'GET', 
-        credentials: 'include' 
+      const response = await fetch(`${BASE_URL}/api/chats-of-user/my-sessions`, {
+        method: 'GET',
+        credentials: 'include'
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        // sessions 배열의 길이를 세션 개수로 사용
-        const sessionCount = data.chatSessions ? data.chatSessions.length : 0;
-        this.setState(prevState => ({ 
-          userInfo: { 
-            ...prevState.userInfo, 
-            sessionCount: sessionCount 
-          } 
-        }));
+
+      // ✅ 1단계: response.ok 검증
+      if (!response.ok) {
+        console.error('[디버깅] ProfilePanel: getUserSessionCount 요청 실패 - 상태 코드:', response.status);
+        return;
       }
+
+      // ✅ 2단계: JSON 파싱 에러 처리
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('[디버깅] ProfilePanel: getUserSessionCount JSON 파싱 에러:', parseError);
+        return;
+      }
+
+      // chatSessions 배열의 길이를 세션 개수로 사용
+      const sessionCount = data.chatSessions ? data.chatSessions.length : 0;
+      
+      console.log('[디버깅] ProfilePanel: 세션 개수:', sessionCount);
+      
+      this.setState(prevState => ({
+        userInfo: {
+          ...prevState.userInfo,
+          sessionCount: sessionCount
+        }
+      }));
+
     } catch (error) {
-      console.error('세션 개수 가져오기 실패:', error);
+      console.error('[디버깅] ProfilePanel: 세션 개수 가져오기 실패:', error);
     }
   };
 
@@ -221,26 +290,49 @@ export default class ProfilePanel extends BaseComponent {
   // 레벨 설정 API 호출
   handleSetLevel = async (level) => {
     const BASE_URL = '';
+    
     this.setState({ levelSetting: true });
 
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/setlevel?level=${level}`, { 
-        method: 'POST', 
-        credentials: 'include' 
+      console.log('[디버깅] ProfilePanel: 레벨 설정 시작 -', level);
+      
+      const response = await fetch(`${BASE_URL}/api/auth/setlevel?level=${level}`, {
+        method: 'POST',
+        credentials: 'include'
       });
-      const data = await response.json();
 
-      if (response.ok) {
-        // 성공 시 사용자 정보 다시 가져오기
-        await this.getUserInfo();
-        alert(`레벨이 ${this.getLevelDisplayName(level)}(으)로 설정되었습니다.`);
-        this.setState({ showLevelSelect: false, levelSetting: false });
-      } else {
+      console.log('[디버깅] ProfilePanel: 레벨 설정 응답 상태:', response.status);
+
+      // ✅ 1단계: JSON 파싱 에러 처리
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('[디버깅] ProfilePanel: handleSetLevel JSON 파싱 에러:', parseError);
+        alert('레벨 설정 중 오류가 발생했습니다.');
+        this.setState({ levelSetting: false });
+        return;
+      }
+
+      // ✅ 2단계: response.ok 검증
+      if (!response.ok) {
+        console.error('[디버깅] ProfilePanel: 레벨 설정 실패:', data.error);
         alert(data.error || '레벨 설정에 실패했습니다.');
         this.setState({ levelSetting: false });
+        return;
       }
+
+      // ✅ 3단계: 성공 처리
+      console.log('[디버깅] ProfilePanel: ✅ 레벨 설정 성공');
+      await this.getUserInfo();
+      alert(`레벨이 ${this.getLevelDisplayName(level)}(으)로 설정되었습니다.`);
+      this.setState({
+        showLevelSelect: false,
+        levelSetting: false
+      });
+
     } catch (error) {
-      console.error('레벨 설정 실패:', error);
+      console.error('[디버깅] ProfilePanel: 레벨 설정 실패:', error);
       alert('레벨 설정 중 오류가 발생했습니다.');
       this.setState({ levelSetting: false });
     }
@@ -268,7 +360,7 @@ export default class ProfilePanel extends BaseComponent {
 
   handleLoginSubmit = async (e) => {
     e.preventDefault();
-    const BASE_URL = ''; // TestPage.js와 동일
+    const BASE_URL = '';
     const { loginFormData } = this.state;
 
     // 입력값 검증
@@ -276,6 +368,7 @@ export default class ProfilePanel extends BaseComponent {
       this.setState({ loginError: '아이디를 입력해주세요.' });
       return;
     }
+
     if (!loginFormData.password) {
       this.setState({ loginError: '비밀번호를 입력해주세요.' });
       return;
@@ -284,38 +377,69 @@ export default class ProfilePanel extends BaseComponent {
     this.setState({ loginError: '', loginLoading: true });
 
     try {
+      console.log('[디버깅] ProfilePanel: 로그인 시작 -', loginFormData.username);
+      
       const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           username: loginFormData.username,
           password: loginFormData.password
         }),
         credentials: 'include'
       });
-      const data = await response.json();
 
-      // 로그인 성공 시
+      console.log('[디버깅] ProfilePanel: 로그인 응답 상태:', response.status);
+
+      // ✅ 1단계: JSON 파싱 에러 처리
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('[디버깅] ProfilePanel: handleLoginSubmit JSON 파싱 에러:', parseError);
+        this.setState({
+          loginError: '로그인 처리 중 오류가 발생했습니다.',
+          loginLoading: false
+        });
+        return;
+      }
+
+      // ✅ 2단계: 성공 여부 확인
       if (response.ok && data.result === 'success') {
+        console.log('[디버깅] ProfilePanel: ✅ 로그인 성공');
+        
         localStorage.setItem('sessionId', data.sessionId);
         localStorage.setItem('userInfo', JSON.stringify(data.user));
-        
-        // 상태 업데이트 및 사용자 정보 로드
+
         this.setState({
           isAuthenticated: true,
           showLogin: false,
-          loginFormData: { username: '', password: '' }
+          loginFormData: {
+            username: '',
+            password: ''
+          },
+          loginLoading: false
         });
+
         await this.getUserInfo();
-        await this.getUserSessionCount(); // 로그인 후 세션 개수 조회
+        await this.getUserSessionCount();
+
       } else {
-        this.setState({ loginError: data.message || '로그인에 실패했습니다.' });
+        console.error('[디버깅] ProfilePanel: ❌ 로그인 실패:', data.message);
+        this.setState({
+          loginError: data.message || '로그인에 실패했습니다.',
+          loginLoading: false
+        });
       }
+
     } catch (err) {
-      console.error('로그인 에러:', err);
-      this.setState({ loginError: err.message || '로그인 중 오류가 발생했습니다.' });
-    } finally {
-      this.setState({ loginLoading: false });
+      console.error('[디버깅] ProfilePanel: 로그인 에러:', err);
+      this.setState({
+        loginError: err.message || '로그인 중 오류가 발생했습니다.',
+        loginLoading: false
+      });
     }
   };
 
@@ -375,7 +499,7 @@ export default class ProfilePanel extends BaseComponent {
 
   handleSignupSubmit = async (e) => {
     e.preventDefault();
-    const BASE_URL = ''; // TestPage.js와 동일
+    const BASE_URL = '';
     const { signupFormData } = this.state;
 
     const formErrors = this.validateSignupForm();
@@ -387,9 +511,13 @@ export default class ProfilePanel extends BaseComponent {
     this.setState({ signupLoading: true });
 
     try {
+      console.log('[디버깅] ProfilePanel: 회원가입 시작 -', signupFormData.username);
+      
       const response = await fetch(`${BASE_URL}/api/auth/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           username: signupFormData.username,
           password: signupFormData.password,
@@ -398,31 +526,57 @@ export default class ProfilePanel extends BaseComponent {
         }),
         credentials: 'include'
       });
-      const data = await response.json();
 
-      if (response.ok && data.result === 'success') {
-        alert(`회원가입이 완료되었습니다!\n아이디: ${signupFormData.username}\n이제 로그인할 수 있습니다.`);
-        this.setState({ 
-          showSignup: false, 
-          showLogin: true,
-          signupFormData: { username: '', email: '', password: '', confirmPassword: '', name: '' }
-        });
-      } else {
-        alert(data.error || '회원가입에 실패했습니다.');
+      console.log('[디버깅] ProfilePanel: 회원가입 응답 상태:', response.status);
+
+      // ✅ 1단계: JSON 파싱 에러 처리
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('[디버깅] ProfilePanel: handleSignupSubmit JSON 파싱 에러:', parseError);
+        alert('회원가입 처리 중 오류가 발생했습니다.');
+        this.setState({ signupLoading: false });
+        return;
       }
+
+      // ✅ 2단계: 성공 여부 확인
+      if (response.ok && data.result === 'success') {
+        console.log('[디버깅] ProfilePanel: ✅ 회원가입 성공');
+        
+        alert(`회원가입이 완료되었습니다!\n아이디: ${signupFormData.username}\n이제 로그인할 수 있습니다.`);
+        
+        this.setState({
+          showSignup: false,
+          showLogin: true,
+          signupFormData: {
+            username: '',
+            email: '',
+            password: '',
+            confirmPassword: '',
+            name: ''
+          },
+          signupLoading: false
+        });
+
+      } else {
+        console.error('[디버깅] ProfilePanel: ❌ 회원가입 실패:', data.error);
+        alert(data.error || '회원가입에 실패했습니다.');
+        this.setState({ signupLoading: false });
+      }
+
     } catch (err) {
-      console.error('회원가입 에러:', err);
+      console.error('[디버깅] ProfilePanel: 회원가입 에러:', err);
       alert(err.message || '회원가입 도중 오류가 발생했습니다.');
-    } finally {
       this.setState({ signupLoading: false });
     }
   };
 
   // ==================== LogoutButton 통합 ====================
   handleLogoutButton = async () => {
-    const BASE_URL = ''; // TestPage.js와 동일
+    const BASE_URL = '';
     const { logoutLoading } = this.state;
-    
+
     if (logoutLoading) return;
 
     const confirmed = window.confirm('로그아웃 하시겠습니까?');
@@ -431,29 +585,42 @@ export default class ProfilePanel extends BaseComponent {
     this.setState({ logoutLoading: true });
 
     try {
+      console.log('[디버깅] ProfilePanel: 로그아웃 시작');
+      
       const response = await fetch(`${BASE_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include'
       });
-      await response.json();
 
-      // 로컬스토리지에 저장했던 인증 정보 삭제
+      console.log('[디버깅] ProfilePanel: 로그아웃 응답 상태:', response.status);
+
+      // ✅ JSON 파싱 에러 처리 (하지만 결과는 무시)
+      try {
+        await response.json();
+      } catch (parseError) {
+        console.error('[디버깅] ProfilePanel: handleLogoutButton JSON 파싱 에러:', parseError);
+        // 로그아웃은 계속 진행
+      }
+
+      // ✅ 로컬 정보 정리
       localStorage.removeItem('sessionId');
       localStorage.removeItem('userInfo');
 
-      // 상태 업데이트
+      console.log('[디버깅] ProfilePanel: ✅ 로그아웃 성공');
+
       this.setState({
         isAuthenticated: false,
         userInfo: null,
         showLogin: false,
-        showSignup: false
+        showSignup: false,
+        logoutLoading: false
       });
-      
+
       this.loadLocalUserInfo();
+
     } catch (error) {
-      console.error('로그아웃 중 오류 발생:', error);
+      console.error('[디버깅] ProfilePanel: 로그아웃 중 오류 발생:', error);
       alert('로그아웃 중 오류가 발생했습니다.');
-    } finally {
       this.setState({ logoutLoading: false });
     }
   };
