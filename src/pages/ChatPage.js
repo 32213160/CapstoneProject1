@@ -76,21 +76,21 @@ function ChatPage() {
     try {
       console.log('=== 확장된 파싱 시작 ===');
       console.log('원본 응답:', response);
-      
+
       const reportVT = response?.reportfromVT || {};
       const reportLLM = response?.reportfromLLM || {};
       const extractedId = response?.extractedId || '';
-      
+
       const vtChatId = reportVT?._id || null;
       console.log('추출된 채팅 ID (reportfromVT._id):', vtChatId);
-      
+
       const vtData = reportVT?.data || {};
       const vtAttributes = vtData?.attributes || {};
-      
+
       // lastAnalysisResults가 null일 수 있으므로 빈 객체로 처리
       const lastAnalysisResults = vtAttributes?.lastAnalysisResults || {};
       const lastAnalysisStats = vtAttributes?.lastAnalysisStats || {};
-      
+
       // 파일 정보들
       const fileInfo = vtAttributes?.names || [];
       const fileSize = vtAttributes?.size || 0;
@@ -98,22 +98,22 @@ function ChatPage() {
       const md5Hash = vtAttributes?.md5 || vtData?.id_SHA256 || ''; // SHA256을 md5 대신 사용
       const sha1Hash = vtAttributes?.sha1 || '';
       const sha256Hash = vtAttributes?.sha256 || vtData?.id_SHA256 || '';
-      
+
       // lastAnalysisResults가 null이 아닐 때만 엔진 분석
-      const maliciousEngines = lastAnalysisResults 
+      const maliciousEngines = lastAnalysisResults
         ? Object.entries(lastAnalysisResults)
-            .filter(([engine, result]) => result.category === 'malicious')
-            .map(([engine, result]) => ({ engine, result: result.result }))
+          .filter(([engine, result]) => result.category === 'malicious')
+          .map(([engine, result]) => ({ engine, result: result.result }))
         : [];
-      
+
       const suspiciousEngines = lastAnalysisResults
         ? Object.entries(lastAnalysisResults)
-            .filter(([engine, result]) => result.category === 'suspicious')
-            .map(([engine, result]) => ({ engine, result: result.result }))
+          .filter(([engine, result]) => result.category === 'suspicious')
+          .map(([engine, result]) => ({ engine, result: result.result }))
         : [];
-      
+
       const totalEngines = lastAnalysisResults ? Object.keys(lastAnalysisResults).length : 0;
-      
+
       const parsedResult = {
         vtChatId: vtChatId,
         vtId: reportVT?._id || '',
@@ -142,16 +142,16 @@ function ChatPage() {
         analysisDate: new Date().toISOString(),
         rawResponse: response
       };
-      
+
       if (vtChatId) {
         setChatId_VT(vtChatId);
       }
-      
+
       localStorage.setItem('chatSessionData', JSON.stringify(parsedResult));
       console.log('=== 확장된 파싱 완료, 채팅 ID 설정 ===', vtChatId);
       console.log('저장된 변수들:', Object.keys(parsedResult));
       console.log('LLM 리포트:', parsedResult.llmReport); // 디버깅용
-      
+
       return parsedResult;
     } catch (error) {
       console.error('파싱 오류:', error);
@@ -181,12 +181,12 @@ function ChatPage() {
     if (isAuthenticated) {
       // ✅ 3-1. 로그인 상태: ChatService의 메서드를 통해 서버에서 메시지 로드
       console.log('🔄 로그인 상태 - 서버에서 메시지 가져오는 중...');
-      
+
       fetchChatMessages(chatId)
         .then((messages) => {
           if (messages && messages.length > 0) {
             console.log('📥 서버에서 받은 메시지:', messages.length);
-            
+
             // 메시지 포맷팅
             const formattedMessages = messages.map(msg => ({
               text: msg.content || msg.text,
@@ -194,9 +194,9 @@ function ChatPage() {
               timestamp: msg.timestamp || new Date().toISOString(),
               file: msg.file || null
             }));
-            
+
             setMessages(formattedMessages);
-            
+
             // localStorage에도 저장 (로그아웃 시 오프라인 사용 가능하도록)
             sessionData.messages = formattedMessages;
             const existingSessions = JSON.parse(
@@ -227,7 +227,7 @@ function ChatPage() {
     } else {
       // ✅ 3-2. 비로그인 상태: localStorage에서 메시지 로드
       console.log('📨 비로그인 상태 - localStorage에서 메시지 로드');
-      
+
       if (sessionData?.messages && sessionData.messages.length > 0) {
         console.log('📨 localStorage에서 메시지 로드:', sessionData.messages.length);
         setMessages(sessionData.messages);
@@ -253,18 +253,18 @@ function ChatPage() {
     try {
       const sessions = JSON.parse(localStorage.getItem('chatSessions')) || [];
       const sessionIndex = sessions.findIndex(session => session.chatId === chatId);
-      
+
       if (sessionIndex >= 0) {
         // ✅ messages 배열 생성 (없으면)
         if (!sessions[sessionIndex].messages) {
           sessions[sessionIndex].messages = [];
         }
-        
+
         // ✅ 새 메시지 추가
         sessions[sessionIndex].messages.push(newMessage);
         sessions[sessionIndex].messageCount = sessions[sessionIndex].messages.length;
         sessions[sessionIndex].lastUpdated = new Date().toISOString();
-        
+
         localStorage.setItem('chatSessions', JSON.stringify(sessions));
         console.log('✅ 메시지 저장됨:', chatId, sessions[sessionIndex].messages.length);
       }
@@ -325,7 +325,7 @@ function ChatPage() {
       console.log('=== ChatPage 초기화 시작 ===');
       console.log('chatId:', chatId);
       console.log('location.state:', location.state);
-      
+
       setHeaderTitle(null);
       setLoading(false);
       setText('');
@@ -362,7 +362,7 @@ function ChatPage() {
 
         // 2. AI 응답 메시지 생성
         let aiResponseText = '';
-        
+
         if (preGeneratedReport && preGeneratedReport.trim()) {
           // MainPage에서 미리 생성된 report 사용 (report만 추출)
           aiResponseText = preGeneratedReport;
@@ -376,7 +376,7 @@ function ChatPage() {
             setParsedData(internalParsed);
             setSessionParsedData(internalParsed);
             setAnalysisResult(result);
-            
+
             // ✅ report만 추출
             const llmReport = internalParsed?.llmReport || parsed?.analysisResult?.reportfromLLM?.report;
             if (llmReport && llmReport.trim()) {
@@ -548,7 +548,7 @@ function ChatPage() {
     };
 
     analyzeInitialFile();
-    
+
     return () => {
       isMountedRef.current = false;
     };
@@ -566,9 +566,9 @@ function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleFileSelect = (file) => {
+  /*const handleFileSelect = (file) => {
     setSelectedFile(file);
-  };
+  };*/
 
   const handleSendClick = async () => {
     console.log('handleSendClick 호출됨!', text);
@@ -666,31 +666,48 @@ function ChatPage() {
   const handleSendMessage = async (sessionId, message) => {
     try {
       console.log('📤 메시지 전송 시작');
-      
+
       // 1. 사용자 메시지 표시
       const userMessage = { text: message, isUser: true, };
       setMessages(prev => [...prev, userMessage]);
-      
+
       // 2. 로딩 상태
       setLoading(true);
-      
+
       // 3. ✅ sendMessage 호출 (여기서 사용!)
       console.log('🔄 서버로 메시지 전송 중...');
       const serverResponse = await sendMessage(sessionId, message);
-      
+
+      let responseText = '';
+
+      if (typeof serverResponse === 'object') {
+        responseText = serverResponse?.response || serverResponse?.message || '';
+      } else if (typeof serverResponse === 'string') {
+        responseText = serverResponse;
+      }
+
       // 4. AI 응답 표시
-      const aiMessage = { text: serverResponse, isUser: false, ... };
+      const aiMessage = {
+        text: responseText,
+        isUser: false,
+        timestamp: new Date().toISOString()
+      };
       setMessages(prev => [...prev, aiMessage]);
-      
+
       console.log('✅ 메시지 전송 완료');
     } catch (error) {
       console.error('❌ 메시지 전송 실패:', error);
-    }
+
+      // ✅ 사용자 alert
+      alert('메시지 전송에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    };
   };
 
   const handleSelectChat = async (selectedChatId, sessionData) => {
     console.log("선택한 세션:", selectedChatId, sessionData);
-    
+
     // ✅ 1. 화면 즉시 초기화
     setMessages([]);
     setLoading(false);  // ← 로딩 표시 안함 (로컬 데이터 사용)
@@ -698,17 +715,17 @@ function ChatPage() {
     setText('');
     setAnalysisResult(null);
     setParsedData(null);
-    
+
     // ✅ 2. 제목 설정
     if (sessionData?.title) {
       setHeaderTitle(sessionData.title);
     } else if (sessionData?.fileName) {
       setHeaderTitle(`${sessionData.fileName} 파일의 악성 코드 분석`);
     }
-    
+
     // ✅ 3. 메시지 로드 (3단계 전략)
     console.log('📨 메시지 로드 로직 시작...');
-    
+
     // 1순위: sessionData에 메시지가 있으면 즉시 사용
     if (sessionData?.messages && sessionData.messages.length > 0) {
       console.log('📨 sessionData에서 메시지 사용:', sessionData.messages.length);
@@ -719,7 +736,7 @@ function ChatPage() {
       setShowChatList(false);
       return;  // ← 서버 호출 안함!
     }
-    
+
     // 2순위: localStorage에서 메시지 확인
     const storedSession = loadChatSessionFromStorage(selectedChatId);
     if (storedSession?.messages && storedSession.messages.length > 0) {
@@ -731,23 +748,23 @@ function ChatPage() {
       setShowChatList(false);
       return;  // ← 서버 호출 안함!
     }
-    
+
     // 3순위: localStorage도 없으면 서버에서 로드 (마지막 수단)
     console.log('🔄 localStorage 없음 - 서버에서 메시지 가져오기...');
     setLoading(true);
     try {
       const messages = await fetchChatMessages(selectedChatId);
-      
+
       if (messages && messages.length > 0) {
         console.log('📥 서버에서 받은 메시지:', messages.length);
-        
+
         const formattedMessages = messages.map(msg => ({
           text: msg.content || msg.text,
           isUser: msg.role === 'user',
           timestamp: msg.timestamp || new Date().toISOString(),
           file: msg.file || null
         }));
-        
+
         setMessages(formattedMessages);
         console.log('✅ 메시지 화면에 표시:', formattedMessages.length);
       } else {
@@ -761,12 +778,12 @@ function ChatPage() {
     } finally {
       setLoading(false);
     }
-    
+
     // ✅ 4. URL 변경 (navigate)
     navigate(`/chat/${selectedChatId}`, {
       state: { chatSession: sessionData, loadFromStorage: true },
     });
-    
+
     setShowChatList(false);
   };
 
@@ -805,11 +822,11 @@ function ChatPage() {
 
     return <div />;
   };
-  
+
   return (
     <div className="chat-container d-flex flex-column">
       {/* Header - fixed 위치 */}
-      <Header 
+      <Header
         title={headerTitle} // state로 관리되는 headerTitle 사용 
         onMenuClick={handleMenuClick}
         onProfileClick={handleProfileClick}
@@ -821,17 +838,17 @@ function ChatPage() {
           backdropFilter: 'blur(5px)'
         }}
       />
-      
+
       {/* 채팅 리스트 사이드 패널 */}
       {showChatList && (
-        <div className="position-fixed top-0 start-0 h-100 bg-white shadow-lg chat-list-panel" 
-          style={{ 
-            width: '350px', 
+        <div className="position-fixed top-0 start-0 h-100 bg-white shadow-lg chat-list-panel"
+          style={{
+            width: '350px',
             zIndex: 1050,
             transform: showChatList ? 'translateX(0)' : 'translateX(-100%)',
             transition: 'transform 0.3s ease-in-out'
-        }}>
-          <ChatList 
+          }}>
+          <ChatList
             onSelectChat={handleSelectChat}
             onClose={handleCloseChatList}
             onNewChat={handleStartNewChat}
@@ -842,7 +859,7 @@ function ChatPage() {
 
       {/* 프로필 패널 사이드 패널 */}
       {showProfile && (
-        <div className="position-fixed top-0 end-0 h-100 bg-white shadow-lg profile-panel" 
+        <div className="position-fixed top-0 end-0 h-100 bg-white shadow-lg profile-panel"
           style={{
             zIndex: 1050,
             transform: showProfile ? 'translateX(0)' : 'translateX(100%)',
@@ -854,7 +871,7 @@ function ChatPage() {
 
       {/* 오버레이 */}
       {(showChatList || showProfile) && (
-        <div 
+        <div
           className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50"
           style={{ zIndex: 1040 }}
           onClick={() => {
@@ -863,13 +880,13 @@ function ChatPage() {
           }}
         />
       )}
-      
+
       {/* 메시지 영역 - 구조 단순화 */}
       <div className="flex-grow-1 overflow-auto d-flex justify-content-center"
-        style={{ 
+        style={{
           paddingTop: '10vh',   // Header 높이
           marginBottom: '8vh',  // Footer 높이
-      }}>
+        }}>
         {/* 단순화된 구조 */}
         <div className="w-100 h-100 d-flex flex-column">
           {/* 스크롤바 영역 - px 여백 없음 */}
@@ -879,20 +896,18 @@ function ChatPage() {
               <div className="px-3 px-lg-4">
                 {messages.map((message, index) => (
                   <div key={index} className={`message-wrapper mb-3 ${message.isUser ? 'text-end' : 'text-start'}`}>
-                    <div className={`message-bubble d-inline-block px-3 py-2 ${
-                      message.isUser 
-                        ? 'bg-primary text-white' 
+                    <div className={`message-bubble d-inline-block px-3 py-2 ${message.isUser
+                        ? 'bg-primary text-white'
                         : 'bg-light text-dark'
-                    }`} style={{ 
-                      maxWidth: '90%',
-                      borderRadius: message.isUser ? '20px 20px 5px 20px' : '20px 20px 20px 5px',
-                      wordWrap: 'break-word',
-                      lineHeight: '1.4'
-                    }}>
+                      }`} style={{
+                        maxWidth: '90%',
+                        borderRadius: message.isUser ? '20px 20px 5px 20px' : '20px 20px 20px 5px',
+                        wordWrap: 'break-word',
+                        lineHeight: '1.4'
+                      }}>
                       {renderMessageContent(message)}
-                      <div className={`message-time small mt-1 ${
-                        message.isUser ? 'text-white-50' : 'text-muted'
-                      }`} style={{ fontSize: '0.75rem' }}>
+                      <div className={`message-time small mt-1 ${message.isUser ? 'text-white-50' : 'text-muted'
+                        }`} style={{ fontSize: '0.75rem' }}>
                         {new Date(message.timestamp).toLocaleTimeString()}
                       </div>
                     </div>
@@ -906,20 +921,18 @@ function ChatPage() {
       </div>
 
       {/* Footer */}
-      <Footer 
+      <Footer
         text={text}
         setText={setText}
         handleSendClick={handleSendClick}
         handleKeyPress={handleKeyPress}
-        handleFileSelect={handleFileSelect}
+        //handleFileSelect={handleFileSelect}
         loading={loading}
         onSendMessage={handleSendMessage}
         sessionId={chatId}
       />
     </div>
   );
-
 }
-
 
 export default ChatPage;

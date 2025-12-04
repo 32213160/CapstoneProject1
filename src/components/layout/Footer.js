@@ -10,7 +10,9 @@ function Footer({
   handleSendClick, 
   handleKeyPress, 
   //handleFileSelect, 
-  loading 
+  loading,
+  onSendMessage,
+  sessionId
 }) {
   //const fileInputRef = useRef(null);
 
@@ -22,6 +24,28 @@ function Footer({
     }
   };*/
 
+  const handleFooterSend = async (e) => {
+    if (e) e.preventDefault();
+    if (!text.trim() || loading) return;
+    
+    try {
+      console.log('📤 Footer에서 메시지 전송:', { sessionId, text });
+      
+      // ✅ handleSendMessage 호출
+      await onSendMessage(sessionId, text);
+      
+      setText('');  // 입력창 비우기
+    } catch (error) {
+      console.error('❌ 메시지 전송 실패:', error);
+    }
+  };
+
+  const handleFooterKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleFooterSend();
+    }
+  };
   return (
     <div className="footer-container fixed-bottom px-2 px-lg-3">
       <div className="container-fluid px-3 py-4 px-md-3 px-lg-4 px-xl-5">
@@ -56,7 +80,7 @@ function Footer({
               placeholder="질문을 입력하세요..."
               value={text}
               onChange={(e) => setText(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyPress={handleFooterKeyPress}
               disabled={loading}
               rows="1"
               style={{
@@ -70,8 +94,8 @@ function Footer({
           {/* 오른쪽: 전송 버튼 - 배경 없는 파란색 아이콘 */}
           <button 
             className="btn btn-link text-primary border-0 p-2 ms-2"
-            onClick={handleSendClick}
-            disabled={loading}
+            onClick={handleFooterKeyPress}
+            disabled={loading || !text.trim()}
           >
             <FaPaperPlane size={20} />
           </button>
