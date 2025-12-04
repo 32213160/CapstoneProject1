@@ -222,7 +222,7 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
         <h5 className="mb-0 fw-bold">채팅 목록</h5>
         <Button
           variant="link"  // ??
-          className="text-white p-0 border-0"
+          className="d-flex align-items-center text-white p-0 border-0"
           onClick={onClose}
           style={{ fontSize: '20px' }}
         >
@@ -242,9 +242,9 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
             sessions.length > 0 ? (
               <div key={group} className="mb-3">
                 {/* 그룹 제목 */}
-                <div className="bg-secondary bg-opacity-10 px-3 py-2 rounded">
+                <div className="d-flex align-items-center bg-secondary bg-opacity-10 px-3 py-2 rounded">
                   <small className="fw-bold text-muted">{group}</small>
-                  <Badge bg="secondary" pill>
+                  <Badge bg="mx-3 secondary" pill>
                     {sessions.length}
                   </Badge>
                 </div>
