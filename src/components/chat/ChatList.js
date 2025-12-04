@@ -243,7 +243,7 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
               <div key={group} className="mb-3">
                 {/* 그룹 제목 */}
                 <div className="bg-secondary bg-opacity-10 px-3 py-2 rounded">
-                  <small className="fw-bold text-muted">{Group}</small>
+                  <small className="fw-bold text-muted">{group}</small>
                   <Badge bg="secondary" pill>
                     {sessions.length}
                   </Badge>
