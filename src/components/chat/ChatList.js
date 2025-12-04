@@ -296,10 +296,10 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                             >
                               {generateTitle(session)}
                             </h6>
-                            <div className="mb-0">
+                            {/*<div className="mb-0">
                               <small className={isCurrentSession(session.chatId) ? 'text-white-50' : 'text-muted'}>
                                 {formatTime(session.lastUpdated)}
-                              </small>
+                              </small>*/}
                             </div>
                           </div>
                         </div>
