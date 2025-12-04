@@ -100,6 +100,9 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
         const response = await fetch(`${BASE_URL}/api/chats-of-user/session/${sessionId}`, {
           method: 'DELETE',
           credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
 
         if (!response.ok) {

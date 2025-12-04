@@ -1,5 +1,5 @@
 // src/components/chat/ChatDisplay.js
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import TextFormatter from '../common/TextFormatter/TextFormatter';
 import JsonViewer from '../common/JsonViewer/JsonViewer';
 
