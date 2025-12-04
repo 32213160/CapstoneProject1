@@ -242,9 +242,9 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
             sessions.length > 0 ? (
               <div key={group} className="mb-3">
                 {/* 그룹 제목 */}
-                <div className="d-flex align-items-center bg-secondary bg-opacity-10 px-3 py-2 rounded">
+                <div className="d-flex align-items-center bg-opacity-10 px-3 py-2 rounded">
                   <small className="fw-bold text-muted">{group}</small>
-                  <Badge bg="mx-3 secondary" pill>
+                  <Badge className="mx-3 bg-secondary" pill>
                     {sessions.length}
                   </Badge>
                 </div>
@@ -266,27 +266,29 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                       }}
                       className="chat-list-item list-group-item-action p-3"
                     >
-                      <div className="d-flex w-100">
-                        {/* 아이콘: 파일/일반 채팅 구분 */}
-                        <span className="me-2">
-                          {session.fileName ? <FaFile /> : <FaComment />}
-                        </span>
-                        {/* 세션 제목, 타임스탬프 */}
+                      <div className="d-flex justify-content-between w-100">
                         <div>
-                          <h6
-                            className="mb-0"
-                            style={{
-                              fontSize: '14px',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}
-                            title={generateTitle(session, 100)}
-                          >
-                            {generateTitle(session)}
-                          </h6>
-                          <div className="mb-0">
-                            <small className="text-muted">{formatTime(session.lastUpdated)}</small>
+                          {/* 아이콘: 파일/일반 채팅 구분 */}
+                          <span className="me-2">
+                            {session.fileName ? <FaFile /> : <FaComment />}
+                          </span>
+                          {/* 세션 제목, 타임스탬프 */}
+                          <div>
+                            <h6
+                              className="mb-0"
+                              style={{
+                                fontSize: '14px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                              title={generateTitle(session, 100)}
+                            >
+                              {generateTitle(session)}
+                            </h6>
+                            <div className="mb-0">
+                              <small className="text-muted">{formatTime(session.lastUpdated)}</small>
+                            </div>
                           </div>
                         </div>
                         {/* 삭제 버튼 */}
