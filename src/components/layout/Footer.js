@@ -23,7 +23,7 @@ function Footer({
   };*/
 
   return (
-    <div className="footer-container fixed-bottom">
+    <div className="footer-container fixed-bottom px-2 px-lg-3">
       <div className="container-fluid px-3 py-4 px-md-3 px-lg-4 px-xl-5">
         <div className="d-flex align-items-center">
           {/* 왼쪽: 파일 첨부 버튼 - 불필요한 여백 제거 */}
