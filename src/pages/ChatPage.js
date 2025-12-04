@@ -169,7 +169,7 @@ function ChatPage() {
   /* ==================== 채팅 세션 로드 ==================== */
   const restoreChatSession = useCallback((sessionData) => {
     console.log('📝 채팅 세션 로드 중:', sessionData);
-
+    
     // ✅ 1. 제목 설정
     if (sessionData?.title) {
       console.log('📌 복원된 제목:', sessionData.title);
@@ -181,19 +181,27 @@ function ChatPage() {
     } else {
       setHeaderTitle('파일 내 악성 코드 분석 서비스');
     }
-
-    // ✅ 2. 로그인 상태 확인
+    
+    // ✅ 2. 분석 결과 먼저 파싱 (llmReport 추출용)
+    let parsedAnalysisData = null;
+    if (sessionData?.analysisResult) {
+      console.log('📊 분석 결과 복원 중');
+      setAnalysisResult(sessionData.analysisResult);
+      parsedAnalysisData = parseAnalysisResponse(sessionData.analysisResult);
+      setParsedData(parsedAnalysisData);
+      setSessionParsedData(parsedAnalysisData);
+    }
+    
+    // ✅ 3. 로그인 상태 확인
     console.log('🔐 로그인 상태:', isAuthenticated);
-
+    
     if (isAuthenticated) {
       // ✅ 3-1. 로그인 상태: ChatService의 메서드를 통해 서버에서 메시지 로드
       console.log('🔄 로그인 상태 - 서버에서 메시지 가져오는 중...');
-
       fetchChatMessages(chatId)
         .then((messages) => {
           if (messages && messages.length > 0) {
             console.log('📥 서버에서 받은 메시지:', messages.length);
-
             // 메시지 포맷팅
             const formattedMessages = messages.map(msg => ({
               text: msg.content || msg.text,
@@ -201,10 +209,9 @@ function ChatPage() {
               timestamp: msg.timestamp || new Date().toISOString(),
               file: msg.file || null
             }));
-
             setMessages(formattedMessages);
-
-            // localStorage에도 저장 (로그아웃 시 오프라인 사용 가능하도록)
+            
+            // localStorage에도 저장
             sessionData.messages = formattedMessages;
             const existingSessions = JSON.parse(
               localStorage.getItem('chatSessions') || '[]'
@@ -234,35 +241,92 @@ function ChatPage() {
     } else {
       // ✅ 3-2. 비로그인 상태: localStorage에서 메시지 로드
       console.log('📨 비로그인 상태 - localStorage에서 메시지 로드');
-
+      
       if (sessionData?.messages && sessionData.messages.length > 0) {
         console.log('📨 localStorage에서 메시지 로드:', sessionData.messages.length);
-        setMessages(sessionData.messages);
+        
+        // ✅ 메시지를 로드한 후, AI 메시지를 llmReport로 업데이트
+        let updatedMessages = [...sessionData.messages];
+        
+        if (parsedAnalysisData?.llmReport && parsedAnalysisData.llmReport.trim()) {
+          console.log('🔄 AI 메시지를 최신 llmReport로 업데이트');
+          
+          // AI 메시지 찾기 (isUser: false인 마지막 메시지)
+          const aiMessageIndex = updatedMessages.findIndex(msg => !msg.isUser);
+          
+          if (aiMessageIndex !== -1) {
+            // 기존 AI 메시지 업데이트
+            updatedMessages[aiMessageIndex] = {
+              ...updatedMessages[aiMessageIndex],
+              text: parsedAnalysisData.llmReport
+            };
+          } else {
+            // AI 메시지가 없으면 새로 추가
+            updatedMessages.push({
+              text: parsedAnalysisData.llmReport,
+              isUser: false,
+              timestamp: new Date().toISOString()
+            });
+          }
+          
+          // localStorage 업데이트
+          sessionData.messages = updatedMessages;
+          const existingSessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
+          const sessionIndex = existingSessions.findIndex(s => s.chatId === chatId);
+          if (sessionIndex >= 0) {
+            existingSessions[sessionIndex] = sessionData;
+            localStorage.setItem('chatSessions', JSON.stringify(existingSessions));
+          }
+        }
+        
+        setMessages(updatedMessages);
       } else {
         console.log('⚠️ localStorage에서 메시지 없음');
-        setMessages([]);
+        
+        // ✅ 메시지가 없지만 analysisResult가 있으면 메시지 생성
+        if (parsedAnalysisData?.llmReport && parsedAnalysisData.llmReport.trim()) {
+          console.log('💡 분석 결과에서 메시지 생성');
+          
+          const userMessage = {
+            text: sessionData.fileName || '파일 분석',
+            isUser: true,
+            file: sessionData.fileName,
+            timestamp: sessionData.createdAt || new Date().toISOString()
+          };
+          
+          const aiMessage = {
+            text: parsedAnalysisData.llmReport,
+            isUser: false,
+            timestamp: sessionData.createdAt || new Date().toISOString()
+          };
+          
+          setMessages([userMessage, aiMessage]);
+          
+          // localStorage에도 저장
+          sessionData.messages = [userMessage, aiMessage];
+          const existingSessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
+          const sessionIndex = existingSessions.findIndex(s => s.chatId === chatId);
+          if (sessionIndex >= 0) {
+            existingSessions[sessionIndex] = sessionData;
+            localStorage.setItem('chatSessions', JSON.stringify(existingSessions));
+          }
+        } else {
+          setMessages([]);
+        }
       }
     }
-
-    // ✅ 4. 채팅 복원 (분석 결과 복원 로직과 동일)
-    if (sessionData?.analysisResult) {
-      console.log('📊 분석 결과 복원 중');
-      setAnalysisResult(sessionData.analysisResult);
-      const parsed = parseAnalysisResponse(sessionData.analysisResult);
-      setParsedData(parsed);
-      setSessionParsedData(parsed);
-    }
-
+    
     setLoading(false);
-  
-    // ✅ 추가: 메시지 로드 후 스크롤
+    
+    // ✅ 메시지 로드 후 스크롤
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ 
         behavior: "smooth",
         block: "end" 
       });
     }, 200);
-  }, [parseAnalysisResponse, chatId, isAuthenticated]);
+    
+  }, [parseAnalysisResponse, chatId, isAuthenticated, messagesEndRef]);
 
   const updateChatSession = (newMessage, isUser = false) => {
     try {
