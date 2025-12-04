@@ -15,12 +15,12 @@ function Footer({
   //const fileInputRef = useRef(null);
 
   // 파일 선택 핸들러
-  const handleFileChange = (e) => {
+  /*const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       handleFileSelect(file);
     }
-  };
+  };*/
 
   return (
     <div className="footer-container fixed-bottom">
