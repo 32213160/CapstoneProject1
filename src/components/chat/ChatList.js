@@ -86,7 +86,6 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
     e.stopPropagation();
 
     if (deletingSessionId) return; // 중복 클릭 방지
-
     if (!window.confirm('이 채팅을 삭제하시겠습니까?')) {
       return;
     }

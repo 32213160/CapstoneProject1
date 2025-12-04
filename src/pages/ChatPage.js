@@ -77,8 +77,14 @@ function ChatPage() {
       console.log('=== 확장된 파싱 시작 ===');
       console.log('원본 응답:', response);
 
-      const reportVT = response?.reportfromVT || {};
-      const reportLLM = response?.reportfromLLM || {};
+      // ✅ 두 가지 형태 모두 처리
+      // 1. MainPage에서 오는 경우: { sessionId, fileName, analysisResult: {...} }
+      // 2. localStorage에서 오는 경우: { reportfromVT: {...}, reportfromLLM: {...} }
+      // >>> analysisResult가 있으면 그것을 사용, 없으면 response 자체 사용
+      const actualResult = response?.analysisResult || response;
+      
+      const reportVT = actualResult?.reportfromVT || {};
+      const reportLLM = actualResult?.reportfromLLM || {};
       const extractedId = response?.extractedId || '';
 
       const vtChatId = reportVT?._id || null;
