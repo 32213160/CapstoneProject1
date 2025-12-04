@@ -264,7 +264,7 @@ export default class ProfilePanel extends BaseComponent {
     }
   };
 
-  handleClearSessions = () => {
+/*  handleClearSessions = () => {
     if (window.confirm('모든 채팅 기록을 삭제하시겠습니까?')) {
       localStorage.removeItem('chatSessions');
       localStorage.removeItem('chatSessionData');
@@ -273,7 +273,7 @@ export default class ProfilePanel extends BaseComponent {
       });
       alert('채팅 기록이 삭제되었습니다.');
     }
-  };
+  };*/
 
   // 설정 창 열기/닫기
   handleOpenSettings = () => {
@@ -1291,9 +1291,9 @@ export default class ProfilePanel extends BaseComponent {
               <button style={buttonStyle} onClick={this.handleOpenSettings}>
                 <FaCog /> 설정
               </button>
-              <button style={buttonStyle} onClick={this.handleClearSessions}>
+              {/*<button style={buttonStyle} onClick={this.handleClearSessions}>
                 <FaBell /> 채팅 기록 삭제
-              </button>
+              </button>*/}
               {isAuthenticated && (
                 <button style={buttonStyle} onClick={this.handleOpenLevelSelect}>
                   <FaPalette /> 대화 난이도 설정
