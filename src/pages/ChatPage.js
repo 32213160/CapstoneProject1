@@ -6,7 +6,7 @@ import Footer from '../components/layout/Footer';
 import ChatList from '../components/chat/ChatList';
 import ProfilePanel from '../components/layout/ProfilePanel';
 import { fetchChatMessages } from '../services/ChatService';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../components/auth/AuthContext';
 import JsonViewer from '../components/common/JsonViewer/JsonViewer';
 import TextFormatter from '../components/common/TextFormatter/TextFormatter';
 import { uploadAndAnalyzeFile } from '../services/ApiService';
