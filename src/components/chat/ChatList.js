@@ -174,7 +174,6 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
 
     // fileName이 있으면 APK 파일 분석 형식으로 생성
     if (session.fileName) {
-      return `${session.fileName} 파일의 악성 코드 분석`;
       return title.length > maxLength ? title.substring(0, maxLength) + '...' : title;
     }
 
