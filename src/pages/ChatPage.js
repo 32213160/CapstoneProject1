@@ -34,7 +34,7 @@ function ChatPage() {
   const [parsedData, setParsedData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [setChatId_VT] = useState(null);
+  //const [chatId_VT, setChatId_VT] = useState(null);
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -150,7 +150,8 @@ function ChatPage() {
       };
 
       if (vtChatId) {
-        setChatId_VT(vtChatId);
+        //setChatId_VT(vtChatId);
+        console.log('VT 채팅 ID 설정:', vtChatId);
       }
 
       localStorage.setItem('chatSessionData', JSON.stringify(parsedResult));
@@ -163,7 +164,7 @@ function ChatPage() {
       console.error('파싱 오류:', error);
       return null;
     }
-  }, [setChatId_VT]);
+  }, [/*setChatId_VT*/]);
 
   /* ==================== 채팅 세션 로드 ==================== */
   const restoreChatSession = useCallback((sessionData) => {
