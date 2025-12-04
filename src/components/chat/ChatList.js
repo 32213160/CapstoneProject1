@@ -271,11 +271,11 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                       <div className="d-flex justify-content-between w-100">
                         <div className="d-flex">
                           {/* 아이콘: 파일/일반 채팅 구분 */}
-                          <span className="me-2">
+                          <span className="d-flex align-items-center mx-1">
                             {session.fileName ? <FaFile /> : <FaComment />}
                           </span>
                           {/* 세션 제목, 타임스탬프 */}
-                          <div>
+                          <div className="mx-2">
                             <h6
                               className="mb-0"
                               style={{
