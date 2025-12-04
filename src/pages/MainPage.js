@@ -18,6 +18,15 @@ function MainPage() {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (scanId) {
+      console.log('✅ 파일 분석 ID 업데이트:', scanId);
+      const recentScans = JSON.parse(localStorage.getItem('recentScans') || '[]');
+      recentScans.unshift({ scanId, timestamp: new Date().toISOString() });
+      localStorage.setItem('recentScans', JSON.stringify(recentScans.slice(0, 10)));
+    }
+  }, [scanId]);
+
   // 채팅 세션 저장 함수
   const saveChatSession = (sessionData) => {
     try {
@@ -424,7 +433,6 @@ function MainPage() {
               }}
             />
 
-
             {/* 전송 버튼 */}
             <button
               type="button"
@@ -452,6 +460,14 @@ function MainPage() {
             </small>
           </div>
         </div>
+
+        {/* 분석 ID 출력 - 불필요 로직 */}
+        {scanId && (
+          <div className="alert alert-info mt-4" role="alert">
+            <strong>분석 ID:</strong>
+            <code className="ms-2">{scanId}</code>
+          </div>
+        )}
 
         {/* 숨겨진 파일 입력 */}
         <input

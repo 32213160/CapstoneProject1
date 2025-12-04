@@ -668,7 +668,7 @@ function ChatPage() {
       console.log('📤 메시지 전송 시작');
       
       // 1. 사용자 메시지 표시
-      const userMessage = { text: message, isUser: true, ... };
+      const userMessage = { text: message, isUser: true, };
       setMessages(prev => [...prev, userMessage]);
       
       // 2. 로딩 상태
