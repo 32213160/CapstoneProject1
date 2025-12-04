@@ -299,8 +299,8 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                             {/*<div className="mb-0">
                               <small className={isCurrentSession(session.chatId) ? 'text-white-50' : 'text-muted'}>
                                 {formatTime(session.lastUpdated)}
-                              </small>*/}
-                            </div>
+                              </small>
+                            </div>*/}
                           </div>
                         </div>
                         {/* 삭제 버튼 */}
@@ -314,7 +314,7 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                         >
                           <FaTimes />{deletingSessionId === session.id ? '삭제 중...' : ''}
                         </Button>
-                      </div> 
+                      </div>
                     </ListGroup.Item>
                   ))}
                 </ListGroup>
