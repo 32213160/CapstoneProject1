@@ -93,6 +93,29 @@ class ChatService {
     }
   }
 
+  static async deleteUserChatSession(sessionId) {
+    const BASE_URL = 'https://torytestsv.kro.kr';
+    try {
+      console.log('[디버깅] ChatService: 세션 삭제 시작:', sessionId);
+      const response = await fetch(`${BASE_URL}/api/chats-of-user/session/${sessionId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('[디버깅] ChatService: 서버 응답 오류:', text);
+        throw new Error(`세션 삭제 실패 (상태 코드: ${response.status})`);
+      }
+
+      console.log('[디버깅] ChatService: 세션 삭제 완료:', sessionId);
+      return true;
+    } catch (error) {
+      console.error('[디버깅] ChatService deleteUserChatSession 오류:', error);
+      throw error;
+    }
+  }
+
   static getChatSession(chatId) {
     return loadChatSessionFromStorage(chatId);
   }
