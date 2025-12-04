@@ -56,7 +56,7 @@ function ChatPage() {
     // 추후 ChatPage 양식에서 빈 화면을 만들어 바로 파일 전송 및
     // response를 이용해 URL이 실시간으로 변경되도록 바꾸기
     // 이때 footer의 file icon 활성화, 채팅 시에는 비활성화
-    navigate(`/chat/${newChatId}`);
+    navigate(`/`);
   };
 
   const loadChatSessionFromStorage = (targetChatId) => {
@@ -816,7 +816,7 @@ function ChatPage() {
       {/* 메시지 영역 - 구조 단순화 */}
       <div className="flex-grow-1 overflow-auto d-flex justify-content-center"
         style={{ 
-          paddingTop: '10vh',     // Header 높이
+          paddingTop: '10vh',   // Header 높이
           marginBottom: '8vh',  // Footer 높이
       }}>
         {/* 단순화된 구조 */}
