@@ -166,22 +166,24 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
   const generateTitle = (session, maxLength = 25) => {
     let title = '';
 
-    // 저장된 title이 있으면 사용
+    // 저장된 title이 있으면 사용하되 maxLength로 제한
     if (session.title) {
-      return session.title;
+      title = session.title;
+      return title.length > maxLength ? title.substring(0, maxLength) + '...' : title;
     }
 
     // fileName이 있으면 APK 파일 분석 형식으로 생성
     if (session.fileName) {
       return `${session.fileName} 파일의 악성 코드 분석`;
+      return title.length > maxLength ? title.substring(0, maxLength) + '...' : title;
     }
 
     // 그 외의 경우 첫 번째 메시지 사용
     if (session.messages && session.messages.length > 0) {
       const firstUserMessage = session.messages.find(msg => msg.isUser);
       if (firstUserMessage) {
-        return firstUserMessage.text.length > 30
-          ? firstUserMessage.text.substring(0, 30) + '...'
+        return firstUserMessage.text.length > maxLength
+          ? firstUserMessage.text.substring(0, maxLength) + '...'
           : firstUserMessage.text;
       }
     }
@@ -267,7 +269,7 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                       className="chat-list-item list-group-item-action p-3"
                     >
                       <div className="d-flex justify-content-between w-100">
-                        <div>
+                        <div className="d-flex">
                           {/* 아이콘: 파일/일반 채팅 구분 */}
                           <span className="me-2">
                             {session.fileName ? <FaFile /> : <FaComment />}
