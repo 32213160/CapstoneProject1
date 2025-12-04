@@ -41,17 +41,17 @@ function ChatPage() {
   const handleCloseChatList = () => setShowChatList(false);
   const handleCloseProfile = () => setShowProfile(false);
 
-  const generateRandomChatId = () => {
+  /*const generateRandomChatId = () => {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
     for (let i = 0; i < 12; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
-  };
+  };*/
 
   const handleStartNewChat = () => {
-    const newChatId = generateRandomChatId();
+    //const newChatId = generateRandomChatId();
     console.log('새 채팅 시작 - 파일 첨부 화면으로 돌아옴');
     // 추후 ChatPage 양식에서 빈 화면을 만들어 바로 파일 전송 및
     // response를 이용해 URL이 실시간으로 변경되도록 바꾸기
