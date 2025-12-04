@@ -33,7 +33,6 @@ function Footer({
       
       // ✅ handleSendMessage 호출
       await onSendMessage(sessionId, text);
-      
       setText('');  // 입력창 비우기
     } catch (error) {
       console.error('❌ 메시지 전송 실패:', error);
@@ -94,7 +93,7 @@ function Footer({
           {/* 오른쪽: 전송 버튼 - 배경 없는 파란색 아이콘 */}
           <button 
             className="btn btn-link text-primary border-0 p-2 ms-2"
-            onClick={handleFooterKeyPress}
+            onClick={handleFooterSend}
             disabled={loading || !text.trim()}
           >
             {loading ? (

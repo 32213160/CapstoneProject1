@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
-import { FaPaperPlane, FaPaperclip } from 'react-icons/fa';
+import { /*FaPaperPlane,*/ FaPaperclip } from 'react-icons/fa';
 import Header from '../components/layout/Header';
 import ChatList from '../components/chat/ChatList';
 import ProfilePanel from '../components/layout/ProfilePanel';
@@ -393,12 +393,12 @@ function MainPage() {
         </div>
 
         {/* 새로운 아이콘 버튼 형태의 입력 영역 */}
-        <div className="w-100" style={{ maxWidth: '800px' }}>
+        <div className="w-100 justify-content-between" style={{ maxWidth: '800px' }}>
           <div className="d-flex align-items-center bg-white rounded-pill shadow-sm p-2 mb-3" style={{border: '1px solid #dee2e6'}}>
             {/* 파일 선택 버튼 */}
             <button
               type="button"
-              className="btn btn-outline-secondary rounded-circle me-2 d-flex align-items-center justify-content-center"
+              className="btn btn-outline-secondary rounded-circle mx-2 d-flex align-items-center justify-content-center"
               onClick={handleFileButtonClick}
               disabled={loading}
               style={{
@@ -415,7 +415,7 @@ function MainPage() {
             {/* 텍스트 입력창 */}
             <textarea
               className="form-control border-0 flex-grow-1"
-              placeholder="좌측 첨부 버튼을 눌러 파일을 첨부하세요."
+              placeholder="파일 버튼을 눌러 파일을 업로드하세요."
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -432,7 +432,7 @@ function MainPage() {
               }}
             />
 
-            {/* 전송 버튼 */}
+            {/* 전송 버튼 
             <button
               type="button"
               className="btn btn-primary rounded-circle ms-2 d-flex align-items-center justify-content-center"
@@ -449,14 +449,7 @@ function MainPage() {
               ) : (
                 <FaPaperPlane size={14} />
               )}
-            </button>
-          </div>
-
-          {/* 글자 수 표시 */}
-          <div className="text-end mt-2">
-            <small className={`text-muted ${text.length > 2800 ? 'text-warning' : ''} ${text.length >= 3000 ? 'text-danger' : ''}`}>
-              {text.length}/3000
-            </small>
+            </button>*/}
           </div>
         </div>
 

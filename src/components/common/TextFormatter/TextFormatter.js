@@ -179,7 +179,7 @@ function TextFormatter({ text }) {
     const headingMatch = trimmedLine.match(headingPattern);
     if (headingMatch) {
       const level = headingMatch[1].length;
-      const HeadingTag = `h${level}`;
+      const HeadingTag = `h${level+3}`;
       return React.createElement(
         HeadingTag,
         { 
