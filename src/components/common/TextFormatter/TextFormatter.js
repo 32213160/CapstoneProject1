@@ -21,7 +21,7 @@ import React from 'react';
  * - **굵은 텍스트** → <strong> 태그로 변환
  * - *기울임 텍스트* → <em> 태그로 변환
  * - `코드 텍스트` → <code> 태그로 변환 (인라인 코드)
- * - [0], [1], [2] 등 → 번호가 있는 섹션 헤더로 스타일링
+ * - [0], [1], [2] 또는 📌 [1], 📌 [42] 등 → 번호가 있는 섹션 헤더로 스타일링
  * - - 리스트 항목 → <ul><li> 태그로 변환 (순서 없는 목록)
  * - 1. 리스트 항목 → <ol><li> 태그로 변환 (순서 있는 목록)
  * - > 인용문 → <blockquote> 태그로 변환
@@ -146,23 +146,29 @@ function TextFormatter({ text }) {
   const processBlockElement = (line, index) => {
     const trimmedLine = line.trim();
 
-    // [숫자] 패턴 → 섹션 헤더로 처리
-    const sectionPattern = /^\[(\d+)\]\s*(.*)$/;
+    // ✅ [숫자] 패턴 → 줄의 어느 위치에서든 매칭 (예: 📌 [4], [1], 🔒 [2])
+    const sectionPattern = /^(.*?)\[(\d+)\]\s*(.*)$/;
     const sectionMatch = trimmedLine.match(sectionPattern);
+    
     if (sectionMatch) {
+      const prefix = sectionMatch[1].trim(); // 📌, 🔒 등
+      const number = sectionMatch[2];        // 숫자
+      const content = sectionMatch[3].trim(); // 나머지 텍스트
+      
       return (
-        <div 
+        <div
           key={index}
           style={{
-            backgroundColor: '#e3f2fd',
+            marginTop: '12px',
+            marginBottom: '8px',
             padding: '8px 12px',
-            borderLeft: '4px solid #2196f3',
-            margin: '8px 0',
+            backgroundColor: '#f8f9fa',
+            borderLeft: '4px solid #007bff',
             borderRadius: '4px'
           }}
         >
-          <strong style={{ color: '#1976d2' }}>
-            [{sectionMatch[1]}] {sectionMatch[2]}
+          <strong style={{ color: '#007bff', fontSize: '1.05em' }}>
+            {prefix && `${prefix} `}[{number}] {content}
           </strong>
         </div>
       );
