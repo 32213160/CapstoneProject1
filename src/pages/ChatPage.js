@@ -166,6 +166,29 @@ function ChatPage() {
     }
   }, [/*setChatId_VT*/]);
 
+  // system 메시지에서 report 추출
+  const extractReportFromSystemMessage = useCallback((content) => {
+    try {
+      // content가 JSON 문자열인지 확인
+      if (typeof content === 'string' && content.trim().startsWith('{')) {
+        const parsed = JSON.parse(content);
+        
+        // analysisResult.reportfromLLM.report 경로로 추출
+        const report = parsed?.analysisResult?.reportfromLLM?.report;
+        
+        if (report && typeof report === 'string' && report.trim()) {
+          return report;
+        }
+      }
+      
+      // 파싱 실패 시 원본 반환
+      return content;
+    } catch (error) {
+      console.error('Report 추출 오류:', error);
+      return content;
+    }
+  }, []);
+
   /* ==================== 채팅 세션 로드 ==================== */
   const restoreChatSession = useCallback((sessionData) => {
     console.log('📝 채팅 세션 로드 중:', sessionData);
@@ -202,13 +225,42 @@ function ChatPage() {
         .then((messages) => {
           if (messages && messages.length > 0) {
             console.log('📥 서버에서 받은 메시지:', messages.length);
-            // 메시지 포맷팅
-            const formattedMessages = messages.map(msg => ({
-              text: msg.content || msg.text,
-              isUser: msg.role === 'user',
-              timestamp: msg.timestamp || new Date().toISOString(),
-              file: msg.file || null
-            }));
+      
+            // ✅ 메시지 포맷팅 - sender 기반 처리
+            const formattedMessages = messages.map(msg => {
+              // sender가 'system'인 경우 content를 파싱
+              if (msg.sender === 'system' && msg.messageType === 'analysis_result') {
+                try {
+                  const parsedContent = JSON.parse(msg.content);
+                  const reportContent = parsedContent?.analysisResult?.reportfromLLM?.report || msg.content;
+                  return {
+                    text: reportContent,
+                    isUser: false,
+                    timestamp: msg.timestamp || new Date().toISOString(),
+                    file: null
+                  };
+                } catch (error) {
+                  console.error('System 메시지 파싱 오류:', error);
+                  return {
+                    text: msg.content || msg.text,
+                    isUser: false,
+                    timestamp: msg.timestamp || new Date().toISOString(),
+                    file: null
+                  };
+                }
+              }
+              
+              // ✅ sender 기반 isUser 설정
+              const isUser = msg.sender === 'user';
+              
+              return {
+                text: msg.content || msg.text,
+                isUser: isUser,
+                timestamp: msg.timestamp || new Date().toISOString(),
+                file: msg.file || null
+              };
+            });
+
             setMessages(formattedMessages);
             
             // localStorage에도 저장
@@ -241,27 +293,36 @@ function ChatPage() {
     } else {
       // ✅ 3-2. 비로그인 상태: localStorage에서 메시지 로드
       console.log('📨 비로그인 상태 - localStorage에서 메시지 로드');
-      
+
       if (sessionData?.messages && sessionData.messages.length > 0) {
         console.log('📨 localStorage에서 메시지 로드:', sessionData.messages.length);
         
-        // ✅ 메시지를 로드한 후, AI 메시지를 llmReport로 업데이트
-        let updatedMessages = [...sessionData.messages];
+        // ✅ 메시지를 로드한 후 처리
+        let updatedMessages = sessionData.messages.map(msg => {
+          // system 메시지인 경우 report만 추출
+          if (msg.sender === 'system' || (msg.text && typeof msg.text === 'string' && msg.text.includes('analysisResult'))) {
+            const extractedReport = extractReportFromSystemMessage(msg.text || msg.content);
+            return {
+              ...msg,
+              text: extractedReport,
+              isUser: false
+            };
+          }
+          return msg;
+        });
         
+        // llmReport 업데이트 로직
         if (parsedAnalysisData?.llmReport && parsedAnalysisData.llmReport.trim()) {
           console.log('🔄 AI 메시지를 최신 llmReport로 업데이트');
           
-          // AI 메시지 찾기 (isUser: false인 마지막 메시지)
           const aiMessageIndex = updatedMessages.findIndex(msg => !msg.isUser);
           
           if (aiMessageIndex !== -1) {
-            // 기존 AI 메시지 업데이트
             updatedMessages[aiMessageIndex] = {
               ...updatedMessages[aiMessageIndex],
               text: parsedAnalysisData.llmReport
             };
           } else {
-            // AI 메시지가 없으면 새로 추가
             updatedMessages.push({
               text: parsedAnalysisData.llmReport,
               isUser: false,
@@ -326,7 +387,7 @@ function ChatPage() {
       });
     }, 200);
     
-  }, [parseAnalysisResponse, chatId, isAuthenticated, messagesEndRef]);
+  }, [parseAnalysisResponse, extractReportFromSystemMessage, chatId, isAuthenticated, messagesEndRef]);
 
   const updateChatSession = (newMessage, isUser = false) => {
     try {
@@ -762,7 +823,20 @@ function ChatPage() {
         timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, userMessage]);
-      
+    
+      // ✅ 사용자 메시지 후 스크롤
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'end' 
+        });
+      }, 100);
+    
+      // ✅ 비로그인 상태: localStorage에 저장
+      if (!isAuthenticated) {
+        updateChatSession(userMessage, true);
+      }
+        
       // 2. 로딩 상태
       setLoading(true);
       
@@ -796,6 +870,19 @@ function ChatPage() {
         timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, aiMessage]);
+    
+      // ✅ AI 응답 후 스크롤
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'end' 
+        });
+      }, 100);
+      
+      // ✅ 비로그인 상태: localStorage에 저장
+      if (!isAuthenticated) {
+        updateChatSession(aiMessage, false);
+      }
       
       console.log('✅ 메시지 전송 완료');
     } catch (error) {

@@ -202,6 +202,13 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
     });
   };
 
+  // 현재 세션인지 확인
+  const isCurrentSession = (sessionId) => {
+    return currentChatId === sessionId || 
+          currentChatId === `session_${sessionId}` ||
+          sessionId === currentChatId;
+  };
+
   const groupedSessions = groupSessionsByDate(chatSessions);
 
 
@@ -257,25 +264,28 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                       key={session.id}
                       action
                       onClick={() => handleSelectChat(session)}
-                      active={session.sessionId === currentChatId}
                       style={{
                         cursor: 'pointer',
                         marginBottom: '4px',
                         borderRadius: '8px',
                         border: '1px solid #e2e8f0'
                       }}
-                      className="chat-list-item list-group-item-action p-3"
+                      className={`chat-list-item list-group-item-action p-3 ${
+                        isCurrentSession(session.chatId) ? 'bg-primary text-white' : ''
+                      }`}
                     >
                       <div className="d-flex justify-content-between w-100">
                         <div className="d-flex">
                           {/* 아이콘: 파일/일반 채팅 구분 */}
-                          <span className="d-flex align-items-center mx-1">
+                          <span className={`d-flex align-items-center mx-1 ${
+                            isCurrentSession(session.chatId) ? 'text-white' : 'text-primary'
+                          }`}>
                             {session.fileName ? <FaFile /> : <FaComment />}
                           </span>
                           {/* 세션 제목, 타임스탬프 */}
                           <div className="mx-2">
                             <h6
-                              className="mb-0"
+                              className={`mb-0 ${isCurrentSession(session.chatId) ? 'text-white' : ''}`}
                               style={{
                                 fontSize: '14px',
                                 overflow: 'hidden',
@@ -287,13 +297,15 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                               {generateTitle(session)}
                             </h6>
                             <div className="mb-0">
-                              <small className="text-muted">{formatTime(session.lastUpdated)}</small>
+                              <small className={isCurrentSession(session.chatId) ? 'text-white-50' : 'text-muted'}>
+                                {formatTime(session.lastUpdated)}
+                              </small>
                             </div>
                           </div>
                         </div>
                         {/* 삭제 버튼 */}
                         <Button
-                          variant="outline-danger"
+                          variant={isCurrentSession(session.chatId) ? 'light' : 'outline-danger'}
                           size="sm"
                           onClick={(e) => handleDeleteSession(e, session.id)}
                           disabled={deletingSessionId === session.id}

@@ -74,10 +74,10 @@ function Footer({
           */}
           
           {/* 중앙: 텍스트 입력 영역 - 양쪽 마진 제거 */}
-          <div className="flex-grow-1">
+          <div className="flex-grow-1 px-3">
             <textarea
-              className="form-control border-0 shadow"
-              placeholder="질문을 입력하세요..."
+              className="form-control border-0 shadow px-4"
+              placeholder="질문을 입력하세요."
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyPress={handleFooterKeyPress}
@@ -97,7 +97,16 @@ function Footer({
             onClick={handleFooterKeyPress}
             disabled={loading || !text.trim()}
           >
-            <FaPaperPlane size={20} />
+            {loading ? (
+              <div 
+                className="spinner-border spinner-border-sm text-light" 
+                role="status"
+              >
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            ) : (
+              <FaPaperPlane size={20} />
+            )}
           </button>
         </div>
       </div>

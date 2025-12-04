@@ -350,7 +350,8 @@ function MainPage() {
           <ChatList 
             onSelectChat={handleSelectChat}
             onClose={handleCloseChatList}
-            onNewChat={handleStartNewChat} // 이 줄 추가
+            onNewChat={handleStartNewChat}
+            currentChatId={null}
           />
         </div>
       )}
