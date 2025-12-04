@@ -6,6 +6,7 @@ import Footer from '../components/layout/Footer';
 import ChatList from '../components/chat/ChatList';
 import ProfilePanel from '../components/layout/ProfilePanel';
 import { fetchChatMessages } from '../services/ChatService';
+import { useAuth } from '../auth/AuthContext';
 import JsonViewer from '../components/common/JsonViewer/JsonViewer';
 import TextFormatter from '../components/common/TextFormatter/TextFormatter';
 import { uploadAndAnalyzeFile } from '../services/ApiService';
@@ -16,6 +17,7 @@ function ChatPage() {
   const [messages, setMessages] = useState([]);
 
   const { chatId } = useParams();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const initialFile = location.state?.file || null;
   const initialMessage = location.state?.message || '';
@@ -157,8 +159,9 @@ function ChatPage() {
     }
   }, [setChatId_VT]);
 
+  /* ==================== 채팅 세션 로드 ==================== */
   const restoreChatSession = useCallback((sessionData) => {
-    console.log('📝 채팅 세션 복원 중:', sessionData);
+    console.log('📝 채팅 세션 로드 중:', sessionData);
 
     // ✅ 1. 제목 설정
     if (sessionData?.title) {
@@ -172,38 +175,71 @@ function ChatPage() {
       setHeaderTitle('파일 내 악성 코드 분석 서비스');
     }
 
-    // ✅ 2. localStorage의 메시지 먼저 로드
-    if (sessionData?.messages && sessionData.messages.length > 0) {
-      console.log('📨 localStorage에서 메시지 로드:', sessionData.messages.length);
-      setMessages(sessionData.messages);
+    // ✅ 2. 로그인 상태 확인
+    console.log('🔐 로그인 상태:', isAuthenticated);
+
+    if (isAuthenticated) {
+      // ✅ 3-1. 로그인 상태: ChatService의 메서드를 통해 서버에서 메시지 로드
+      console.log('🔄 로그인 상태 - 서버에서 메시지 가져오는 중...');
+      
+      fetchChatMessages(chatId)
+        .then((messages) => {
+          if (messages && messages.length > 0) {
+            console.log('📥 서버에서 받은 메시지:', messages.length);
+            
+            // 메시지 포맷팅
+            const formattedMessages = messages.map(msg => ({
+              text: msg.content || msg.text,
+              isUser: msg.role === 'user',
+              timestamp: msg.timestamp || new Date().toISOString(),
+              file: msg.file || null
+            }));
+            
+            setMessages(formattedMessages);
+            
+            // localStorage에도 저장 (로그아웃 시 오프라인 사용 가능하도록)
+            sessionData.messages = formattedMessages;
+            const existingSessions = JSON.parse(
+              localStorage.getItem('chatSessions') || '[]'
+            );
+            localStorage.setItem(
+              'chatSessions',
+              JSON.stringify([
+                ...existingSessions.filter(s => s.chatId !== chatId),
+                sessionData
+              ])
+            );
+          } else {
+            console.log('⚠️ 서버에서 메시지 없음');
+            setMessages([]);
+          }
+        })
+        .catch((error) => {
+          console.error('❌ 서버에서 메시지 로드 실패:', error);
+          // 폴백: localStorage 확인
+          if (sessionData?.messages && sessionData.messages.length > 0) {
+            console.log('📨 폴백 - localStorage에서 메시지 사용');
+            setMessages(sessionData.messages);
+          } else {
+            setMessages([]);
+          }
+        });
     } else {
-      // ✅ 3. localStorage에 없으면 서버에서 가져오기
-      console.log('🔄 서버에서 메시지 가져오는 중...');
-      fetchChatMessages(chatId).then((messages) => {
-        if (messages && messages.length > 0) {
-          console.log('📥 서버에서 받은 메시지:', messages.length);
-          const formattedMessages = messages.map(msg => ({
-            text: msg.content || msg.text,
-            isUser: msg.role === 'user',
-            timestamp: msg.timestamp || new Date().toISOString(),
-            file: msg.file || null
-          }));
-          setMessages(formattedMessages);
-          sessionData.messages = formattedMessages;
-          const existingSessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
-          localStorage.setItem('chatSessions', JSON.stringify([
-            ...existingSessions.filter(s => s.chatId !== chatId),
-            sessionData
-          ]));
-        } else {
-          console.log('⚠️ 메시지 없음');
-          setMessages([]);
-        }
-      });
+      // ✅ 3-2. 비로그인 상태: localStorage에서 메시지 로드
+      console.log('📨 비로그인 상태 - localStorage에서 메시지 로드');
+      
+      if (sessionData?.messages && sessionData.messages.length > 0) {
+        console.log('📨 localStorage에서 메시지 로드:', sessionData.messages.length);
+        setMessages(sessionData.messages);
+      } else {
+        console.log('⚠️ localStorage에서 메시지 없음');
+        setMessages([]);
+      }
     }
 
-    // ✅ 4. 분석 결과 복원
+    // ✅ 4. 채팅 복원 (분석 결과 복원 로직과 동일)
     if (sessionData?.analysisResult) {
+      console.log('📊 분석 결과 복원 중');
       setAnalysisResult(sessionData.analysisResult);
       const parsed = parseAnalysisResponse(sessionData.analysisResult);
       setParsedData(parsed);
@@ -211,7 +247,7 @@ function ChatPage() {
     }
 
     setLoading(false);
-  }, [parseAnalysisResponse, chatId]);
+  }, [parseAnalysisResponse, chatId, isAuthenticated]);
 
   const updateChatSession = (newMessage, isUser = false) => {
     try {
@@ -630,8 +666,8 @@ function ChatPage() {
   };
 
   const handleKeyPress = (e) => {
-    console.log('handleKeyPress 호출됨!', e.key);
     if (e.key === 'Enter' && !e.shiftKey) {
+      console.log('handleKeyPress 호출됨!', e.key);
       e.preventDefault();
       handleSendClick();
     }
