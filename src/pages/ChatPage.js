@@ -846,7 +846,7 @@ function ChatPage() {
             width: '350px',
             zIndex: 1050,
             transform: showChatList ? 'translateX(0)' : 'translateX(-100%)',
-            transition: 'transform 0.3s ease-in-out'
+            transition: 'transform 0.5s ease-in-out'
           }}>
           <ChatList
             onSelectChat={handleSelectChat}
