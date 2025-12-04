@@ -9,7 +9,7 @@ function Footer({
   setText, 
   handleSendClick, 
   handleKeyPress, 
-  handleFileSelect, 
+  //handleFileSelect, 
   loading 
 }) {
   //const fileInputRef = useRef(null);

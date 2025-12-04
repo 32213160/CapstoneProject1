@@ -5,7 +5,7 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import ChatList from '../components/chat/ChatList';
 import ProfilePanel from '../components/layout/ProfilePanel';
-import { fetchChatMessages } from '../services/ChatService';
+import { fetchChatMessages, sendMessage } from '../services/ChatService';
 import { useAuth } from '../components/auth/AuthContext';
 import JsonViewer from '../components/common/JsonViewer/JsonViewer';
 import TextFormatter from '../components/common/TextFormatter/TextFormatter';
@@ -663,6 +663,31 @@ function ChatPage() {
     }
   };
 
+  const handleSendMessage = async (sessionId, message) => {
+    try {
+      console.log('📤 메시지 전송 시작');
+      
+      // 1. 사용자 메시지 표시
+      const userMessage = { text: message, isUser: true, ... };
+      setMessages(prev => [...prev, userMessage]);
+      
+      // 2. 로딩 상태
+      setLoading(true);
+      
+      // 3. ✅ sendMessage 호출 (여기서 사용!)
+      console.log('🔄 서버로 메시지 전송 중...');
+      const serverResponse = await sendMessage(sessionId, message);
+      
+      // 4. AI 응답 표시
+      const aiMessage = { text: serverResponse, isUser: false, ... };
+      setMessages(prev => [...prev, aiMessage]);
+      
+      console.log('✅ 메시지 전송 완료');
+    } catch (error) {
+      console.error('❌ 메시지 전송 실패:', error);
+    }
+  };
+
   const handleSelectChat = async (selectedChatId, sessionData) => {
     console.log("선택한 세션:", selectedChatId, sessionData);
     
@@ -888,6 +913,8 @@ function ChatPage() {
         handleKeyPress={handleKeyPress}
         handleFileSelect={handleFileSelect}
         loading={loading}
+        onSendMessage={handleSendMessage}
+        sessionId={chatId}
       />
     </div>
   );

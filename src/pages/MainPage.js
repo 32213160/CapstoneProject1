@@ -12,7 +12,7 @@ import { uploadAndAnalyzeFile } from '../services/ApiService';
 function MainPage() {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
-  const [setScanId] = useState(null);
+  const [scanId, setScanId] = useState(null);
   const [showChatList, setShowChatList] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const fileInputRef = useRef(null);
