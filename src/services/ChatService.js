@@ -180,3 +180,4 @@ class ChatService {
 
 export default ChatService;
 export const fetchChatMessages = ChatService.fetchChatMessages;
+export const sendMessage = ChatService.sendMessage;
