@@ -10,7 +10,7 @@ import { useAuth } from '../components/auth/AuthContext';
 import JsonViewer from '../components/common/JsonViewer/JsonViewer';
 import TextFormatter from '../components/common/TextFormatter/TextFormatter';
 import { uploadAndAnalyzeFile } from '../services/ApiService';
-import { parseMalwareAnalysisResponse, formatAnalysisMessage } from '../utils/parsers/MalwareAnalysisParser';
+import { parseMalwareAnalysisResponse } from '../utils/parsers/MalwareAnalysisParser';
 
 function ChatPage() {
   const location = useLocation();
