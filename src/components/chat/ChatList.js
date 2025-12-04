@@ -84,9 +84,9 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
   // 채팅 세션 삭제
   const handleDeleteSession = async (e, sessionId) => {
     e.stopPropagation();
-    
+
     if (deletingSessionId) return; // 중복 클릭 방지
-    
+
     if (!window.confirm('이 채팅을 삭제하시겠습니까?')) {
       return;
     }
@@ -97,16 +97,27 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
       if (isAuthenticated) {
         // 로그인 상태: 서버에 DELETE 요청
         const BASE_URL = 'https://torytestsv.kro.kr';
-        const response = await fetch(`${BASE_URL}/api/chats-of-user/session/${sessionId}`, {
-          method: 'DELETE',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        
+        console.log(`[DEBUG] DELETE 요청 시작: ${BASE_URL}/api/chats-of-user/session/${sessionId}`);
+
+        const response = await fetch(
+          `${BASE_URL}/api/chats-of-user/session/${sessionId}`,
+          {
+            method: 'DELETE',
+            credentials: 'include',
+            // ⚠️ CORS 프리플라이트 회피: 기본 헤더만 사용
+            headers: {
+              'Accept': 'application/json',
+            },
+          }
+        );
+
+        console.log(`[DEBUG] 응답 상태: ${response.status}`);
 
         if (!response.ok) {
-          throw new Error(`서버 응답 오류: ${response.status}`);
+          throw new Error(
+            `서버 응답 오류: ${response.status} ${response.statusText}`
+          );
         }
 
         console.log('[성공] 서버에서 세션 삭제 완료:', sessionId);
@@ -122,7 +133,9 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
       } else {
         // 비로그인 상태: 로컬스토리지에서 삭제
         console.log('[로컬스토리지] 비로그인 상태로 로컬에서 세션 삭제:', sessionId);
-        const updatedSessions = chatSessions.filter(session => session.id !== sessionId);
+        const updatedSessions = chatSessions.filter(
+          (session) => session.id !== sessionId
+        );
         localStorage.setItem('chatSessions', JSON.stringify(updatedSessions));
         setChatSessions(updatedSessions);
 
@@ -134,12 +147,12 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
       }
     } catch (error) {
       console.error('[오류] 세션 삭제 실패:', error);
-      
+
       // 재시도 확인
       const retry = window.confirm(
         '세션 삭제에 실패했습니다.\n다시 시도하시겠습니까?'
       );
-      
+
       if (retry) {
         setDeletingSessionId(null);
         handleDeleteSession(e, sessionId);
@@ -191,107 +204,102 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
 
   const groupedSessions = groupSessionsByDate(chatSessions);
 
+  // ▼ 여기부터 JSX (UI) 영역 ▼
   return (
     <div
+      className="chat-list-container"
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
         width: '100%',
-        height: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        maxWidth: '400px',
+        backgroundColor: '#ffffff',
+        borderRight: '1px solid #e0e0e0',
         display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1050
+        flexDirection: 'column',
+        height: '100%',
       }}
-      onClick={onClose}
     >
+      {/* 헤더 영역 */}
       <div
-        className="bg-white rounded shadow-lg"
-        style={{
-          width: '90%',
-          maxWidth: '500px',
-          maxHeight: '80vh',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-        onClick={(e) => e.stopPropagation()}
+        className="chat-list-header d-flex justify-content-between align-items-center p-3 border-bottom"
+        style={{ backgroundColor: '#f8f9fa' }}
       >
-        {/* 헤더 */}
-        <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
-          <h5 className="mb-0">채팅 목록</h5>
-          <Button
-            variant="link"
-            onClick={onClose}
-            className="text-dark p-0"
-            style={{ fontSize: '1.5rem' }}
-          >
-            <FaTimes />
-          </Button>
-        </div>
+        <h5 className="mb-0">채팅 목록</h5>
+        <Button
+          variant="outline-secondary"
+          size="sm"
+          onClick={onClose}
+          className="d-flex align-items-center"
+        >
+          <FaTimes className="me-1" />
+          닫기
+        </Button>
+      </div>
 
-        {/* 본문 */}
-        <div style={{ overflowY: 'auto', flex: 1 }} className="p-3">
-          {chatSessions.length === 0 ? (
-            <p className="text-center text-muted">저장된 채팅이 없습니다.</p>
-          ) : (
-            Object.entries(groupedSessions).map(([group, sessions]) =>
-              sessions.length > 0 ? (
-                <div key={group} className="mb-3">
-                  <h6 className="text-muted mb-2">{group}</h6>
-                  <ListGroup>
-                    {sessions.map((session) => (
-                      <ListGroup.Item
-                        key={session.id || session.chatId}
-                        action
-                        onClick={() => handleSelectChat(session)}
-                        className="d-flex justify-content-between align-items-center"
-                        style={{
-                          cursor: 'pointer',
-                          backgroundColor:
-                            session.chatId === currentChatId ? '#e3f2fd' : 'white'
-                        }}
-                      >
-                        <div className="d-flex align-items-center" style={{ flex: 1 }}>
-                          {session.fileName ? (
-                            <FaFile className="me-2 text-primary" />
-                          ) : (
-                            <FaComment className="me-2 text-secondary" />
-                          )}
-                          <div style={{ flex: 1 }}>
-                            <div className="fw-bold text-truncate">
-                              {generateTitle(session)}
-                            </div>
-                            <small className="text-muted">
-                              {formatTime(session.lastUpdated)}
-                            </small>
+      {/* 내용 영역 */}
+      <div
+        className="chat-list-content"
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '0.75rem',
+        }}
+      >
+        {chatSessions.length === 0 ? (
+          <div className="text-center text-muted mt-3">
+            저장된 채팅이 없습니다.
+          </div>
+        ) : (
+          Object.entries(groupedSessions).map(([group, sessions]) =>
+            sessions.length > 0 ? (
+              <div key={group} className="mb-3">
+                {/* 그룹 제목 */}
+                <div className="d-flex align-items-center mb-2">
+                  <h6 className="mb-0 me-2">{group}</h6>
+                  <Badge bg="secondary" pill>
+                    {sessions.length}
+                  </Badge>
+                </div>
+
+                {/* 세션 리스트 */}
+                <ListGroup>
+                  {sessions.map((session) => (
+                    <ListGroup.Item
+                      key={session.id}
+                      action
+                      onClick={() => handleSelectChat(session)}
+                      className="d-flex justify-content-between align-items-center"
+                    >
+                      <div className="d-flex align-items-center">
+                        {/* 아이콘: 파일/일반 채팅 구분 */}
+                        <span className="me-2">
+                          {session.fileName ? <FaFile /> : <FaComment />}
+                        </span>
+                        <div>
+                          <div className="fw-bold">
+                            {generateTitle(session)}
+                          </div>
+                          <div className="text-muted small">
+                            {formatTime(session.lastUpdated)}
                           </div>
                         </div>
-                        <div className="d-flex align-items-center">
-                          {session.messageCount > 0 && (
-                            <Badge bg="secondary" className="me-2">
-                              {session.messageCount}
-                            </Badge>
-                          )}
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="text-danger p-0"
-                            onClick={(e) => handleDeleteSession(e, session.id || session.chatId)}
-                            disabled={deletingSessionId === (session.id || session.chatId)}
-                          >
-                            <FaTimes />
-                          </Button>
-                        </div>
-                      </ListGroup.Item>
-                    ))}
-                  </ListGroup>
-                </div>
-              ) : null
-            )
-          )}
-        </div>
+                      </div>
+
+                      {/* 삭제 버튼 */}
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={(e) => handleDeleteSession(e, session.id)}
+                        disabled={deletingSessionId === session.id}
+                      >
+                        {deletingSessionId === session.id ? '삭제 중...' : '삭제'}
+                      </Button>
+                    </ListGroup.Item>
+                  ))}
+                </ListGroup>
+              </div>
+            ) : null
+          )
+        )}
       </div>
     </div>
   );
