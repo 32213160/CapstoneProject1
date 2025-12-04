@@ -52,7 +52,10 @@ function ChatPage() {
 
   const handleStartNewChat = () => {
     const newChatId = generateRandomChatId();
-    console.log('새 채팅 시작:', newChatId);
+    console.log('새 채팅 시작 - 파일 첨부 화면으로 돌아옴');
+    // 추후 ChatPage 양식에서 빈 화면을 만들어 바로 파일 전송 및
+    // response를 이용해 URL이 실시간으로 변경되도록 바꾸기
+    // 이때 footer의 file icon 활성화, 채팅 시에는 비활성화
     navigate(`/chat/${newChatId}`);
   };
 
@@ -821,8 +824,8 @@ function ChatPage() {
           {/* 스크롤바 영역 - px 여백 없음 */}
           <div className="flex-grow-1 overflow-auto">
             {/* 채팅 내용 영역 - px 여백 적용 */}
-            <div className="py-3 mx-3 mx-md-3 mx-lg-4 mx-xl-5">
-              <div className="px-3 px-md-3 px-lg-4 px-xl-3">
+            <div className="py-2 mx-3 mx-md-3 mx-lg-4 mx-xl-5">
+              <div className="px-3 px-lg-4">
                 {messages.map((message, index) => (
                   <div key={index} className={`message-wrapper mb-3 ${message.isUser ? 'text-end' : 'text-start'}`}>
                     <div className={`message-bubble d-inline-block px-3 py-2 ${

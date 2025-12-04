@@ -22,19 +22,19 @@ function Footer({
   };
 
   return (
-    <div className="footer-container fixed-bottom shadow-lg">
-      <div className="container-fluid px-3 px-md-3 px-lg-4 px-xl-5 py-3" style={{
-        backgroundImage: 'linear-gradient(to top, rgba(255,255,255,1) 90%, rgba(255,255,255,0.9) 100%)',
-      }}>
+    <div className="footer-container fixed-bottom">
+      <div className="container-fluid px-3 py-4 px-md-3 px-lg-4 px-xl-5">
         <div className="d-flex align-items-center">
           {/* 왼쪽: 파일 첨부 버튼 - 불필요한 여백 제거 */}
+          {/*
+          // 파일 첨부 버튼 비활성화
+          //  추후 ChatPage 양식에서 빈 화면을 만들어 바로 파일 전송 및
+          //  response를 이용해 URL이 실시간으로 변경되도록 바꾸기
+          //  이때 footer의 file icon 활성화, 채팅 시에는 비활성화
           <button 
             className="btn btn-link text-dark border-0 p-2 me-2" 
-            // 파일 첨부 버튼 비활성화
-            /*
-            onClick={handleFileButtonClick}
-            disabled={loading}
-            */
+              onClick={handleFileButtonClick}
+              disabled={loading}
           >
             <FaPaperclip size={20} />
           </button>
@@ -46,11 +46,12 @@ function Footer({
             onChange={handleFileChange} 
             accept=".apk,.jar,.zip,.exe,.dll,.pdf"
           />
+          */}
           
           {/* 중앙: 텍스트 입력 영역 - 양쪽 마진 제거 */}
           <div className="flex-grow-1">
             <textarea
-              className="form-control border-0 shadow-sm"
+              className="form-control border-0 shadow"
               placeholder="질문을 입력하세요..."
               value={text}
               onChange={(e) => setText(e.target.value)}
