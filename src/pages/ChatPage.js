@@ -247,6 +247,14 @@ function ChatPage() {
     }
 
     setLoading(false);
+  
+    // ✅ 추가: 메시지 로드 후 스크롤
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: "smooth",
+        block: "end" 
+      });
+    }, 200);
   }, [parseAnalysisResponse, chatId, isAuthenticated]);
 
   const updateChatSession = (newMessage, isUser = false) => {
@@ -563,7 +571,16 @@ function ChatPage() {
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // DOM 업데이트 후 스크롤 실행
+    const scrollTimeout = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: "smooth",
+        block: "end",
+        inline: "nearest"
+      });
+    }, 100); // 100ms 지연
+
+    return () => clearTimeout(scrollTimeout);
   }, [messages]);
 
   /*const handleFileSelect = (file) => {
@@ -881,7 +898,7 @@ function ChatPage() {
         />
       )}
 
-      {/* 메시지 영역 - 구조 단순화 */}
+      {/* 메시지 영역 */}
       <div className="flex-grow-1 overflow-auto d-flex justify-content-center"
         style={{
           paddingTop: '10vh',   // Header 높이
