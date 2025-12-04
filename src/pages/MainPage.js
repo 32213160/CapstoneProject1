@@ -241,7 +241,7 @@ function MainPage() {
 
   // 로고 클릭 - 미사용
   const handleLogoClick = () => {
-    window.location.href = 'http://localhost:3000/';
+    window.location.href = 'https://mango-beach-064c5c800.3.azurestaticapps.net/';
   };
 
   // 메뉴 버튼 클릭 핸들러

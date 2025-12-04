@@ -1,6 +1,6 @@
 // src/services/ApiService.js
 
-const API_BASE_URL = 'http://74.227.130.20:8080';
+const API_BASE_URL = 'https://torytestsv.kro.kr';
 
 // 서버 연결 상태 확인
 export const checkServerStatus = async () => {
