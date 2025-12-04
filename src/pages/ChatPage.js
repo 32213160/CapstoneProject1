@@ -364,7 +364,7 @@ function ChatPage() {
         let aiResponseText = '';
         
         if (preGeneratedReport && preGeneratedReport.trim()) {
-          // MainPage에서 미리 생성된 report 사용
+          // MainPage에서 미리 생성된 report 사용 (report만 추출)
           aiResponseText = preGeneratedReport;
           console.log('미리 생성된 리포트 사용');
         } else {
@@ -372,26 +372,21 @@ function ChatPage() {
           try {
             const parsed = parseMalwareAnalysisResponse(result);
             console.log('parseMalwareAnalysisResponse 결과:', parsed);
-
             const internalParsed = parseAnalysisResponse(result);
             setParsedData(internalParsed);
             setSessionParsedData(internalParsed);
             setAnalysisResult(result);
-
-            const llmReport = parsed?.analysisResult.reportfromLLM.report;
+            
+            // ✅ report만 추출
+            const llmReport = internalParsed?.llmReport || parsed?.analysisResult?.reportfromLLM?.report;
             if (llmReport && llmReport.trim()) {
-              aiResponseText = llmReport;
+              aiResponseText = llmReport;  // ← report만 사용
             } else {
-              const formattedMsg = formatAnalysisMessage(parsed);
-              if (formattedMsg && formattedMsg !== '분석 결과를 파싱할 수 없습니다.') {
-                aiResponseText = formattedMsg;
-              } else {
-                aiResponseText = `파일 분석이 완료되었습니다.\n\n파싱 결과:\n${JSON.stringify(internalParsed, null, 2)}`;
-              }
+              aiResponseText = '파일 분석이 완료되었습니다. 분석 결과를 확인하려면 질문해주세요.';
             }
           } catch (error) {
             console.error('파싱 오류:', error);
-            aiResponseText = `파일 분석이 완료되었습니다.\n\n원본 결과:\n${JSON.stringify(result, null, 2)}`;
+            aiResponseText = '파일 분석이 완료되었습니다. 분석 결과를 확인하려면 질문해주세요.';
           }
         }
 
@@ -457,23 +452,18 @@ function ChatPage() {
           setParsedData(parsed);
           setSessionParsedData(parsed);
           setAnalysisResult(existingResult);
-
           let aiResponseText = '';
           try {
-            const llmReport = parsed?.llmReport || parsed?.llmAnalysis?.report;
-            if (llmReport) {
-              aiResponseText = llmReport;
+            // ✅ report만 추출
+            const llmReport = parsed?.llmReport;
+            if (llmReport && llmReport.trim()) {
+              aiResponseText = llmReport;  // ← report만 사용
             } else {
-              const formattedMsg = formatAnalysisMessage(parsed);
-              if (formattedMsg && formattedMsg !== '분석 결과를 파싱할 수 없습니다.') {
-                aiResponseText = formattedMsg;
-              } else {
-                aiResponseText = `파일 분석이 완료되었습니다.\n\n파싱 결과:\n${JSON.stringify(parsed, null, 2)}`;
-              }
+              aiResponseText = '파일 분석이 완료되었습니다. 분석 결과를 확인하려면 질문해주세요.';
             }
           } catch (error) {
             console.error('AI 메시지 생성 오류:', error);
-            aiResponseText = `파일 분석이 완료되었습니다.\n\n원본 결과:\n${JSON.stringify(existingResult, null, 2)}`;
+            aiResponseText = '파일 분석이 완료되었습니다. 분석 결과를 확인하려면 질문해주세요.';
           }
 
           if (!aiResponseText || aiResponseText.trim() === '') {
