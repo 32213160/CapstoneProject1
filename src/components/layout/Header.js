@@ -2,7 +2,7 @@
 
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { FaBars, FaUserCircle, FaPlus } from 'react-icons/fa';
+import { FaBars, FaUserCircle, /*FaPlus*/ } from 'react-icons/fa';
 
 function Header({ title = null, onMenuClick, onProfileClick, onLogoClick, onStartNewChat, className, style }) {
   return (
@@ -23,7 +23,7 @@ function Header({ title = null, onMenuClick, onProfileClick, onLogoClick, onStar
         </button>
       </div>
 
-      {/* 새 채팅 버튼 */}
+      {/* 새 채팅 버튼 
       <div
         className="d-flex align-items-center justify-content-center gap-3 px-3"
         style={{ height: '100%' }}
@@ -38,7 +38,7 @@ function Header({ title = null, onMenuClick, onProfileClick, onLogoClick, onStar
             <span style={{ lineHeight: 1 }}>새 채팅</span>
           </button>
         )}
-      </div>
+      </div>*/}
 
       {/* 오른쪽: 프로필 버튼 */}
       <div

@@ -3,11 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ListGroup, Button, Badge } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { FaTimes, FaFile, FaComment } from 'react-icons/fa';
+import { FaTimes, FaFile, FaComment, FaPlus } from 'react-icons/fa';
 import ChatService from '../../services/ChatService';
 import { useAuth } from '../auth/AuthContext';
 
-function ChatList({ onSelectChat, onClose, currentChatId }) {
+function ChatList({ onSelectChat, onClose, currentChatId, onNewChat }) {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [chatSessions, setChatSessions] = useState([]);
@@ -209,6 +209,12 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
           sessionId === currentChatId;
   };
 
+  // 파일 업로드 버튼 핸들러
+  const handleFileUpload = () => {
+    navigate('/'); // 메인페이지로 이동
+    onClose(); // 사이드바 닫기
+  };
+
   const groupedSessions = groupSessionsByDate(chatSessions);
 
 
@@ -234,6 +240,18 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
           style={{ fontSize: '20px' }}
         >
           <FaTimes />
+        </Button>
+      </div>
+
+      {/* ✅ 파일 업로드 버튼 - 채팅목록과 날짜 칸 사이 */}
+      <div className="px-3 py-1"> {/* ✅ py-1 추가 */}
+        <Button
+          variant="light"
+          className="w-100 d-flex align-items-center justify-content-center"
+          onClick={handleFileUpload}
+        >
+          <FaPlus className="me-2" />
+          파일 업로드
         </Button>
       </div>
 
@@ -296,16 +314,16 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                             >
                               {generateTitle(session)}
                             </h6>
-                            {/*<div className="mb-0">
+                            <div className="mb-0">
                               <small className={isCurrentSession(session.chatId) ? 'text-white-50' : 'text-muted'}>
                                 {formatTime(session.lastUpdated)}
                               </small>
-                            </div>*/}
+                            </div>
                           </div>
                         </div>
                         {/* 삭제 버튼 */}
                         <Button
-                          variant={isCurrentSession(session.chatId) ? 'light' : 'outline-danger'}
+                          variant={isCurrentSession(session.chatId) ? 'outline-light' : 'outline-danger'}
                           size="sm"
                           onClick={(e) => handleDeleteSession(e, session.id)}
                           disabled={deletingSessionId === session.id}

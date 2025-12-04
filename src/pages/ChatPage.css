@@ -35,7 +35,7 @@
   border-radius: 18px;
   word-wrap: break-word;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  transition: all 0.5s ease;
 }
 
 /* 라이트 모드 (기본 설정) */
@@ -114,6 +114,20 @@
 
 .chat-message-bubble--user code {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* 메시지 컨테이너에 padding-bottom 추가 */
+.chat-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 100px; /* ✅ Footer 높이만큼 여백 */
+  background-color: #f5f5f5;
+}
+
+/* 스크롤 앵커용 div */
+.messages-end-anchor {
+  height: 20px; /* ✅ 추가 여백 */
+  margin-bottom: 20px;
 }
 
 /* 다크 모드는 사용자가 명시적으로 설정했을 때만 적용 */

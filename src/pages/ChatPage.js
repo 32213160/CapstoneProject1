@@ -233,12 +233,25 @@ function ChatPage() {
                 try {
                   const parsedContent = JSON.parse(msg.content);
                   const reportContent = parsedContent?.analysisResult?.reportfromLLM?.report || msg.content;
-                  return {
+              
+                  // ✅ 파일명 메시지 추가
+                  const fileName = sessionData?.fileName || parsedContent?.fileName || '파일';
+                  const fileMessage = {
+                    text: fileName,
+                    isUser: true,
+                    file: fileName,
+                    timestamp: msg.timestamp || new Date().toISOString()
+                  };
+                  
+                  // ✅ AI 응답 메시지
+                  const aiMessage = {
                     text: reportContent,
                     isUser: false,
                     timestamp: msg.timestamp || new Date().toISOString(),
                     file: null
                   };
+                  
+                  return [fileMessage, aiMessage];
                 } catch (error) {
                   console.error('System 메시지 파싱 오류:', error);
                   return {
@@ -252,14 +265,13 @@ function ChatPage() {
               
               // ✅ sender 기반 isUser 설정
               const isUser = msg.sender === 'user';
-              
               return {
                 text: msg.content || msg.text,
                 isUser: isUser,
                 timestamp: msg.timestamp || new Date().toISOString(),
                 file: msg.file || null
               };
-            });
+            }).flat(); // flat()으로 배열 평탄화
 
             setMessages(formattedMessages);
             
@@ -459,7 +471,7 @@ function ChatPage() {
     return variableMap.hasOwnProperty(variableName) ? variableMap[variableName] ?? null : null;
   };
 
-  // **수정된 chatId 변경 useEffect - MainPage에서 넘어온 데이터 처리 통합**
+  // MainPage에서 넘어온 데이터 처리 통합
   useEffect(() => {
     const analyzeInitialFile = async () => {
       console.log('=== ChatPage 초기화 시작 ===');
@@ -703,15 +715,27 @@ function ChatPage() {
   }, []);
 
   useEffect(() => {
-    // DOM 업데이트 후 스크롤 실행
+    // ✅ DOM 업데이트 후 스크롤을 완전히 맨 밑까지 실행
     const scrollTimeout = setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ 
-        behavior: "smooth",
-        block: "end",
-        inline: "nearest"
-      });
-    }, 100); // 100ms 지연
-
+      if (messagesEndRef.current) {
+        // 방법 1: scrollIntoView 사용
+        messagesEndRef.current.scrollIntoView({ 
+          behavior: "smooth",
+          block: "end",      // ✅ 완전히 맨 밑으로
+          inline: "nearest"
+        });
+        
+        // 방법 2: 추가 보정 (혹시 scrollIntoView가 완벽하지 않을 경우)
+        // 부모 스크롤 컨테이너를 찾아서 scrollTop을 최대값으로 설정
+        setTimeout(() => {
+          const scrollContainer = messagesEndRef.current?.closest('.overflow-auto');
+          if (scrollContainer) {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+          }
+        }, 200); // smooth 애니메이션 후 보정
+      }
+    }, 100);
+    
     return () => clearTimeout(scrollTimeout);
   }, [messages]);
 
@@ -1073,7 +1097,7 @@ function ChatPage() {
       <div className="flex-grow-1 overflow-auto d-flex justify-content-center"
         style={{
           paddingTop: '10vh',   // Header 높이
-          marginBottom: '8vh',  // Footer 높이
+          paddingBottom: '8vh', // Footer 높이
         }}>
         {/* 단순화된 구조 */}
         <div className="w-100 h-100 d-flex flex-column">
