@@ -65,7 +65,7 @@ function MainPage() {
 
     try {
       // response에서 _id 추출
-      const responseId = result?.reportfromVT?._id || result?._id || Date.now().toString();
+      const responseId = result?.sessionId || result?.reportfromVT?._id || result?._id || Date.now().toString();
       console.log('추출된 _id:', responseId);
       setScanId(responseId);
 
