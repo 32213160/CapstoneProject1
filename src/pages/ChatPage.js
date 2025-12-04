@@ -754,26 +754,41 @@ function ChatPage() {
   const handleSendMessage = async (sessionId, message) => {
     try {
       console.log('📤 메시지 전송 시작');
-
+      
       // 1. 사용자 메시지 표시
-      const userMessage = { text: message, isUser: true, };
+      const userMessage = {
+        text: message,
+        isUser: true,
+        timestamp: new Date().toISOString()
+      };
       setMessages(prev => [...prev, userMessage]);
-
+      
       // 2. 로딩 상태
       setLoading(true);
-
-      // 3. ✅ sendMessage 호출 (여기서 사용!)
+      
+      // 3. 서버로 메시지 전송
       console.log('🔄 서버로 메시지 전송 중...');
       const serverResponse = await sendMessage(sessionId, message);
-
+      
+      // ✅ 응답 텍스트 추출 (여러 키 확인)
       let responseText = '';
-
       if (typeof serverResponse === 'object') {
-        responseText = serverResponse?.response || serverResponse?.message || '';
+        responseText = 
+          serverResponse?.answer || 
+          serverResponse?.response || 
+          serverResponse?.['response: '] ||  // ✅ 공백 포함된 키
+          serverResponse?.['response:'] ||
+          serverResponse?.message || 
+          '';
       } else if (typeof serverResponse === 'string') {
         responseText = serverResponse;
       }
-
+      
+      if (!responseText || responseText.trim() === '') {
+        console.error('❌ 응답 텍스트 없음. 서버 응답:', serverResponse);
+        throw new Error('서버로부터 유효한 응답을 받지 못했습니다.');
+      }
+      
       // 4. AI 응답 표시
       const aiMessage = {
         text: responseText,
@@ -781,16 +796,14 @@ function ChatPage() {
         timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, aiMessage]);
-
+      
       console.log('✅ 메시지 전송 완료');
     } catch (error) {
       console.error('❌ 메시지 전송 실패:', error);
-
-      // ✅ 사용자 alert
       alert('메시지 전송에 실패했습니다.');
     } finally {
       setLoading(false);
-    };
+    }
   };
 
   const handleSelectChat = async (selectedChatId, sessionData) => {

@@ -128,16 +128,22 @@ class ChatService {
   static async sendMessage(chatId, message) {
     try {
       console.log('ChatService: 메시지 전송 시작', { chatId, message });
-      
       const response = await sendChatMessage(chatId, message);
-
-      // 응답 처리
-      const responseText = response?.answer || response?.response || response?.message;
       
-      if (!responseText) {
+      // ✅ 서버 응답 처리 - 여러 가능한 키 확인
+      const responseText = 
+        response?.answer || 
+        response?.response || 
+        response?.['response: '] ||  // ✅ 공백 포함된 키 추가
+        response?.['response:'] ||   // ✅ 공백 없는 버전도 대비
+        response?.message ||
+        '';
+      
+      if (!responseText || responseText.trim() === '') {
+        console.error('ChatService: 응답 데이터 구조:', response);
         throw new Error('서버로부터 응답을 받지 못했습니다.');
       }
-
+      
       console.log('ChatService: 메시지 전송 완료', responseText);
       return responseText;
     } catch (error) {
