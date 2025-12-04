@@ -127,22 +127,27 @@ export const fetchScanResultById = async (id) => {
 export const sendChatMessage = async (id, message) => {
   try {
     console.log('채팅 메시지 전송:', { id, message });
-    const url = `${API_BASE_URL}/api/chat?id=${encodeURIComponent(id)}&message=${encodeURIComponent(message)}`;
+    
+    // ✅ URL에서 쿼리 파라미터 제거하고 body만 사용
+    const url = `${API_BASE_URL}/api/chat`;
+    
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded', // ✅ 올바른 Content-Type
       },
+      credentials: 'include', // ✅ 쿠키 포함
       body: new URLSearchParams({
-        sessionId: id,
+        sessionId: id, // ✅ sessionId로 전송
         message: message,
       })
     });
-
+    
     console.log('채팅 서버 응답 상태:', response.status, response.statusText);
+    
     const responseText = await response.text();
     console.log('채팅 서버 응답 내용:', responseText);
-
+    
     if (!response.ok) {
       let errorMessage = `서버 오류 (${response.status}): ${response.statusText}`;
       try {
@@ -159,7 +164,7 @@ export const sendChatMessage = async (id, message) => {
       }
       throw new Error(errorMessage);
     }
-
+    
     try {
       const jsonData = JSON.parse(responseText);
       console.log("채팅 응답 데이터:", jsonData);
@@ -168,6 +173,7 @@ export const sendChatMessage = async (id, message) => {
       console.error('채팅 응답 JSON 파싱 오류:', parseError);
       throw new Error(`응답 데이터 파싱 오류: ${parseError.message}`);
     }
+    
   } catch (error) {
     console.error('채팅 메시지 전송 실패:', error);
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
