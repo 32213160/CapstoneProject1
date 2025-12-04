@@ -204,82 +204,89 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
 
   const groupedSessions = groupSessionsByDate(chatSessions);
 
-  // ▼ 여기부터 JSX (UI) 영역 ▼
+
+  /* ====================  UI  ==================== */
   return (
     <div
-      className="chat-list-container"
+      className="chat-list-container position-fixed top-0 start-0 h-100 bg-light shadow-lg"
       style={{
-        width: '100%',
-        maxWidth: '400px',
-        backgroundColor: '#ffffff',
-        borderRight: '1px solid #e0e0e0',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
+        width: '350px', 
+        zIndex: 1000, 
+        overflowY: 'auto',
+        transform: 'translateX(0)',
+        transition: 'transform 0.3s ease'
       }}
     >
       {/* 헤더 영역 */}
-      <div
-        className="chat-list-header d-flex justify-content-between align-items-center p-3 border-bottom"
-        style={{ backgroundColor: '#f8f9fa' }}
-      >
-        <h5 className="mb-0">채팅 목록</h5>
+      <div className="chat-list-header d-flex justify-content-between align-items-center p-4 bg-primary text-white">
+        <h5 className="mb-0 fw-bold">채팅 목록</h5>
         <Button
-          variant="outline-secondary"
-          size="sm"
+          variant="link"  // ??
+          className="text-white p-0 border-0"
           onClick={onClose}
-          className="d-flex align-items-center"
+          style={{ fontSize: '20px' }}
         >
-          <FaTimes className="me-1" />
-          닫기
+          <FaTimes />
         </Button>
       </div>
 
-      {/* 내용 영역 */}
-      <div
-        className="chat-list-content"
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '0.75rem',
-        }}
-      >
+      {/* 채팅 목록 */}
+      <div className="chat-list-content p-0">
         {chatSessions.length === 0 ? (
-          <div className="text-center text-muted mt-3">
-            저장된 채팅이 없습니다.
+          <div className="text-center text-muted p-4">
+            <FaComment size={48} className="mb-3 opacity-50" />
+            <p>저장된 채팅이 없습니다.</p>
           </div>
         ) : (
           Object.entries(groupedSessions).map(([group, sessions]) =>
             sessions.length > 0 ? (
               <div key={group} className="mb-3">
                 {/* 그룹 제목 */}
-                <div className="d-flex align-items-center mb-2">
-                  <h6 className="mb-0 me-2">{group}</h6>
+                <div className="bg-secondary bg-opacity-10 px-3 py-2 rounded">
+                  <small className="fw-bold text-muted">{Group}</small>
                   <Badge bg="secondary" pill>
                     {sessions.length}
                   </Badge>
                 </div>
 
-                {/* 세션 리스트 */}
-                <ListGroup>
+                {/* 채팅 세션 목록 */}
+                <ListGroup variant="flush">
                   {sessions.map((session) => (
                     <ListGroup.Item
+                      as="div"
                       key={session.id}
                       action
                       onClick={() => handleSelectChat(session)}
-                      className="d-flex justify-content-between align-items-center"
+                      active={session.sessionId === currentChatId}
+                      style={{
+                        cursor: 'pointer',
+                        marginBottom: '4px',
+                        borderRadius: '8px',
+                        border: '1px solid #e2e8f0'
+                      }}
+                      className="chat-list-item list-group-item-action p-3"
                     >
-                      <div className="d-flex align-items-center">
+                      <div className="d-flex w-100">
                         {/* 아이콘: 파일/일반 채팅 구분 */}
                         <span className="me-2">
                           {session.fileName ? <FaFile /> : <FaComment />}
                         </span>
+                        {/* 세션 제목, 타임스탬프 */}
                         <div>
-                          <div className="fw-bold">
+                          <h6
+                            className="mb-0"
+                            style={{
+                              fontSize: '14px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}
+                            title={generateTitle(session, 100)}
+                          >
                             {generateTitle(session)}
-                          </div>
-                          <div className="text-muted small">
-                            {formatTime(session.lastUpdated)}
+                          </h6>
+                          <div className="mb-0">
+                            <small className="text-muted">{formatTime(session.lastUpdated)}</small>
                           </div>
                         </div>
                       </div>
@@ -290,9 +297,11 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                         size="sm"
                         onClick={(e) => handleDeleteSession(e, session.id)}
                         disabled={deletingSessionId === session.id}
+                        className="border-0"
+                        style={{ fontSize: '12px' }}
                       >
-                        {deletingSessionId === session.id ? '삭제 중...' : '삭제'}
-                      </Button>
+                        <FaTimes />{deletingSessionId === session.id ? '삭제 중...' : ''}
+                      </Button> 
                     </ListGroup.Item>
                   ))}
                 </ListGroup>
