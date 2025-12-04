@@ -1,7 +1,8 @@
 // src/components/Main/Footer.js
-import React, { useRef } from 'react';
+//import React, { useRef } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { FaPaperPlane, FaPaperclip } from 'react-icons/fa';
+import { FaPaperPlane } from 'react-icons/fa';
+//import { FaPaperPlane, FaPaperclip } from 'react-icons/fa';
 
 function Footer({ 
   text, 
@@ -11,7 +12,7 @@ function Footer({
   handleFileSelect, 
   loading 
 }) {
-  const fileInputRef = useRef(null);
+  //const fileInputRef = useRef(null);
 
   // 파일 선택 핸들러
   const handleFileChange = (e) => {
