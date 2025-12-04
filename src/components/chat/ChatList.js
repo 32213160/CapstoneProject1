@@ -289,19 +289,18 @@ function ChatList({ onSelectChat, onClose, currentChatId }) {
                             <small className="text-muted">{formatTime(session.lastUpdated)}</small>
                           </div>
                         </div>
-                      </div>
-
-                      {/* 삭제 버튼 */}
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={(e) => handleDeleteSession(e, session.id)}
-                        disabled={deletingSessionId === session.id}
-                        className="border-0"
-                        style={{ fontSize: '12px' }}
-                      >
-                        <FaTimes />{deletingSessionId === session.id ? '삭제 중...' : ''}
-                      </Button> 
+                        {/* 삭제 버튼 */}
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={(e) => handleDeleteSession(e, session.id)}
+                          disabled={deletingSessionId === session.id}
+                          className="border-0"
+                          style={{ fontSize: '12px' }}
+                        >
+                          <FaTimes />{deletingSessionId === session.id ? '삭제 중...' : ''}
+                        </Button>
+                      </div> 
                     </ListGroup.Item>
                   ))}
                 </ListGroup>
