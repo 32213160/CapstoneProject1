@@ -1,6 +1,6 @@
 // src/components/FileHandler/FileUpload.js
 import React, { useRef, useState } from 'react';
-import { uploadAndAnalyzeFile } from '../../../services/ApiService.js';
+import { uploadAndAnalyzeFile } from '../../services/ApiService.js';
 
 function FileUpload({ onUploadComplete, onUploadStart, buttonText }) {
   const fileInputRef = useRef(null);
